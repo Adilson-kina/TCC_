@@ -37,7 +37,7 @@ Repositório do projeto de TCC
 
     * Passo 6.2: Para requisições do tipo **"POST"**, *coloque as informações do usuário no corpo do JSON*** <br> <img src = "img/Passo7.jpg"> <br> ```COLE O CÓDIGO: {"nome": "Seu Nome", "email": "seuemail@email.com", "senha": "sua_senha"}```
 
-    * Passo 6.3: Para requisições do tipo **"DELETE"**, *informe o **ID do usuário a ser deletado*** <br> <img src = "img/Passo8.jpg"> <br> ```COLE O CÓDIGO: {"id": 1}```
+    * Passo 6.3: Para requisições do tipo **"DELETE"**, *informe o **ID do usuário a ser deletado*** <br> <img src = "img/Passo8.jpg"> <br> ```COLE O CÓDIGO: {"id": 1, "senha": "sua_senha"}```
 
 ## 🙋 Autores
 | [<img loading="lazy" src="https://avatars.githubusercontent.com/u/136634888?v=4" width=80 alt = "Ícone da Foto de Perfil"> <br> <sub> Gabriel Possato </sub>](https://github.com/possatogabriel) | [<img loading="lazy" src="https://avatars.githubusercontent.com/u/134547014?v=4" width=80><br><sub> Adilson Kina </sub>](https://github.com/Adilson-kina) | [<img loading="lazy" src="https://avatars.githubusercontent.com/u/146140027?v=4" width=80 alt = "Ícone da Foto de Perfil"> <br> <sub> Paulo </sub>](https://github.com/Paulinho598) |

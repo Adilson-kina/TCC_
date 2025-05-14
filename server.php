@@ -34,21 +34,29 @@ if ($requestMethod === "POST") {
 else if ($requestMethod === "DELETE") {
     $data = json_decode(file_get_contents("php://input"), true);
 
-    if (!empty($data["id"])) {
+    if (!empty($data["id"]) && !empty($data["senha"])) {
         try {
-            $stmt = $pdo->prepare("UPDATE usuarios SET ativo = 'false' WHERE id = :id");
+            $stmt = $pdo->prepare("SELECT senha FROM usuarios WHERE id = :id"); // Busca a senha armazenada no banco
             $stmt->bindParam(":id", $data["id"], PDO::PARAM_INT); // "bindParam" previne SQL Injection ligando o valor a um placeholder e "PARAM_INT" define que o valor passado é um inteiro
+            $stmt->execute();
+            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($stmt->execute()) {
-                echo json_encode(["mensagem" => "Usuário deletado com sucesso!", "id" => $data["id"]]);
+            if ($usuario && password_verify($data["senha"], $usuario["senha"])) {
+                $stmt = $pdo->prepare("UPDATE usuarios SET ativo = 'false' WHERE id = :id"); // Com uma senha correta, a conta é desativada
+                $stmt->bindParam(":id", $data["id"], PDO::PARAM_INT);
+                if ($stmt->execute()) {
+                    echo json_encode(["mensagem" => "Usuário desativado com sucesso!"]);
+                } else {
+                    echo json_encode(["erro" => "Erro ao atualizar status"]);
+                }
             } else {
-                echo json_encode(["erro" => "Erro ao atualizar o status do usuário"]);
+                echo json_encode(["erro" => "Senha incorreta"]);
             }
         } catch (PDOException $e) {
             echo json_encode(["erro" => "Erro: " . $e->getMessage()]);
         }
     } else {
-        echo json_encode(["erro" => "ID do usuário não fornecido"]);
+        echo json_encode(["erro" => "ID e senha são obrigatórios"]);
     }
 }
 
