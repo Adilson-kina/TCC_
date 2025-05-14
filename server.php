@@ -1,113 +1,107 @@
 <?php
-header("Content-Type: application/json"); // Isso aqui define a resposta da requisição como JSON
 
-$pdo = new PDO("mysql:host=localhost;dbname=tcc_db", "root", "root"); // Configuração do banco de dados (DEIXA A SENHA EM BRANCO)
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // "ATTR_ERRMODE" define o modo de tratamento de erros e "ERRMODE_EXCEPTION" faz com que qualquer erro na execução da query gere uma exceção (Exception), que pode ser capturada e tratada
+// Exibir erros no PHP para depuração
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-$requestMethod = $_SERVER["REQUEST_METHOD"]; // É usado para retornar o tipo de requisição
+// Configurações de CORS
+header("Content-Type: application/json");
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
-if ($requestMethod === "POST") {
-    $data = json_decode(file_get_contents("php://input"), true); // O "file_get_contents" lê o corpo da requisição
+// Responder requisições OPTIONS (preflight)
+if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
+    header("HTTP/1.1 200 OK");
+    exit();
+}
 
-    if (!empty($data["nome"]) && !empty($data["email"]) && !empty($data["senha"])) { // Verifica se os campos não estão vazios
-        try {
-            $senhaHash = password_hash($data["senha"], PASSWORD_DEFAULT); // Gera senha em hash
+// Definir método da requisição
+$requestMethod = $_SERVER["REQUEST_METHOD"];
+
+try {
+    // Configuração do banco de dados
+    $pdo = new PDO("mysql:host=localhost;dbname=tcc_db", "root", "");
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    if ($requestMethod === "POST") {
+        // Capturar e validar os dados da requisição
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if (!empty($data["nome"]) && !empty($data["email"]) && !empty($data["senha"])) {
+            $senhaHash = password_hash($data["senha"], PASSWORD_DEFAULT);
 
             $stmt = $pdo->prepare("INSERT INTO usuarios (nome, email, senha) VALUES (:nome, :email, :senha)");
             $stmt->bindParam(":nome", $data["nome"]);
             $stmt->bindParam(":email", $data["email"]);
-            $stmt->bindParam(":senha", $senhaHash); // Armazena o hash da senha
-            
+            $stmt->bindParam(":senha", $senhaHash);
+
             if ($stmt->execute()) {
-                echo json_encode(["mensagem" => "Usuário criado!", "dados" => $data]);
+                $userId = $pdo->lastInsertId();
+                echo json_encode(["mensagem" => "Usuário criado!", "id" => $userId, "dados" => $data]);
+                exit();
             } else {
                 echo json_encode(["erro" => "Erro ao inserir no banco"]);
+                exit();
             }
-        } catch (PDOException $e) {
-            echo json_encode(["erro" => "Erro: " . $e->getMessage()]);
+        } else {
+            echo json_encode(["erro" => "Dados inválidos"]);
+            exit();
         }
-    } else {
-        echo json_encode(["erro" => "Dados inválidos"]);
-    }
-} 
+    } 
 
-else if ($requestMethod === "DELETE") {
-    $data = json_decode(file_get_contents("php://input"), true);
+    else if ($requestMethod === "DELETE") {
+        $data = json_decode(file_get_contents("php://input"), true);
 
-    if (!empty($data["id"]) && !empty($data["senha"])) {
-        try {
-            $stmt = $pdo->prepare("SELECT senha FROM usuarios WHERE id = :id"); // Busca a senha armazenada no banco
-            $stmt->bindParam(":id", $data["id"], PDO::PARAM_INT); // "bindParam" previne SQL Injection ligando o valor a um placeholder e "PARAM_INT" define que o valor passado é um inteiro
-            $stmt->execute();
-            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!empty($data["id"])) {
+            $stmt = $pdo->prepare("UPDATE usuarios SET ativo = 'false' WHERE id = :id");
+            $stmt->bindParam(":id", $data["id"], PDO::PARAM_INT);
 
-            if ($usuario && password_verify($data["senha"], $usuario["senha"])) {
-                $stmt = $pdo->prepare("UPDATE usuarios SET ativo = 'false' WHERE id = :id"); // Com uma senha correta, a conta é desativada
-                $stmt->bindParam(":id", $data["id"], PDO::PARAM_INT);
-                if ($stmt->execute()) {
-                    echo json_encode(["mensagem" => "Usuário desativado com sucesso!"]);
-                } else {
-                    echo json_encode(["erro" => "Erro ao atualizar status"]);
-                }
+            if ($stmt->execute()) {
+                echo json_encode(["mensagem" => "Usuário deletado com sucesso!", "id" => $data["id"]]);
+                exit();
             } else {
-                echo json_encode(["erro" => "Senha incorreta"]);
+                echo json_encode(["erro" => "Erro ao atualizar o status do usuário"]);
+                exit();
             }
-        } catch (PDOException $e) {
-            echo json_encode(["erro" => "Erro: " . $e->getMessage()]);
+        } else {
+            echo json_encode(["erro" => "ID do usuário não fornecido"]);
+            exit();
         }
-    } else {
-        echo json_encode(["erro" => "ID e senha são obrigatórios"]);
-    }
-}
+    } 
 
-else if ($requestMethod === "GET") {
-    try {
-        if (!empty($_GET["id"])) { // Se um ID for passado na URL, busca apenas um usuário
+    else if ($requestMethod === "GET") {
+        if (!empty($_GET["id"])) { // Buscar um usuário específico
             $stmt = $pdo->prepare("SELECT id, nome, email, ativo FROM usuarios WHERE id = :id");
             $stmt->bindParam(":id", $_GET["id"], PDO::PARAM_INT);
             $stmt->execute();
-            $usuario = $stmt->fetch(PDO::FETCH_ASSOC); // Armazena só um usuário (uma linha do banco)
+            
+            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($usuario) {
                 echo json_encode($usuario);
             } else {
                 echo json_encode(["erro" => "Usuário não encontrado"]);
             }
-        } else { // Se nenhum ID for passado, busca todos os usuários ativos
+            exit();
+        } else { // Buscar todos os usuários ativos
             $stmt = $pdo->query("SELECT id, nome, email, ativo FROM usuarios WHERE ativo = 'true'");
-            $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC); // Armazena todos usuários ativos
+            $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
             echo json_encode($usuarios);
+            exit();
         }
-    } catch (PDOException $e) {
-        echo json_encode(["erro" => "Erro ao buscar usuários: " . $e->getMessage()]);
+    } 
+
+    else {
+        echo json_encode(["erro" => "Método não permitido"]);
+        exit();
     }
+
+} catch (PDOException $e) {
+    echo json_encode(["erro" => "Erro do banco de dados: " . $e->getMessage()]);
+    exit();
 }
 
-/*
-> EXEMPLO DE COMO FUNCIONA O "JSON_ENCODE":
-    - Transforma de array/objeto PHP para JSON
-
-    $data = ["nome" => "Gabriel", "email" => "gabriel@email.com"];
-    $json = json_encode($data);
-
-    echo $json; // Saída: {"nome":"Gabriel","email":"gabriel@email.com"}
 ?>
-
-> EXEMPLO DE COMO FUNCIONA O "JSON_DECODE": 
-    - Transforma de JSON para array/objeto PHP
-
-    {
-        "nome": "Gabriel",
-        "email": "gabriel@email.com"
-    }
-
-    (ARRAY)
-    echo "Nome: " . $data["nome"]; // Gabriel
-    echo "Email: " . $data["email"]; // gabriel@email.com
-
-    (OBJETO PHP)
-    $data = json_decode($json);
-    echo $data->nome; // Saída: Gabriel
-*/
-?>
-

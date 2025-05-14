@@ -1,47 +1,50 @@
-# 🍇 TCC
+# Welcome to your Expo app 👋
 
-## 📰 Descrição
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-Repositório do projeto de TCC
+## Get started
 
-## 💻 Tecnologias Utilizadas
-`Trabalhado durante o projeto:`
+1. Install dependencies
 
-<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/php/php-original.svg" height = "40"/>
-          
-## 🛠️ Como executar o programa
+   ```bash
+   npm install
+   ```
 
-* Passo 1: Copie o link do repositório ***(clique em "Code")***
-<img src = "img/Passo1.jpg">
-<img src = "img/Passo2.jpg">
+2. Start the app
 
-* Passo 2: Utilizando o <a href = "https://www.apachefriends.org/pt_br/index.html">Xampp</a>, inicie o servidor **Apache e MySQL *(clique em "Start")***
-<img src = "img/Passo3.1.jpg">
+   ```bash
+   npx expo start
+   ```
 
-* Passo 3: Abra a pasta **"htdocs" (atalho no botão "Explorer")**
-<img src = "img/Passo4.jpg">
-<img src = "img/Passo5.jpg">
+In the output, you'll find options to open the app in a
 
-* Passo 4: **Abra a pasta com o Terminal** *(clique com o botão direito)* e clone o repositório ***(cole o código abaixo)*** 
-<img src = "img/Passo4_1.jpg">
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-```COLE O CÓDIGO: git clone https://github.com/possatogabriel/TCC.git```
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-* Passo 5: Após isso, **abra o MySQL e execute o arquivo SQL do projeto**
-<img src = "img/Passo10.jpg">
-<img src = "img/Passo11.jpg">
-<img src = "img/Passo12.jpg">
+## Get a fresh project
 
-* Passo 6: Agora, utilizando uma ferramenta de requisições HTTP, envie uma do tipo **POST, DELETE ou GET** para a url do arquivo PHP
-    * Passo 6.1: Para requisições do tipo **"GET"**, *coloque o **ID na url para buscar um usuário específico** ou não para **buscar todos usuários ativos*** <br> <img src = "img/Passo9.jpg"> <br> ```COLE O CÓDIGO: http://localhost/TCC/server.php```
+When you're ready, run:
 
-    * Passo 6.2: Para requisições do tipo **"POST"**, *coloque as informações do usuário no corpo do JSON*** <br> <img src = "img/Passo7.jpg"> <br> ```COLE O CÓDIGO: {"nome": "Seu Nome", "email": "seuemail@email.com", "senha": "sua_senha"}```
+```bash
+npm run reset-project
+```
 
-    * Passo 6.3: Para requisições do tipo **"DELETE"**, *informe o **ID do usuário a ser deletado e a senha*** <br> <img src = "img/Passo8.jpg"> <br> ```COLE O CÓDIGO: {"id": 1, "senha": "sua_senha"}```
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-## 🙋 Autores
-| [<img loading="lazy" src="https://avatars.githubusercontent.com/u/136634888?v=4" width=80 alt = "Ícone da Foto de Perfil"> <br> <sub> Gabriel Possato </sub>](https://github.com/possatogabriel) | [<img loading="lazy" src="https://avatars.githubusercontent.com/u/134547014?v=4" width=80><br><sub> Adilson Kina </sub>](https://github.com/Adilson-kina) | [<img loading="lazy" src="https://avatars.githubusercontent.com/u/146140027?v=4" width=80 alt = "Ícone da Foto de Perfil"> <br> <sub> Paulo </sub>](https://github.com/Paulinho598) |
-| :---: | :---: | :---: |
-<br>
-<br>
-<p align = "center"> <img alt="Badge de Concluído" src="https://img.shields.io/badge/STATUS%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20-em desenvolvimento-blue?style=for-the-badge"> <br/> <img src = "img/etec1.png" height = "50" alt = "Logo da ETEC"> </p>
+## Learn more
+
+To learn more about developing your project with Expo, look at the following resources:
+
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+
+## Join the community
+
+Join our community of developers creating universal apps.
+
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
