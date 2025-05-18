@@ -20,7 +20,7 @@ Repositório do projeto de TCC
 
 * Passo 3: Abra a pasta **"htdocs" (atalho no botão "Explorer")**
 <img src = "img/Passo4.jpg">
-<img src = "img/Passo5.jpg">
+<img src = "img/Passo50.jpg">
 
 * Passo 4: **Abra a pasta com o Terminal** *(clique com o botão direito)* e clone o repositório ***(cole o código abaixo)*** 
 <img src = "img/Passo4_1.jpg">
@@ -33,7 +33,7 @@ Repositório do projeto de TCC
 <img src = "img/Passo12.jpg">
 
 - Passo 6: Na pasta do projeto, **instale o "npm" pelo terminal *(cole o código abaixo)***
-<img src = "img/Passo7.jpg">
+<img src = "img/Passo70.jpg">
 
 ```COLE O CÓDIGO: npm install```
 
@@ -43,7 +43,7 @@ Repositório do projeto de TCC
 ```COLE O CÓDIGO: npm start```
 
 - Passo 8: Abra o projeto no seu navegador de preferência ***(aperte "W" para abrir no navegador padrão do sistema ou cole o link na barra de busca)***
-<img src = "img/Passo9.jpg">
+<img src = "img/Passo90.jpg">
 
 ```COLE O CÓDIGO: http://localhost:8081```
 
