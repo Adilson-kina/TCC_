@@ -1,9 +1,9 @@
-export default async function post(data) {
-  const server = "http://localhost/TCC/server.php";
+export default async function post(data, endpoint) {
+  const server = `http://localhost/TCC/server.php?endpoint=${endpoint}`;
 
   try {
     const res = await fetch(server, {
-      method: "POST",
+      method: endpoint === "delete" ? "DELETE" : "POST",
       headers: {
         "Content-Type": "application/json"
       },
@@ -12,21 +12,23 @@ export default async function post(data) {
 
     if (!res.ok) {
       console.error(`Erro do servidor: Status ${res.status}`);
-      return false;
+      return { erro: `Erro do servidor (${res.status})` };
     }
 
-    const result = await res.json(); // Converte a resposta para JSON
-
-    if (!result || result.erro) {
-      console.error("Erro do servidor:", result.erro ?? "Resposta inesperada");
-      return false;
+    const text = await res.text(); // Lê a resposta como texto primeiro
+    if (!text.trim()) {
+      console.error("Resposta do servidor vazia.");
+      return { erro: "Resposta do servidor vazia" };
     }
 
-    console.log("Server response:", result);
-    
-    return result; // Retorna a resposta completa para capturar o ID
+    try {
+      return JSON.parse(text); // Tenta converter para JSON
+    } catch (err) {
+      console.error("Erro ao converter resposta para JSON:", text);
+      return { erro: "Resposta inválida do servidor" };
+    }
   } catch (err) {
     console.error("Erro na requisição:", err.message);
-    return false;
+    return { erro: "Erro na requisição" };
   }
 }

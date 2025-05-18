@@ -4,26 +4,35 @@ export default async function get(data: any): Promise<any | false> {
   const urlWithParams = `${server}?${params.toString()}`;
 
   try {
-    const res = await fetch(urlWithParams, {
-      method: 'GET'
-    });
+    const res = await fetch(urlWithParams, { method: 'GET' });
 
-    if (res.ok) {
-      const result = await res.json();
+    if (!res.ok) {
+      console.error(`Erro do servidor: Status ${res.status}`);
+      return false;
+    }
+
+    const text = await res.text(); // Lê a resposta como texto primeiro
+    if (!text.trim()) {
+      console.error("Resposta do servidor vazia.");
+      return false;
+    }
+
+    try {
+      const result = JSON.parse(text);
       console.log("Server response:", result);
-      // Return the actual result object, especially when fetching user data
-      // Add a check for errors returned by the server itself
+
       if (result && result.erro) {
-          console.error("Server returned error:", result.erro);
-          return false; // Indicate a server-side error message
+        console.error("Erro do servidor:", result.erro);
+        return false;
       }
-      return result; // Return the data object (e.g., { id, nome, email })
-    } else {
-      console.error(`Server responded with status: ${res.status}`);
+
+      return result; 
+    } catch (err) {
+      console.error("Erro ao converter resposta para JSON:", text);
       return false;
     }
   } catch (err) {
-    console.error(`Workspace error: ${err}`);
+    console.error(`Erro na requisição: ${err}`);
     return false;
   }
 }
