@@ -1,50 +1,55 @@
-# Welcome to your Expo app 👋
+# 🍇 TCC
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## 📰 Descrição
 
-## Get started
+Repositório do projeto de TCC
 
-1. Install dependencies
+## 💻 Tecnologias Utilizadas
+`Trabalhado durante o projeto:`
 
-   ```bash
-   npm install
-   ```
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/php/php-original.svg" height = "40"/> <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg" height = "40"/> <img src = "img/expo.svg" height = "40"/>
+          
+## 🛠️ Como executar o programa
 
-2. Start the app
+* Passo 1: Copie o link do repositório ***(clique em "Code")***
+<img src = "img/Passo1.jpg">
+<img src = "img/Passo2.jpg">
 
-   ```bash
-   npx expo start
-   ```
+* Passo 2: Utilizando o <a href = "https://www.apachefriends.org/pt_br/index.html">Xampp</a>, inicie o servidor **Apache e MySQL *(clique em "Start")***
+<img src = "img/Passo3.1.jpg">
 
-In the output, you'll find options to open the app in a
+* Passo 3: Abra a pasta **"htdocs" (atalho no botão "Explorer")**
+<img src = "img/Passo4.jpg">
+<img src = "img/Passo5.jpg">
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+* Passo 4: **Abra a pasta com o Terminal** *(clique com o botão direito)* e clone o repositório ***(cole o código abaixo)*** 
+<img src = "img/Passo4_1.jpg">
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+```COLE O CÓDIGO: git clone https://github.com/possatogabriel/TCC.git```
 
-## Get a fresh project
+* Passo 5: Após isso, **abra o MySQL e execute o arquivo SQL do projeto**
+<img src = "img/Passo10.jpg">
+<img src = "img/Passo11.jpg">
+<img src = "img/Passo12.jpg">
 
-When you're ready, run:
+- Passo 6: Na pasta do projeto, **instale o "npm" pelo terminal *(cole o código abaixo)***
+<img src = "img/Passo7.jpg">
 
-```bash
-npm run reset-project
-```
+```COLE O CÓDIGO: npm install```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+- Passo 7: Após a instalação, **inicie o projeto *(cole o código abaixo)***
+<img src = "img/Passo8.jpg">
 
-## Learn more
+```COLE O CÓDIGO: npm start```
 
-To learn more about developing your project with Expo, look at the following resources:
+- Passo 8: Abra o projeto no seu navegador de preferência ***(aperte "W" para abrir no navegador padrão do sistema ou cole o link na barra de busca)***
+<img src = "img/Passo9.jpg">
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```COLE O CÓDIGO: http://localhost:8081```
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 🙋 Autores
+| [<img loading="lazy" src="https://avatars.githubusercontent.com/u/136634888?v=4" width=80 alt = "Ícone da Foto de Perfil"> <br> <sub> Gabriel Possato </sub>](https://github.com/possatogabriel) | [<img loading="lazy" src="https://avatars.githubusercontent.com/u/134547014?v=4" width=80><br><sub> Adilson Kina </sub>](https://github.com/Adilson-kina) | [<img loading="lazy" src="https://avatars.githubusercontent.com/u/146140027?v=4" width=80 alt = "Ícone da Foto de Perfil"> <br> <sub> Paulo </sub>](https://github.com/Paulinho598) |
+| :---: | :---: | :---: |
+<br>
+<br>
+<p align = "center"> <img alt="Badge de Concluído" src="https://img.shields.io/badge/STATUS%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20-em desenvolvimento-blue?style=for-the-badge"> <br/> <img src = "img/etec1.png" height = "50" alt = "Logo da ETEC"> </p>
