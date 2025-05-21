@@ -1,5 +1,7 @@
 # 🍇 TCC
 
+<img src = "img/Demonstração.gif">
+
 ## 📰 Descrição
 
 Repositório do projeto de TCC
