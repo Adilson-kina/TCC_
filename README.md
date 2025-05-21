@@ -50,8 +50,8 @@ Repositório do projeto de TCC
 ```COLE O CÓDIGO: http://localhost:8081```
 
 ## 🙋 Autores
-| [<img loading="lazy" src="https://avatars.githubusercontent.com/u/136634888?v=4" width=80 alt = "Ícone da Foto de Perfil"> <br> <sub> Gabriel Possato </sub>](https://github.com/possatogabriel) | [<img loading="lazy" src="https://avatars.githubusercontent.com/u/134547014?v=4" width=80><br><sub> Adilson Kina </sub>](https://github.com/Adilson-kina) | [<img loading="lazy" src="https://avatars.githubusercontent.com/u/146140027?v=4" width=80 alt = "Ícone da Foto de Perfil"> <br> <sub> Paulo </sub>](https://github.com/Paulinho598) |
-| :---: | :---: | :---: |
+| [<img loading="lazy" src="https://avatars.githubusercontent.com/u/136634888?v=4" width=80 alt = "Ícone da Foto de Perfil"> <br> <sub> Gabriel Possato </sub>](https://github.com/possatogabriel) | [<img loading="lazy" src="https://avatars.githubusercontent.com/u/134547014?v=4" width=80><br><sub> Adilson Kina </sub>](https://github.com/Adilson-kina) | [<img loading="lazy" src="https://avatars.githubusercontent.com/u/146140027?v=4" width=80 alt = "Ícone da Foto de Perfil"> <br> <sub> Paulo </sub>](https://github.com/Paulinho598) | [<img loading="lazy" src="https://avatars.githubusercontent.com/u/134557881?v=4" width=80 alt = "Ícone da Foto de Perfil"> <br> <sub> Gabriel Antonio </sub>](https://github.com/gabriel7172) | [<img loading="lazy" src="https://avatars.githubusercontent.com/u/164388521?v=4" width=80 alt = "Ícone da Foto de Perfil"> <br> <sub> Fabio Henrique </sub>](https://github.com/fabiohenriquedejesus) |
+| :---: | :---: | :---: | :---: | :---: |
 <br>
 <br>
 <p align = "center"> <img alt="Badge de Concluído" src="https://img.shields.io/badge/STATUS%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20-em desenvolvimento-blue?style=for-the-badge"> <br/> <img src = "img/etec1.png" height = "50" alt = "Logo da ETEC"> </p>
