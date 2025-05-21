@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 
 // Conectar ao banco
 try {
-    $pdo = new PDO("mysql:host=localhost;dbname=tcc_db", "root", "root");
+    $pdo = new PDO("mysql:host=localhost;dbname=tcc_db", "root", "");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     echo json_encode(["erro" => "Erro na conexão com o banco: " . $e->getMessage()]);

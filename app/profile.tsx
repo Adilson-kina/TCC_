@@ -118,13 +118,12 @@ export default function Profile() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#c6a0f6",
-    justifyContent: "center",
+    backgroundColor: "#ecfcec",
     alignItems: "center",
     padding: 20,
   },
   center: {
-    backgroundColor: "#f5bde6",
+    backgroundColor: "#ecfcec",
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
@@ -152,9 +151,10 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     fontSize: 16,
     textAlign: "center",
+    color: "#747474",
   },
   button: {
-    backgroundColor: "red",
+    backgroundColor: "#ff4444",
     width: "50%",
     height: 50,
     marginTop: 15,
@@ -180,11 +180,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     height: 100,
-    backgroundColor: "#c6a0f6",
+    backgroundColor: "#ecfcec",
     paddingHorizontal: 10,
     paddingTop: 10,
-    borderBottomWidth: 2,
-    borderColor: "#24273a",
   },
   userInfo: {
     flex: 1,

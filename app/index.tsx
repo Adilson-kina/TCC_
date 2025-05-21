@@ -1,11 +1,27 @@
-import { Text, View, StyleSheet, Pressable } from "react-native";
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
+function heightPercent(percentage:number){
+  return windowHeight * (percentage / 100);
+}
+
+function widthPercent(percentage:number){
+  return windowWidth * (percentage / 100);
+}
+
+function gotoLogin(){
+  const router = useRouter();
+  router.navigate("/login");
+}
 
 export default function Index() {
+
   return (
     <View style={styles.container}>
-      <Pressable style={styles.button}>
-        <Link href="/login"> Login</Link>
+      <Pressable style={styles.button} onPress={gotoLogin}>
+        <Text> Login</Text>
       </Pressable>
     </View>
   );
@@ -14,19 +30,17 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#c6a0f6',
+    backgroundColor: '#ecfcec',
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
   button:{
-    backgroundColor: "#89b4fa",
-    borderWidth: 1,
-    borderColor: "#1e1e2e",
-    width: "12%",
-    height: "4%",
+    backgroundColor: "#007912",
+    width: widthPercent(12),
+    height: heightPercent(4),
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 5,
-    marginBottom: "5%",
+    marginBottom: 50,
   }
 })

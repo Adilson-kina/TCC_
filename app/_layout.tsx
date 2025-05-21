@@ -7,29 +7,38 @@ export default function RootLayout() {
       <Stack.Screen 
         name="index" 
         options={{
-          title: 'Home',
+          title: '',
           headerStyle: {
-            backgroundColor: "#c6a0f6"
+            backgroundColor: "#ecfcec"
           }
         }}
       />
       <Stack.Screen 
         name="profile"
         options={{ 
-          title: 'My Profile',
+          title: "",
           headerStyle: {
-            backgroundColor: "#c6a0f6"
+            backgroundColor: "#ecfcec"
           }
         }} 
       />
       <Stack.Screen 
         name="login"
         options={{
-          title: "Login",
+          title: "",
           headerStyle: {
-            backgroundColor: "lightpink"
+            backgroundColor: "#ecfcec"
           }
         }}
+      />
+      <Stack.Screen 
+        name="signup"
+        options={{ 
+          title: "",
+          headerStyle: {
+            backgroundColor: "#ecfcec"
+          }
+        }} 
       />
     </Stack>
   )
