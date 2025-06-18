@@ -26,9 +26,9 @@ export default function SignUp() {
   const handleSubmit = async () => {
     const data = { nome, email, senha };
     const response = await post(data, "cadastro");
-    router.navigate('/profile');
     if (response && response.erro) {
       setErrorMessage(response.erro);
+      window.alert(response.erro); // medida provisoria
       return;
     }
      
@@ -36,6 +36,8 @@ export default function SignUp() {
       await AsyncStorage.setItem("userId", response.id.toString());
       router.navigate("/profile");
     }
+
+    router.navigate('/profile');
   };
 
   return (
