@@ -31,8 +31,17 @@ $data = json_decode(file_get_contents("php://input"), true);
 
 // Requisição POST para cadastro ou login
 if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
-    if ($_GET["endpoint"] === "cadastro") {
+  if ($_GET["endpoint"] === "cadastro") {
+        // Checa se o usuario existe antes de criar
         if (!empty($data["nome"]) && !empty($data["email"]) && !empty($data["senha"])) {
+            $stmt = $pdo->prepare("SELECT email from usuarios where email = :email");
+            $stmt->bindParam(":email", $data["email"]);
+            $stmt->execute();
+            $usuarioExiste = $stmt->fetch(PDO::FETCH_ASSOC);
+            if($usuarioExiste){
+                echo json_encode(["erro" => "Usuario já existente"]);
+                exit(1);
+            }
             $senhaHash = password_hash($data["senha"], PASSWORD_DEFAULT);
             $stmt = $pdo->prepare("INSERT INTO usuarios (nome, email, senha, ativo) VALUES (:nome, :email, :senha, 'true')");
             $stmt->bindParam(":nome", $data["nome"]);
