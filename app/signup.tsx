@@ -34,10 +34,10 @@ export default function SignUp() {
      
     if (response && response.id) {
       await AsyncStorage.setItem("userId", response.id.toString());
-      router.navigate("/profile");
+      router.navigate("/termos");
     }
 
-    router.navigate('/profile');
+    router.navigate('/termos');
   };
 
   return (
@@ -70,13 +70,14 @@ export default function SignUp() {
         </View>
 
         <Pressable style={styles.button} onPress={handleSubmit} >
-          <Text style={styles.buttonText}>Entrar</Text>
+          <Text style={styles.buttonText}>Cadastrar</Text>
         </Pressable>
       </View>
       <View style={styles.goto}>
         <Text style={styles.gotoText}>Já possui uma conta? </Text>
-        <Link href="/login" style={styles.gotoTextLink}>Entrar</Link>
+        <Link href="/index" style={styles.gotoTextLink}><Text>Entrar</Text></Link>
       </View>
+      <Link href="/termos"><Text>test</Text></Link>
     </View>
   );
 }
