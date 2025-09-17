@@ -26,49 +26,9 @@ export default function Etapa2(){
                 <Text style={estilo.title}>QUAL META VOCÊ DESEJA ALCANÇAR COM SUA DIETA?</Text>
             </View>
             <Select label="Quero perder peso! 💪" onPress={() => setChecked1(!isChecked1)} />
-            <Select label="Ganhar massa muscular! 🏋️‍♂️🚀" />
-            <Select label="Quero comer melhor! 🌍✨" />
-            <Select label="Manter meu peso! ➡️🔥" />
-
-            <View style={estilo.bloco}>
-                <View style={estilo.checkboxContainer}>
-                    <CheckBox
-                        value={isChecked1}
-                        style={estilo.checkbox}
-                        onValueChange={setChecked1}/>
-                    <Text style={estilo.checkboxText}>Quero perder peso! 💪</Text>
-                </View>
-            </View>
-
-            <View style={estilo.bloco}>
-                <View style={estilo.checkboxContainer}>
-                    <CheckBox
-                        value={isChecked2}
-                        style={estilo.checkbox}
-                        onValueChange={setChecked2}/>
-                    <Text style={estilo.checkboxText}>Ganhar massa muscular! 🏋️‍♂️🚀</Text>
-                </View>
-            </View>
-
-            <View style={estilo.bloco}>
-                <View style={estilo.checkboxContainer}>
-                    <CheckBox
-                        value={isChecked3}
-                        style={estilo.checkbox}
-                        onValueChange={setChecked3}/>
-                    <Text style={estilo.checkboxText}>Quero comer melhor! 🌍✨</Text>
-                </View>
-            </View>
-
-            <View style={estilo.bloco}>
-                <View style={estilo.checkboxContainer}>
-                    <CheckBox
-                        value={isChecked4}
-                        style={estilo.checkbox}
-                        onValueChange={setChecked4}/>
-                    <Text style={estilo.checkboxText}>Manter meu peso! ➡️🔥</Text>
-                </View>
-            </View>
+            <Select label="Ganhar massa muscular! 🏋️‍♂️🚀" onPress={() => setChecked2(!isChecked2)}/>
+            <Select label="Quero comer melhor! 🌍✨" onPress={() => setChecked3(!isChecked3)}/>
+            <Select label="Manter meu peso! ➡️🔥" onPress={() => setChecked4(!isChecked4)}/>
 
             <View style={estilo.btnContainer}>
                 <TouchableOpacity 

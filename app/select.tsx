@@ -1,20 +1,27 @@
 import React, { useState } from "react";
 import { View, Pressable, Text, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons"; 
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = {
-  onPress: () => void;
+  label?: string;
+  onPress?: () => void;
 };
 
 export default function Select({ label = "", onPress }: Props) {
   const [isChecked, setChecked] = useState(false);
   const size = 28;
 
+  const handlePress = () => {
+    setChecked(isChecked => !isChecked);
+    onPress?.();
+  };
+
   return (
-    <Pressable onPress={() => onPress(); setChecked(!isChecked);} style={styles.block}>
+    <Pressable onPress={handlePress} style={styles.block}>
       <View style={styles.row}>
         <Pressable
-          onPress={() => setChecked(!isChecked)}
+          onPress={handlePress}
+          hitSlop={8}
           style={[
             styles.round,
             {
@@ -26,7 +33,9 @@ export default function Select({ label = "", onPress }: Props) {
             },
           ]}
         >
-          {isChecked && <Ionicons name="checkmark" size={size * 0.6} color="white" />}
+          {isChecked && (
+            <Ionicons name="checkmark" size={size * 0.6} color="white" />
+          )}
         </Pressable>
 
         <Text style={styles.label}>{label}</Text>
