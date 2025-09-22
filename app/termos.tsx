@@ -23,7 +23,7 @@ export default function Etapa1() {
     <View style={estilo.container}>
       <View style={estilo.imageContainer}>
         <Image
-          source={require(`./img/54.png`)}
+          source={require(`./img/logo.png`)}
           style={estilo.img}
         />
       </View>
@@ -82,7 +82,9 @@ const estilo = StyleSheet.create({
   
   btnContainer: {
     flex: 1,
+    alignItems: "center",
     justifyContent: 'flex-end',
+    marginBottom: 40,
   },
 
   img: {
@@ -102,7 +104,7 @@ const estilo = StyleSheet.create({
   },
 
   subtitle: {
-    fontSize: 15,
+    fontSize: 20,
     textAlign: 'center',
   },
 
@@ -110,17 +112,18 @@ const estilo = StyleSheet.create({
     width: '100%',
     marginBottom: 30,
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
 
   checkbox: {
-    marginTop: 3,
     marginRight: 10,
     borderRadius: 30,
+    padding: 10,
   },
 
   checkboxText: {
     flex: 1,
+    fontSize: 20,
   },
 
   button: {

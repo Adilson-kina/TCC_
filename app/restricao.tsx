@@ -1,128 +1,159 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import CheckBox from "expo-checkbox";
 import { Picker } from '@react-native-picker/picker';
 import { Link, router, useRouter } from "expo-router";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, TextInput } from "react-native";
+import CheckBoxWithLabel from './checkbox';
 
 export default function Etapa3(){
-    const [isChecked1, setChecked1] = useState(false)
-    const [isChecked2, setChecked2] = useState(false)
-    const [isChecked3, setChecked3] = useState(false)
-    const [isChecked4, setChecked4] = useState(false)
-    const [isChecked5, setChecked5] = useState(false)
-    const [isChecked6, setChecked6] = useState(false)
-    const [isChecked7, setChecked7] = useState(false)
-    const [isChecked8, setChecked8] = useState(false)
+    const [isCheckedYes, setYes] = useState(false)
+    const [isSickness1, setSickness1] = useState(false)
+    const [isSickness2, setSickness2] = useState(false)
+    const [isSickness3, setSickness3] = useState(false)
+    const [isSickness4, setSickness4] = useState(false)
+    const [inputValue, setInputValue] = useState("")
+    const [isCheckedNo, setNo] = useState(false)
+    const [isCheckedMaybe, setMaybe] = useState(false)
     const [isChecked9, setChecked9] = useState(false)
-    const [isChecked10, setChecked10] = useState(false)
-    const [isChecked11, setChecked11] = useState(false)
-    const [isChecked12, setChecked12] = useState(false)
-    const [selectedValue, setSelectedValue] = useState("none")
-    const [showPicker, setShowPicker] = useState(false)
     const router = useRouter()
 
     function prosseguir(){
-        //router.replace('/etapa2')
-        alert("BANANA COM MEL")
+        const isChecked = [isCheckedYes, isCheckedNo, isCheckedMaybe];
+        const checkedCount = isChecked.filter(Boolean).length
+        const checkedSickness =  [isSickness1, isSickness2, isSickness3, isSickness4, inputValue]
+        const checkedCount2 = checkedSickness.filter(Boolean).length
+
+        if (checkedCount == 1){
+            if (isCheckedYes == true && checkedCount2 >= 1){
+                var doenças = [checkedSickness.filter(String)]
+                console.log(doenças)
+                /*var doenças = [checkedSickness.map(sickness, index) => {
+                    return sickness 
+                }]*/
+                router.replace("/etapa4")
+            }else{
+                router.replace("/etapa4")
+            }
+        }else if(checkedCount > 1){
+            alert("SELECIONE UMA SÓ OPÇÃO!")
+        }else if(checkedCount == 0){
+            alert("ESCOLHA ALGUMA DAS OPÇÕES ACIMA!");
+        }
     }
 
-    return(
+    return (
         <View style={estilo.container}>
             <View>
                 <Text style={estilo.title}>VOCÊ POSSUI ALGUMA DOENÇA OU RESTRIÇÃO ALIMENTAR?</Text>
             </View>
-
+    
             <View style={estilo.checkboxContainer}>
                 <CheckBox
-                value={isChecked1}
-                onValueChange={(newValue) =>{
-                    setChecked1(newValue)
-                    if(!newValue){
-                        setChecked2(false)
-                    }
-                }}
-                style={estilo.checkbox}
+                    value={isCheckedYes}
+                    onValueChange={(newValue) => {
+                        setYes(newValue);
+                        if (!newValue) {
+                            setSickness1(false);
+                        }
+                    }}
+                    style={estilo.checkbox}
                 />
                 <Text style={estilo.checkboxText}>Sim, tenho</Text>
             </View>
-                
-            {isChecked1 && (
+
+            <CheckBoxWithLabel label="Text showed" onPress={() => setSickness1(false)} />
+    
+            {isCheckedYes && (
                 <View>
                     <View style={estilo.checkboxContainer}>
                         <CheckBox
-                            value={isChecked2}
-                            onValueChange={setChecked2}
-                            style={estilo.checkbox}
+                            value={isSickness1}
+                            onValueChange={setSickness1}
+                            style={estilo.checkboxInside}
                         />
-                        <Text style={estilo.checkboxText}>1</Text>
+                        <Text style={estilo.checkboxText}>Doença Celíaca</Text>
                     </View>
                     <View style={estilo.checkboxContainer}>
                         <CheckBox
-                            value={isChecked3}
-                            onValueChange={setChecked3}
-                            style={estilo.checkbox}
+                            value={isSickness2}
+                            onValueChange={setSickness2}
+                            style={estilo.checkboxInside}
                         />
-                        <Text style={estilo.checkboxText}>2</Text>
+                        <Text style={estilo.checkboxText}>Intolerância a Lactose</Text>
                     </View>
                     <View style={estilo.checkboxContainer}>
                         <CheckBox
-                            value={isChecked4}
-                            onValueChange={setChecked4}
-                            style={estilo.checkbox}
+                            value={isSickness3}
+                            onValueChange={setSickness3}
+                            style={estilo.checkboxInside}
                         />
-                        <Text style={estilo.checkboxText}>3</Text>
+                        <Text style={estilo.checkboxText}>Diabetes</Text>
+                    </View>
+                    <View style={estilo.checkboxContainer}>
+                        <CheckBox
+                            value={isSickness4}
+                            onValueChange={setSickness4}
+                            style={estilo.checkboxInside}
+                        />
+                        <Text style={estilo.checkboxText}>Intestino Irritável</Text>
+                    </View>
+                    <View>
+                        <TextInput
+                            style={estilo.textArea}
+                            placeholder="Insira sua doença ou alergia!"
+                            value={inputValue}
+                            onChangeText={(text) => setInputValue(text)}
+                        />
                     </View>
                 </View>
             )}
-            
+    
             <View style={estilo.checkboxContainer}>
                 <CheckBox
-                value={isChecked5}
-                onValueChange={(newValue) =>{
-                    setChecked5(newValue)
-                    if(!newValue){
-                        setChecked6(false)
-                    }
-                }}
-                style={estilo.checkbox}
+                    value={isCheckedNo}
+                    onValueChange={(newValue) => {
+                        setNo(newValue);
+                        if (!newValue) {
+                            setMaybe(false);
+                        }
+                    }}
+                    style={estilo.checkbox}
                 />
                 <Text style={estilo.checkboxText}>Não, não tenho.</Text>
             </View>
-        
+    
             <View style={estilo.checkboxContainer}>
                 <CheckBox
-                value={isChecked9}
-                onValueChange={(newValue) =>{
-                    setChecked9(newValue)
-                    if(!newValue){
-                        setChecked10(false)
-                    }
-                }}
-                style={estilo.checkbox}
+                    value={isCheckedMaybe}
+                    onValueChange={(newValue) => {
+                        setMaybe(newValue);
+                        if (!newValue) {
+                            setChecked9(false);
+                        }
+                    }}
+                    style={estilo.checkbox}
                 />
                 <Text style={estilo.checkboxText}>Não sei.</Text>
             </View>
-
+    
             <View style={estilo.btnContainer}>
-                    <TouchableOpacity 
-                        style={estilo.button}
-                        onPressIn={() => {
-                        prosseguir()
-                        }}>
+                <TouchableOpacity 
+                    style={estilo.button}
+                    onPressIn={() => {
+                        prosseguir();
+                    }}>
                     <Text style={estilo.buttonText}>AVANÇAR!</Text>
                 </TouchableOpacity>
             </View>
         </View>
-    )
+    );    
 };
 
 const estilo = StyleSheet.create({
     container: {
       flex: 1,
       padding: 20,
-      marginVertical: 32,
       alignItems: 'center',
-      marginHorizontal: 16,
       backgroundColor: '#E0F7E9',
     },
   
@@ -144,7 +175,7 @@ const estilo = StyleSheet.create({
   
     checkboxContainer: {
       width: '100%',
-      marginBottom: 30,
+      marginBottom: 5,
       flexDirection: 'row',
       alignItems: 'flex-start',
     },
@@ -153,13 +184,28 @@ const estilo = StyleSheet.create({
       marginTop: 20,
       marginLeft: 10,
       borderRadius: 30,
-      backgroundColor: 'white',
+      backgroundColor: 'lightgray'
     },
   
     checkboxText: {
       flex: 1,
       marginTop: 20,
       marginLeft: 10,
+    },
+
+    checkboxInside: {
+        marginTop: 20,
+        marginLeft: 50,
+        borderRadius: 30,
+        backgroundColor: 'lightgray' 
+    },
+
+    textArea: {
+        padding: 5,
+        borderWidth: 2,
+        borderRadius: 30,
+        borderColor: 'black',
+        backgroundColor: 'lightgray'
     },
   
     btnContainer: {

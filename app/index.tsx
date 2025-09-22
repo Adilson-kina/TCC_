@@ -65,6 +65,7 @@ export default function Login() {
         <Text style={styles.gotoText}>Não possui cadastro? </Text>
         <Link href="/signup" style={styles.gotoTextLink}><Text>Registre-se</Text></Link>
       </View>
+      <Link href="/restricao"><Text>test</Text></Link>
     </View>
   );
 }

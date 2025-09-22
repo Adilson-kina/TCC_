@@ -21,7 +21,6 @@ export default function Select({ label = "", onPress }: Props) {
       <View style={styles.row}>
         <Pressable
           onPress={handlePress}
-          hitSlop={8}
           style={[
             styles.round,
             {
@@ -46,7 +45,7 @@ export default function Select({ label = "", onPress }: Props) {
 
 const styles = StyleSheet.create({
   block: {
-    padding: 8,
+    padding: 30,
     marginTop: 8,
     width: "100%",
     borderRadius: 30,
@@ -60,5 +59,8 @@ const styles = StyleSheet.create({
     marginRight: 10,
     borderWidth: 2,
   },
-  label: { flex: 1 },
+  label: { 
+    flex: 1,
+    fontSize: 20,
+  },
 });

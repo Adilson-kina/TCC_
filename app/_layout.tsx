@@ -49,6 +49,15 @@ export default function RootLayout() {
           }
         }} 
       />
+      <Stack.Screen 
+        name="restricao"
+        options={{ 
+          title: "",
+          headerStyle: {
+            backgroundColor: "#ecfcec"
+          }
+        }} 
+      />
     </Stack>
   )
 }

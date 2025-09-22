@@ -3,6 +3,17 @@ import CheckBox from "expo-checkbox";
 import { Link, router, useRouter } from "expo-router";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import Select from "./select";
+import { Dimensions } from 'react-native';
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
+function heightPercent(percentage:number){
+  return windowHeight * (percentage / 100);
+}
+
+function widthPercent(percentage:number){
+  return windowWidth * (percentage / 100);
+}
 
 export default function Etapa2(){
     const [isChecked1, setChecked1] = useState(false);
@@ -14,7 +25,7 @@ export default function Etapa2(){
         const isChecked = [isChecked1, isChecked2, isChecked3, isChecked4];
     
         if (isChecked.some(checked => checked)) {
-            router.replace("/meta");
+            router.replace("/restricao");
         } else {
             alert("ESCOLHA ALGUMA DAS OPÇÕES ACIMA!");
         }
@@ -25,11 +36,12 @@ export default function Etapa2(){
             <View>
                 <Text style={estilo.title}>QUAL META VOCÊ DESEJA ALCANÇAR COM SUA DIETA?</Text>
             </View>
-            <Select label="Quero perder peso! 💪" onPress={() => setChecked1(!isChecked1)} />
-            <Select label="Ganhar massa muscular! 🏋️‍♂️🚀" onPress={() => setChecked2(!isChecked2)}/>
-            <Select label="Quero comer melhor! 🌍✨" onPress={() => setChecked3(!isChecked3)}/>
-            <Select label="Manter meu peso! ➡️🔥" onPress={() => setChecked4(!isChecked4)}/>
-
+            <View style={estilo.selectContainer} >
+              <Select label="Quero perder peso! 💪" onPress={() => setChecked1(!isChecked1)} style={estilo.select} />
+              <Select label="Ganhar massa muscular! 🏋️‍♂️🚀" onPress={() => setChecked2(!isChecked2)} style={estilo.select} />
+              <Select label="Quero comer melhor! 🌍✨" onPress={() => setChecked3(!isChecked3)} style={estilo.select} />
+              <Select label="Manter meu peso! ➡️🔥" onPress={() => setChecked4(!isChecked4)} style={estilo.select} />
+            </View>
             <View style={estilo.btnContainer}>
                 <TouchableOpacity 
                     style={estilo.button}
@@ -60,14 +72,14 @@ const estilo = StyleSheet.create({
   bloco: {
     padding: 5,
     marginTop: 5,
-    width: '100%',
+    width: widthPercent(100),
     marginBottom: 20,
     borderRadius: 30,
     backgroundColor: '#d4e4d4',
   },
 
   checkboxContainer: {
-    width: '100%',
+    width: widthPercent(100),
     marginBottom: 30,
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -89,7 +101,8 @@ const estilo = StyleSheet.create({
   btnContainer: {
     width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
+    flex: 1,
+    justifyContent: 'flex-end',
   },
 
   button: {
@@ -102,10 +115,16 @@ const estilo = StyleSheet.create({
   },
   
   buttonText: {
-    padding: 5,
+    padding: 10,
     fontSize: 16,
     color: 'white',
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+
+  selectContainer:{
+    width: widthPercent(100),
+    flex: 1,
+    justifyContent: "space-around",
   },
 });

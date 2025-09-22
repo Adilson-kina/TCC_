@@ -42,19 +42,6 @@ export default function SignUp() {
 
   return (
     <View style={styles.container}>
-      {/* Se depois for fazer individual ta aqui
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>Inicie sua</Text>
-        <Text style={styles.title}>jornada rumo a</Text>
-        <Text style={styles.title}>uma</Text>
-        <Text style={styles.title}>alimentação</Text>
-        <Text style={styles.title}>saudável</Text>
-        <Text style={styles.title}>e um</Text>
-        <Text style={styles.title}>estado</Text>
-        <Text style={styles.title}>emocional</Text>
-        <Text style={styles.title}>equilibrado</Text>
-      </View>
-      */}
       <Text style={styles.title}>Inicie sua jornada rumo a uma alimentação saudável e um estado emocional equilibrado</Text>
       <View style={styles.form}> {/* FORM*/ }
         <View style={styles.items}>
@@ -75,7 +62,7 @@ export default function SignUp() {
       </View>
       <View style={styles.goto}>
         <Text style={styles.gotoText}>Já possui uma conta? </Text>
-        <Link href="/index" style={styles.gotoTextLink}><Text>Entrar</Text></Link>
+        <Link href="/" style={styles.gotoTextLink}><Text>Entrar</Text></Link>
       </View>
       <Link href="/termos"><Text>test</Text></Link>
     </View>
