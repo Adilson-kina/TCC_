@@ -23,16 +23,34 @@ export default function RootLayout() {
         }} 
       />
       <Stack.Screen 
-        name="login"
-        options={{
+        name="signup"
+        options={{ 
           title: "",
           headerStyle: {
             backgroundColor: "#ecfcec"
           }
-        }}
+        }} 
       />
       <Stack.Screen 
-        name="signup"
+        name="termos"
+        options={{ 
+          title: "",
+          headerStyle: {
+            backgroundColor: "#ecfcec"
+          }
+        }} 
+      />
+      <Stack.Screen 
+        name="meta"
+        options={{ 
+          title: "",
+          headerStyle: {
+            backgroundColor: "#ecfcec"
+          }
+        }} 
+      />
+      <Stack.Screen 
+        name="restricao"
         options={{ 
           title: "",
           headerStyle: {

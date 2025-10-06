@@ -34,27 +34,14 @@ export default function SignUp() {
      
     if (response && response.id) {
       await AsyncStorage.setItem("userId", response.id.toString());
-      router.navigate("/profile");
+      router.navigate("/termos");
     }
 
-    router.navigate('/profile');
+    router.navigate('/termos');
   };
 
   return (
     <View style={styles.container}>
-      {/* Se depois for fazer individual ta aqui
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>Inicie sua</Text>
-        <Text style={styles.title}>jornada rumo a</Text>
-        <Text style={styles.title}>uma</Text>
-        <Text style={styles.title}>alimentação</Text>
-        <Text style={styles.title}>saudável</Text>
-        <Text style={styles.title}>e um</Text>
-        <Text style={styles.title}>estado</Text>
-        <Text style={styles.title}>emocional</Text>
-        <Text style={styles.title}>equilibrado</Text>
-      </View>
-      */}
       <Text style={styles.title}>Inicie sua jornada rumo a uma alimentação saudável e um estado emocional equilibrado</Text>
       <View style={styles.form}> {/* FORM*/ }
         <View style={styles.items}>
@@ -70,13 +57,14 @@ export default function SignUp() {
         </View>
 
         <Pressable style={styles.button} onPress={handleSubmit} >
-          <Text style={styles.buttonText}>Entrar</Text>
+          <Text style={styles.buttonText}>Cadastrar</Text>
         </Pressable>
       </View>
       <View style={styles.goto}>
         <Text style={styles.gotoText}>Já possui uma conta? </Text>
-        <Link href="/login" style={styles.gotoTextLink}>Entrar</Link>
+        <Link href="/" style={styles.gotoTextLink}><Text>Entrar</Text></Link>
       </View>
+      <Link href="/termos"><Text>test</Text></Link>
     </View>
   );
 }
