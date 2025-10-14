@@ -11,6 +11,8 @@ start "" "C:\xampp\mysql_start.bat"
 REM Aguarda alguns segundos para garantir que os serviços iniciem
 timeout /t 5 >nul
 
+echo.
+echo ================================
 echo Executando script SQL no MySQL
 echo ================================
 
@@ -23,6 +25,8 @@ IF %ERRORLEVEL% NEQ 0 (
 
 cd /d "%~dp0"
 
+echo.
+echo ================================
 echo Instalando Composer 
 echo ================================
 call composer install
@@ -31,6 +35,8 @@ IF %ERRORLEVEL% NEQ 0 (
     goto :erro
 )
 
+echo.
+echo ================================
 echo Instalando NPM
 echo ================================
 call npm install
@@ -39,6 +45,8 @@ IF %ERRORLEVEL% NEQ 0 (
     goto :erro
 )
 
+echo.
+echo ================================
 echo Iniciando o servidor do NPM
 echo ================================
 call npm start
