@@ -1,45 +1,20 @@
 <?php
-// Exibir erros no PHP para depuração
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+require_once 'config.php';
 
-// Configurações de CORS
-header("Content-Type: application/json");
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, DELETE");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-
-// Responder requisições OPTIONS (preflight)
-if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
-    header("HTTP/1.1 200 OK");
-    exit();
-}
-
-// Conectar ao banco
-try {
-    $pdo = new PDO("mysql:host=localhost;dbname=tcc_db", "root", "");
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    echo json_encode(["erro" => "Erro na conexão com o banco: " . $e->getMessage()]);
-    exit();
-}
-
-// Capturar método da requisição
 $requestMethod = $_SERVER["REQUEST_METHOD"];
 $data = json_decode(file_get_contents("php://input"), true);
 
-// Requisição POST para cadastro ou login
 if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
-  if ($_GET["endpoint"] === "cadastro") {
-        // Checa se o usuario existe antes de criar
+    
+    // Requisição POST para cadastro
+    if ($_GET["endpoint"] === "cadastro") {
         if (!empty($data["nome"]) && !empty($data["email"]) && !empty($data["senha"])) {
-            $stmt = $pdo->prepare("SELECT email from usuarios where email = :email");
+            $stmt = $pdo->prepare("SELECT email FROM usuarios WHERE email = :email");
             $stmt->bindParam(":email", $data["email"]);
             $stmt->execute();
             $usuarioExiste = $stmt->fetch(PDO::FETCH_ASSOC);
-            if($usuarioExiste){
-                echo json_encode(["erro" => "Usuario já existente"]);
+            if ($usuarioExiste) {
+                echo json_encode(["erro" => "Usuário já existente"]);
                 exit(1);
             }
             $senhaHash = password_hash($data["senha"], PASSWORD_DEFAULT);
@@ -56,15 +31,29 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
         } else {
             echo json_encode(["erro" => "Dados inválidos"]);
         }
+
+    // Requisição POST para login    
     } elseif ($_GET["endpoint"] === "login") {
         if (!empty($data["email"]) && !empty($data["senha"])) {
-            $stmt = $pdo->prepare("SELECT id, senha FROM usuarios WHERE email = :email AND ativo = 'true'");
+            $stmt = $pdo->prepare("SELECT id, nome, email, senha FROM usuarios WHERE email = :email AND ativo = 'true'");
             $stmt->bindParam(":email", $data["email"]);
             $stmt->execute();
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($usuario && password_verify($data["senha"], $usuario["senha"])) {
-                echo json_encode(["mensagem" => "Login bem-sucedido!", "id" => $usuario["id"]]);
+                $payload = [
+                    "id" => $usuario["id"],
+                    "email" => $usuario["email"],
+                    "nome" => $usuario["nome"],
+                    "exp" => time() + (60 * 60 * 24)
+                ];
+                $jwt = JWT::encode($payload, $jwtSecretKey, 'HS256');
+
+                echo json_encode([
+                    "mensagem" => "Login bem-sucedido!",
+                    "id" => $usuario["id"],
+                    "token" => $jwt
+                ]);
             } else {
                 echo json_encode(["erro" => "Email ou senha incorretos"]);
             }
@@ -75,9 +64,8 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
     exit();
 }
 
-else if ($requestMethod === "DELETE") {
-    $data = json_decode(file_get_contents("php://input"), true);
-
+// Requisição DELETE para desativar usuário
+if ($requestMethod === "DELETE") {
     if (!empty($data["id"]) && !empty($data["senha"])) {
         $stmt = $pdo->prepare("SELECT senha FROM usuarios WHERE id = :id AND ativo = 'true'");
         $stmt->bindParam(":id", $data["id"], PDO::PARAM_INT);
