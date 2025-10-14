@@ -25,7 +25,7 @@ cd /d "%~dp0"
 
 echo Instalando Composer 
 echo ================================
-composer install
+call composer install
 IF %ERRORLEVEL% NEQ 0 (
     echo Erro ao instalar o Composer.
     goto :erro
@@ -33,7 +33,7 @@ IF %ERRORLEVEL% NEQ 0 (
 
 echo Instalando NPM
 echo ================================
-npm install
+call npm install
 IF %ERRORLEVEL% NEQ 0 (
     echo Erro ao instalar o NPM.
     goto :erro
@@ -41,7 +41,7 @@ IF %ERRORLEVEL% NEQ 0 (
 
 echo Iniciando o servidor do NPM
 echo ================================
-npm start
+call npm start
 IF %ERRORLEVEL% NEQ 0 (
     echo Erro ao iniciar o servidor do NPM.
     goto :erro
