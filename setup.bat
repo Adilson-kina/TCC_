@@ -19,8 +19,7 @@ echo ================================
 cd /d "C:\xampp\mysql\bin"
 mysql -u root < "%~dp0/SQL/SQL.sql"
 IF %ERRORLEVEL% NEQ 0 (
-    echo Erro ao executar o script SQL.
-    goto :erro
+    echo Erro ao executar o script SQL. Continuando...
 )
 
 cd /d "%~dp0"
@@ -45,6 +44,15 @@ IF %ERRORLEVEL% NEQ 0 (
     goto :erro
 )
 
+goto :sucesso
+
+:sucesso
+echo.
+echo ================================
+echo Setup finalizado com sucesso!
+echo ================================
+exit /b
+
 echo.
 echo ================================
 echo Iniciando o servidor do NPM
@@ -55,20 +63,10 @@ IF %ERRORLEVEL% NEQ 0 (
     goto :erro
 )
 
-goto :sucesso
-
 :erro
 echo.
 echo ================================
 echo O setup encontrou um erro e foi interrompido.
-echo ================================
-pause
-exit /b
-
-:sucesso
-echo.
-echo ================================
-echo Setup concluído com sucesso!
 echo ================================
 pause
 exit /b

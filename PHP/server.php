@@ -1,39 +1,52 @@
 <?php
+// Configurações de CORS
+header("Content-Type: application/json");
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, DELETE, PUT");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+// Responder requisições OPTIONS (preflight)
+if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
+    header("HTTP/1.1 200 OK");
+    exit();
+}
+
 require_once(__DIR__ . '/config.php');
 
 $requestMethod = $_SERVER["REQUEST_METHOD"];
 $data = json_decode(file_get_contents("php://input"), true);
 
+// =======================
+// POST: Cadastro ou Login
+// =======================
 if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
-    
-    // Requisição POST para cadastro
-    if ($_GET["endpoint"] === "cadastro") {
+    $endpoint = $_GET["endpoint"];
+
+    if ($endpoint === "cadastro") {
         if (!empty($data["nome"]) && !empty($data["email"]) && !empty($data["senha"])) {
             $stmt = $pdo->prepare("SELECT email FROM usuarios WHERE email = :email");
             $stmt->bindParam(":email", $data["email"]);
             $stmt->execute();
-            $usuarioExiste = $stmt->fetch(PDO::FETCH_ASSOC);
-            if ($usuarioExiste) {
+
+            if ($stmt->fetch()) {
                 echo json_encode(["erro" => "Usuário já existente"]);
-                exit(1);
+                exit();
             }
+
             $senhaHash = password_hash($data["senha"], PASSWORD_DEFAULT);
             $stmt = $pdo->prepare("INSERT INTO usuarios (nome, email, senha, ativo) VALUES (:nome, :email, :senha, 'true')");
             $stmt->bindParam(":nome", $data["nome"]);
             $stmt->bindParam(":email", $data["email"]);
             $stmt->bindParam(":senha", $senhaHash);
 
-            if ($stmt->execute()) {
-                echo json_encode(["mensagem" => "Usuário criado!", "id" => $pdo->lastInsertId()]);
-            } else {
-                echo json_encode(["erro" => "Erro ao cadastrar usuário."]);
-            }
+            echo $stmt->execute()
+                ? json_encode(["mensagem" => "Usuário criado!", "id" => $pdo->lastInsertId()])
+                : json_encode(["erro" => "Erro ao cadastrar usuário."]);
         } else {
             echo json_encode(["erro" => "Dados inválidos"]);
         }
 
-    // Requisição POST para login    
-    } elseif ($_GET["endpoint"] === "login") {
+    } elseif ($endpoint === "login") {
         if (!empty($data["email"]) && !empty($data["senha"])) {
             $stmt = $pdo->prepare("SELECT id, nome, email, senha FROM usuarios WHERE email = :email AND ativo = 'true'");
             $stmt->bindParam(":email", $data["email"]);
@@ -45,9 +58,9 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
                     "id" => $usuario["id"],
                     "email" => $usuario["email"],
                     "nome" => $usuario["nome"],
-                    "exp" => time() + (60 * 60 * 24)
+                    "exp" => time() + (60 * 60 * 24) // Expira em 24 horas
                 ];
-                $jwt = JWT::encode($payload, $jwtSecretKey, 'HS256');
+                $jwt = gerarToken($payload, $jwtSecretKey);
 
                 echo json_encode([
                     "mensagem" => "Login bem-sucedido!",
@@ -61,10 +74,13 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
             echo json_encode(["erro" => "Dados inválidos"]);
         }
     }
+
     exit();
 }
 
-// Requisição DELETE para desativar usuário
+// =======================
+// DELETE: Desativar usuário
+// =======================
 if ($requestMethod === "DELETE") {
     if (!empty($data["id"]) && !empty($data["senha"])) {
         $stmt = $pdo->prepare("SELECT senha FROM usuarios WHERE id = :id AND ativo = 'true'");
@@ -76,45 +92,42 @@ if ($requestMethod === "DELETE") {
             $stmt = $pdo->prepare("UPDATE usuarios SET ativo = 'false' WHERE id = :id");
             $stmt->bindParam(":id", $data["id"], PDO::PARAM_INT);
 
-            if ($stmt->execute()) {
-                echo json_encode(["mensagem" => "Usuário deletado com sucesso!", "id" => $data["id"]]);
-            } else {
-                echo json_encode(["erro" => "Erro ao deletar usuário"]);
-            }
+            echo $stmt->execute()
+                ? json_encode(["mensagem" => "Usuário deletado com sucesso!", "id" => $data["id"]])
+                : json_encode(["erro" => "Erro ao deletar usuário"]);
         } else {
             echo json_encode(["erro" => "Senha incorreta"]);
         }
     } else {
         echo json_encode(["erro" => "ID ou senha não fornecidos"]);
     }
+
     exit();
 }
 
-// Requisição GET para buscar usuário
+// =======================
+// GET: Buscar usuários
+// =======================
 if ($requestMethod === "GET") {
-    if (!empty($_GET["id"])) { 
+    if (!empty($_GET["id"])) {
         $stmt = $pdo->prepare("SELECT id, nome, email, ativo FROM usuarios WHERE id = :id AND ativo = 'true'");
         $stmt->bindParam(":id", $_GET["id"], PDO::PARAM_INT);
         $stmt->execute();
-        
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($usuario) {
-            echo json_encode($usuario);
-        } else {
-            echo json_encode(["erro" => "Usuário não encontrado ou inativo"]);
-        }
-        exit();
+        echo $usuario
+            ? json_encode($usuario)
+            : json_encode(["erro" => "Usuário não encontrado ou inativo"]);
     } else {
         $stmt = $pdo->query("SELECT id, nome, email, ativo FROM usuarios WHERE ativo = 'true'");
-        $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        echo json_encode($usuarios);
-        exit();
+        echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
     }
+
+    exit();
 }
 
-// Caso a requisição não corresponda a nenhum método esperado
+// =======================
+// Método não permitido
+// =======================
 echo json_encode(["erro" => "Método não permitido"]);
 exit();
-?>
