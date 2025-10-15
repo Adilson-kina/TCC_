@@ -2,7 +2,7 @@
 // Configurações de CORS
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, DELETE, PUT");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
 // Responder requisições OPTIONS (preflight)
@@ -11,13 +11,20 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     exit();
 }
 
-require_once(__DIR__ . '/config.php');
+// Verifica se é POST
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    echo json_encode(["erro" => "Método não permitido"]);
+    exit();
+}
+
+// Importa configurações do 'config.php'
+require_once(__DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.php');
 
 $requestMethod = $_SERVER["REQUEST_METHOD"];
 $data = json_decode(file_get_contents("php://input"), true);
 
 // =======================
-// POST: Cadastro ou Login
+// POST: Cadastro do usuário
 // =======================
 if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
     $endpoint = $_GET["endpoint"];
@@ -46,6 +53,9 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
             echo json_encode(["erro" => "Dados inválidos"]);
         }
 
+// =======================
+// POST: Login do usuário
+// =======================
     } elseif ($endpoint === "login") {
         if (!empty($data["email"]) && !empty($data["senha"])) {
             $stmt = $pdo->prepare("SELECT id, nome, email, senha FROM usuarios WHERE email = :email AND ativo = 'true'");
@@ -77,57 +87,3 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
 
     exit();
 }
-
-// =======================
-// DELETE: Desativar usuário
-// =======================
-if ($requestMethod === "DELETE") {
-    if (!empty($data["id"]) && !empty($data["senha"])) {
-        $stmt = $pdo->prepare("SELECT senha FROM usuarios WHERE id = :id AND ativo = 'true'");
-        $stmt->bindParam(":id", $data["id"], PDO::PARAM_INT);
-        $stmt->execute();
-        $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($usuario && password_verify($data["senha"], $usuario["senha"])) {
-            $stmt = $pdo->prepare("UPDATE usuarios SET ativo = 'false' WHERE id = :id");
-            $stmt->bindParam(":id", $data["id"], PDO::PARAM_INT);
-
-            echo $stmt->execute()
-                ? json_encode(["mensagem" => "Usuário deletado com sucesso!", "id" => $data["id"]])
-                : json_encode(["erro" => "Erro ao deletar usuário"]);
-        } else {
-            echo json_encode(["erro" => "Senha incorreta"]);
-        }
-    } else {
-        echo json_encode(["erro" => "ID ou senha não fornecidos"]);
-    }
-
-    exit();
-}
-
-// =======================
-// GET: Buscar usuários
-// =======================
-if ($requestMethod === "GET") {
-    if (!empty($_GET["id"])) {
-        $stmt = $pdo->prepare("SELECT id, nome, email, ativo FROM usuarios WHERE id = :id AND ativo = 'true'");
-        $stmt->bindParam(":id", $_GET["id"], PDO::PARAM_INT);
-        $stmt->execute();
-        $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        echo $usuario
-            ? json_encode($usuario)
-            : json_encode(["erro" => "Usuário não encontrado ou inativo"]);
-    } else {
-        $stmt = $pdo->query("SELECT id, nome, email, ativo FROM usuarios WHERE ativo = 'true'");
-        echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
-    }
-
-    exit();
-}
-
-// =======================
-// Método não permitido
-// =======================
-echo json_encode(["erro" => "Método não permitido"]);
-exit();

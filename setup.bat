@@ -2,7 +2,7 @@
 setlocal
 
 echo ================================
-echo Iniciando Apache e MySQL (XAMPP)
+echo (1) Iniciando Apache e MySQL (XAMPP)...
 echo ================================
 
 start "" "C:\xampp\apache_start.bat"
@@ -13,7 +13,7 @@ timeout /t 5 >nul
 
 echo.
 echo ================================
-echo Executando script SQL no MySQL
+echo (2) Executando script SQL no MySQL...
 echo ================================
 
 cd /d "C:\xampp\mysql\bin"
@@ -26,7 +26,7 @@ cd /d "%~dp0"
 
 echo.
 echo ================================
-echo Instalando Composer 
+echo (3) Instalando Composer...
 echo ================================
 call composer install
 IF %ERRORLEVEL% NEQ 0 (
@@ -34,9 +34,8 @@ IF %ERRORLEVEL% NEQ 0 (
     goto :erro
 )
 
-echo.
 echo ================================
-echo Instalando NPM
+echo (4) Instalando pacotes do projeto...
 echo ================================
 call npm install
 IF %ERRORLEVEL% NEQ 0 (
@@ -49,24 +48,27 @@ goto :sucesso
 :sucesso
 echo.
 echo ================================
-echo Setup finalizado com sucesso!
+echo SETUP FINALIZADO!
 echo ================================
-exit /b
 
 echo.
 echo ================================
-echo Iniciando o servidor do NPM
+echo (5) Iniciando o servidor do NPM...
 echo ================================
 call npm start
-IF %ERRORLEVEL% NEQ 0 (
-    echo Erro ao iniciar o servidor do NPM.
-    goto :erro
-)
+
+echo.
+echo ================================
+echo FECHANDO O SETUP...
+echo ================================
+pause
+exit /b
+
 
 :erro
 echo.
 echo ================================
-echo O setup encontrou um erro e foi interrompido.
+echo HOUVE UM ERRO. FECHANDO O SETUP...
 echo ================================
 pause
 exit /b

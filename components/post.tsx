@@ -1,5 +1,5 @@
 export default async function post(data, endpoint) {
-  const server = `http://localhost/TCC/PHP/server.php?endpoint=${endpoint}`;
+  const server = `http://localhost/TCC/PHP/auth.php?endpoint=${endpoint}`;
 
   try {
     const res = await fetch(server, {

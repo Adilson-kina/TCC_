@@ -1,5 +1,5 @@
 export default async function get(data: any): Promise<any | false> {
-  const server = "http://localhost/TCC/PHP/server.php";
+  const server = "http://localhost/TCC/PHP/auth.php";
   const params = new URLSearchParams(data);
   const urlWithParams = `${server}?${params.toString()}`;
 
