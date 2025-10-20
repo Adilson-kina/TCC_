@@ -1,15 +1,25 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Pressable, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function CheckBoxWithLabel( {label = ""} ) {
-  const [isChecked, setChecked] = useState(false);
+export default function CheckBoxWithLabel({ 
+  label = "", 
+  isChecked, 
+  onValueChange,
+  containerStyle,
+  rowStyle,
+  checkboxStyle,
+  labelStyle 
+}) {
   const size = 30;
-
+  
   return (
-    <Pressable onPress={() => setChecked(isChecked => !isChecked)} style={styles.container}>
-      <View style={styles.row}>
-        <Pressable onPress={() => setChecked(isChecked => !isChecked)} style={[
+    <View style={[styles.container, containerStyle]}>
+      <Pressable 
+        onPress={() => onValueChange(!isChecked)} 
+        style={[styles.row, rowStyle]}
+      >
+        <View style={[
           styles.checkbox,
           {
             width: size,
@@ -17,27 +27,34 @@ export default function CheckBoxWithLabel( {label = ""} ) {
             borderRadius: size / 2,
             borderColor: isChecked ? "#2ecc71" : "#999999",
             backgroundColor: isChecked ? "#2ecc71" : "transparent",
-          }]}>
+          },
+          checkboxStyle
+        ]}>
           {isChecked && (
             <Ionicons name="checkmark" size={size * 0.6} color="white" />
           )}
-        </Pressable>
-
-        <Text style={styles.label}>{label}</Text>
-      </View>
-    </Pressable>
+        </View>
+        {label !== "" && <Text style={[styles.label, labelStyle]}>{label}</Text>}
+      </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row:{
-    flex: 1,
+  container: {
+    alignItems: 'flex-start',
+  },
+  row: {
     flexDirection: "row",
     alignItems: "center",
   },
-  checkbox:{
+  checkbox: {
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
   },
+  label: {
+    marginLeft: 10,
+    fontSize: 16,
+  }
 });

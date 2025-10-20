@@ -58,6 +58,25 @@ export default function RootLayout() {
           }
         }} 
       />
+      <Stack.Screen 
+        name="perfil"
+        options={{ 
+          title: "",
+          headerStyle: {
+            backgroundColor: "#ecfcec"
+          }
+        }} 
+      />
+      <Stack.Screen 
+        name="home"
+        options={{ 
+          headerShown: false,
+          title: "",
+          headerStyle: {
+            backgroundColor: "#ecfcec"
+          }
+        }} 
+      />
     </Stack>
   )
 }
