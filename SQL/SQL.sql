@@ -1,23 +1,22 @@
 CREATE DATABASE IF NOT EXISTS dietase_db;
 USE dietase_db;
 
-CREATE TABLE perfis(
-    id bigint NOT NULL AUTO_INCREMENT,
-    pergunta1_objetivo enum('perder', 'ganhar', 'manter') NOT NULL,
-    pergunta2_desafio enum('desafio1', 'desafio2', 'desafio3') NOT NULL,
-    pergunta3_contagem_calorica enum('sim', 'nao') NOT NULL,
-    pergunta4_jejum_intermitente enum('sim', 'nao') NOT NULL,
-    pergunta5_atingir_objetivo varchar(255) NOT NULL, 
-    pergunta9_nivel_atividade enum('baixo', 'medio', 'alto') NOT NULL,
-    pergunta11_meta enum('meta1', 'meta2', 'meta3', 'meta4', 'meta5') NOT NULL,
-    pergunta12_evento enum('sim', 'nao') NOT NULL,
-    pergunta13_tipo_dieta enum('low_carb', 'cetogenica', 'mediterranea', 'vegana', 'vegetariana', 'paleolitica', 'dieta_das_zonas') NOT NULL,
-    pergunta14_comer_fds enum('sim', 'nao') NOT NULL,
-    pergunta15_disturbios varchar(255) NOT NULL,
-    pergunta16_forma_avaliacao varchar(255) NOT NULL,
-    pergunta17_possui_dieta enum('sim', 'nao') NOT NULL,
-    perfil_final enum('perfil1', 'perfil2', 'perfil3', 'perfil4') NOT NULL,
-
+CREATE TABLE perfis (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    pergunta1_objetivo ENUM('perder', 'ganhar', 'manter') NOT NULL,
+    pergunta2_desafio ENUM('desafio1', 'desafio2', 'desafio3') NOT NULL,
+    pergunta3_contagem_calorica ENUM('sim', 'nao') NOT NULL,
+    pergunta4_jejum_intermitente ENUM('sim', 'nao') NOT NULL,
+    pergunta5_atingir_objetivo VARCHAR(255) NOT NULL,
+    pergunta9_nivel_atividade ENUM('baixo', 'medio', 'alto') NOT NULL,
+    pergunta11_meta ENUM('meta1', 'meta2', 'meta3', 'meta4', 'meta5') NOT NULL,
+    pergunta12_evento ENUM('sim', 'nao') NOT NULL,
+    pergunta13_tipo_dieta ENUM('low_carb', 'cetogenica', 'mediterranea', 'vegana', 'vegetariana', 'paleolitica', 'dieta_das_zonas') NOT NULL,
+    pergunta14_comer_fds ENUM('sim', 'nao') NOT NULL,
+    pergunta15_disturbios VARCHAR(255) NOT NULL,
+    pergunta16_forma_avaliacao VARCHAR(255) NOT NULL,
+    pergunta17_possui_dieta ENUM('sim', 'nao') NOT NULL,
+    perfil_final ENUM('perfil1', 'perfil2', 'perfil3', 'perfil4') NOT NULL,
     PRIMARY KEY (id)
 );
 
@@ -28,17 +27,16 @@ CREATE TABLE usuarios (
     senha VARCHAR(255) NOT NULL,
     sexo_biologico ENUM('m', 'f') DEFAULT NULL,
     data_nascimento DATE DEFAULT NULL,
-    altura TINYINT UNSIGNED DEFAULT NULL, 
+    altura TINYINT UNSIGNED DEFAULT NULL,
     peso_inicial DECIMAL(4,1) DEFAULT NULL,
     imc_inicial DECIMAL(4,1) DEFAULT NULL,
-    peso DECIMAL(4,1) DEFAULT NULL, 
-    imc DECIMAL(4,1) DEFAULT NULL,  
+    peso DECIMAL(4,1) DEFAULT NULL,
+    imc DECIMAL(4,1) DEFAULT NULL,
     medida_cintura DECIMAL(5,2) DEFAULT NULL,
     medida_quadril DECIMAL(5,2) DEFAULT NULL,
     medida_peito DECIMAL(5,2) DEFAULT NULL,
     perfil_id BIGINT DEFAULT NULL,
     ativo TINYINT(1) NOT NULL DEFAULT 1,
-
     PRIMARY KEY (id),
     FOREIGN KEY (perfil_id) REFERENCES perfis(id)
 );
@@ -80,10 +78,11 @@ CREATE TABLE refeicao_alimento (
     FOREIGN KEY (alimento_id) REFERENCES alimentos(id)
 );
 
--- SELECT * FROM usuarios;
--- DROP TABLE usuarios;
-
 -- SELECT * FROM perfis;
--- DROP TABLE perfis;
+-- SELECT * FROM usuarios;
+-- SELECT * FROM calorias;
+-- SELECT * FROM alimentos;
+-- SELECT * FROM refeicoes;
+-- SELECT * FROM refeicao_alimento;
 
 -- DROP DATABASE dietase_db;
