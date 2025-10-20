@@ -1,5 +1,7 @@
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, Modal, ScrollView } from 'react-native';
+import { Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
 
 export default function Perfil(){
     const prosseguir = () => {
@@ -30,9 +32,9 @@ export default function Perfil(){
       console.log("Altura:", altura, "cm");
       console.log("Imagem:", imagem);
       console.log("Cor do avatar:", avatarBackgroundColor);
+      const router = useRouter();
+      router.navigate("/home");
       
-      alert("Pão de Batata")
-      //router.replace("/proxima-etapa");
   }
 
   const [imagem, setImagem] = useState<string | null>(null)
@@ -41,7 +43,7 @@ export default function Perfil(){
 
   // Array with 7 pre-selected images
   const preSelectedImages = [
-    require('./img/1.png'),
+    require('./img/avatar1.png'),
     require('./img/avatar2.png'),
     require('./img/avatar3.png'),
     require('./img/avatar4.png'),

@@ -1,32 +1,13 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function Home() {
-  const [termsAccepted, setTermsAccepted] = useState(false); // Change to true if user already accepted
+export default function Calorias() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   
   const navigateTo = (screen) => {
     console.log(`Navigating to: ${screen}`);
     //const router = useRouter();
     //router.navigate("/place");
-  };
-
-  const handleJejumPress = () => {
-    if (!termsAccepted) {
-      setShowTermsModal(true);
-    } else {
-      navigateTo('jejum');
-    }
-  };
-
-  const handleAcceptTerms = () => {
-    setTermsAccepted(true);
-    setShowTermsModal(false);
-    navigateTo('jejum');
-  };
-
-  const handleDeclineTerms = () => {
-    setShowTermsModal(false);
   };
 
   return (
