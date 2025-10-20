@@ -2,7 +2,7 @@
 // Configurações de CORS
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
 // Responder requisições OPTIONS (preflight)
@@ -11,14 +11,10 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     exit();
 }
 
-// Verifica se é POST
-if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    echo json_encode(["erro" => "Método não permitido"]);
-    exit();
-}
-
 // Importa configurações do 'config.php'
 require_once(__DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.php');
+
+permitirMetodos(["GET", "POST"]);
 
 $requestMethod = $_SERVER["REQUEST_METHOD"];
 $data = json_decode(file_get_contents("php://input"), true);
@@ -41,7 +37,7 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
             }
 
             $senhaHash = password_hash($data["senha"], PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO usuarios (nome, email, senha, ativo) VALUES (:nome, :email, :senha, 'true')");
+            $stmt = $pdo->prepare("INSERT INTO usuarios (nome, email, senha) VALUES (:nome, :email, :senha)");
             $stmt->bindParam(":nome", $data["nome"]);
             $stmt->bindParam(":email", $data["email"]);
             $stmt->bindParam(":senha", $senhaHash);
@@ -58,7 +54,7 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
 // =======================
     } elseif ($endpoint === "login") {
         if (!empty($data["email"]) && !empty($data["senha"])) {
-            $stmt = $pdo->prepare("SELECT id, nome, email, senha FROM usuarios WHERE email = :email AND ativo = 'true'");
+            $stmt = $pdo->prepare("SELECT id, nome, email, senha FROM usuarios WHERE email = :email AND ativo = 1");
             $stmt->bindParam(":email", $data["email"]);
             $stmt->execute();
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);

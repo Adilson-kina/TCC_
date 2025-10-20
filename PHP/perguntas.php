@@ -1,7 +1,7 @@
 <?php
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Methods: POST, PUT, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
 if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
@@ -9,12 +9,9 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     exit();
 }
 
-if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    echo json_encode(["erro" => "Método não permitido"]);
-    exit();
-}
-
 require_once(__DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.php');
+
+permitirMetodos(["POST", "PUT"]);
 
 // Verifica token JWT
 $usuario = verificarToken($jwtSecretKey);
@@ -238,7 +235,7 @@ try {
 }
 
 // =======================
-// POST: Atualização do usuário
+// PUT: Atualização do usuário
 // =======================
 
 try {

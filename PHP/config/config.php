@@ -5,7 +5,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 // Autoload do Composer (Firebase JWT)
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
 
@@ -14,7 +14,7 @@ $jwtSecretKey = "dietasecreta";
 
 // Conexão com o banco
 try {
-    $pdo = new PDO("mysql:host=localhost;dbname=tcc_db", "root", "");
+    $pdo = new PDO("mysql:host=localhost;dbname=dietase_db", "root", "");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     echo json_encode(["erro" => "Erro na conexão com o banco: " . $e->getMessage()]);
@@ -42,5 +42,13 @@ function verificarToken($jwtSecretKey) {
 
 function gerarToken(array $payload, string $jwtSecretKey): string {
     return JWT::encode($payload, $jwtSecretKey, 'HS256');
+}
+
+// Função para validar métodos permitidos
+function permitirMetodos(array $metodos) {
+    if (!in_array($_SERVER["REQUEST_METHOD"], $metodos)) {
+        echo json_encode(["erro" => "Método não permitido"]);
+        exit();
+    }
 }
 ?>
