@@ -58,18 +58,16 @@ try {
 
     // 3. Associar alimentos com calorias
     $stmtAlimento = $pdo->prepare("
-        INSERT INTO refeicoes_alimentos (refeicao_id, alimento_id, calorias_por_alimento)
-        VALUES (:refeicao_id, :alimento_id, :calorias)
+        INSERT INTO refeicoes_alimentos (refeicao_id, alimento_id)
+        VALUES (:refeicao_id, :alimento_id)
     ");
 
     foreach ($alimentos as $item) {
         $alimentoId = $item["id"] ?? null;
-        $calorias = $item["calorias"] ?? null;
-
-        if ($alimentoId && $calorias !== null) {
+        
+        if ($alimentoId) {
             $stmtAlimento->bindParam(":refeicao_id", $refeicaoId);
             $stmtAlimento->bindParam(":alimento_id", $alimentoId);
-            $stmtAlimento->bindParam(":calorias", $calorias);
             $stmtAlimento->execute();
         }
     }

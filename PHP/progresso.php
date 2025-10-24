@@ -47,7 +47,6 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
         echo json_encode([
             "meta" => $dados["meta"],
-            "forma_avaliacao" => $dados["forma_avaliacao"],
             "peso_inicial" => $dados["peso_inicial"],
             "imc_inicial" => $dados["imc_inicial"],
             "peso_atual" => $dados["peso_atual"],
