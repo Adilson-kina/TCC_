@@ -141,6 +141,13 @@ try {
         :faixa
     )");
 
+    $stmtMeta->execute([
+        ":perguntas_id" => $perguntasId,
+        ":tipo_meta" => $tipoMeta,
+        ":valor_desejado" => $valorDesejado,
+        ":faixa" => $faixaRecomendada
+    ]);
+
     $metaId = $pdo->lastInsertId();
 } catch (PDOException $e) {
     echo json_encode(["erro" => "Erro ao salvar meta desejada: " . $e->getMessage()]);

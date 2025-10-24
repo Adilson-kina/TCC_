@@ -23,14 +23,17 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     try {
         $stmt = $pdo->prepare("
             SELECT 
-                p.pergunta5_meta AS meta,
+                m.tipo_meta AS meta,
+                m.valor_desejado,
+                m.faixa_recomendada,
                 u.peso_inicial,
                 u.imc_inicial,
                 u.peso AS peso_atual,
                 u.imc AS imc_atual,
                 u.altura
             FROM usuarios u
-            JOIN perfis p ON u.perfil_id = p.id
+            JOIN perguntas p ON u.perguntas_id = p.id
+            JOIN pergunta5_meta m ON m.perguntas_id = p.id
             WHERE u.id = :id
         ");
         $stmt->bindParam(":id", $usuario->id);

@@ -27,13 +27,21 @@ try {
     $refeicoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // 2. Buscar alimentos de cada refeição
+    if (empty($refeicoes)) {
+        echo json_encode(["refeicoes" => []]);
+        exit();
+    }
+
+    $ids = array_column($refeicoes, 'refeicao_id');
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
     $stmtAlimentos = $pdo->prepare("
         SELECT ra.refeicao_id, a.id, a.nome, a.energia_kcal, a.carboidrato_g, a.proteina_g
         FROM refeicao_alimento ra
         JOIN alimentos a ON a.id = ra.alimento_id
-        WHERE ra.refeicao_id IN (" . implode(',', array_column($refeicoes, 'refeicao_id')) . ")
+        WHERE ra.refeicao_id IN ($placeholders)
     ");
-    $stmtAlimentos->execute();
+    $stmtAlimentos->execute($ids);
     $alimentosPorRefeicao = $stmtAlimentos->fetchAll(PDO::FETCH_ASSOC);
 
     // 3. Agrupar alimentos por refeição

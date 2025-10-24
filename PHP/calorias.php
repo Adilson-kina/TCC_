@@ -20,38 +20,60 @@ $passos = max(0, intval($data["passos"] ?? 0));
 $dataRegistro = date("Y-m-d");
 
 try {
-    // 1. Buscar peso, sexo e nível de atividade do usuário
+    // 1. Buscar dados do usuário
     $stmt = $pdo->prepare("
-        SELECT u.peso, u.sexo_biologico, p.pergunta9_nivel_atividade
+        SELECT u.peso, u.altura, u.sexo_biologico, u.data_nascimento, p.pergunta4_nivel_atividade
         FROM usuarios u
-        JOIN perfis p ON u.perfil_id = p.id
+        JOIN perguntas p ON u.perguntas_id = p.id
         WHERE u.id = :id
     ");
     $stmt->bindParam(":id", $usuario->id);
     $stmt->execute();
     $info = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $peso = $info["peso"];
+    $peso = floatval($info["peso"] ?? $info["peso_inicial"]);
+    $altura = intval($info["altura"]);
     $sexo = $info["sexo_biologico"];
-    $nivel = $info["pergunta9_nivel_atividade"];
+    $nivel = $info["pergunta4_nivel_atividade"];
 
-    // 2. Definir fator de atividade
-    $fator = match ($nivel) {
+    // 2. Calcular idade
+    $dataNascimento = new DateTime($info["data_nascimento"]);
+    $hoje = new DateTime();
+    $idade = $dataNascimento->diff($hoje)->y;
+
+    // 3. Calcular TMB (Taxa Metabólica Basal)
+    $tmb = ($sexo === "m")
+        ? (10 * $peso) + (6.25 * $altura) - (5 * $idade) + 5
+        : (10 * $peso) + (6.25 * $altura) - (5 * $idade) - 161;
+
+    // 4. Definir fator de atividade
+    $fatorAtividade = match ($nivel) {
+        "sedentario" => 1.2,
+        "baixo" => 1.375,
+        "medio" => 1.55,
+        "alto" => 1.725,
+        default => 1.55
+    };
+
+    // 5. Estimar gasto calórico diário
+    $estimativaGastoDiario = round($tmb * $fatorAtividade, 2);
+
+    // 6. Calcular calorias gastas com base nos passos
+    $fatorPassos = match ($nivel) {
         "sedentario" => 0.0003,
         "baixo" => 0.0004,
         "medio" => 0.0005,
         "alto" => 0.0006,
         default => 0.0005
     };
+    $caloriasGastas = round($passos * $peso * $fatorPassos, 2);
 
-    // 3. Calcular calorias gastas com base nos passos
-    $caloriasGastas = round($passos * $peso * $fator, 2);
-
-    // 4. Calcular calorias ingeridas com base nas refeições do dia
+    // 7. Calcular calorias ingeridas com base nas refeições do dia
     $stmt = $pdo->prepare("
-        SELECT SUM(ra.calorias_por_alimento) AS total_calorias
+        SELECT SUM(CAST(a.energia_kcal AS DECIMAL(6,2))) AS total_calorias
         FROM refeicoes r
-        JOIN refeicao_alimento ra ON r.id = ra.refeicao_id
+        JOIN refeicoes_alimentos ra ON r.id = ra.refeicao_id
+        JOIN alimentos a ON a.id = ra.alimento_id
         WHERE r.usuario_id = :usuario_id AND r.data_registro = :data
     ");
     $stmt->bindParam(":usuario_id", $usuario->id);
@@ -60,20 +82,17 @@ try {
     $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
     $caloriasIngeridas = is_numeric($resultado["total_calorias"]) ? floatval($resultado["total_calorias"]) : 0;
 
-    // 5. Calcular saldo calórico
+    // 8. Calcular saldo calórico
     $saldoCalorico = $caloriasIngeridas - $caloriasGastas;
 
-    // 6. Estimar gasto calórico diário (peso × 33)
-    $estimativaGastoDiario = round($peso * 33, 2);
-
-    // 7. Definir limites mínimos seguros
+    // 9. Definir limites mínimos seguros
     $limiteMinimoSeguro = $sexo === "f" ? 1200 : 1500;
 
-    // 8. Definir objetivo de perda de peso (déficit de 500 a 1000 kcal)
+    // 10. Definir objetivo de perda de peso (déficit de 500 a 1000 kcal)
     $objetivoMinimo = max($estimativaGastoDiario - 500, $limiteMinimoSeguro);
     $objetivoMaximo = max($estimativaGastoDiario - 1000, $limiteMinimoSeguro);
 
-    // 9. Verifica se já existe registro para hoje
+    // 11. Verifica se já existe registro para hoje
     $stmt = $pdo->prepare("
         SELECT id FROM calorias 
         WHERE usuario_id = :usuario_id AND data_registro = :data
@@ -117,13 +136,16 @@ try {
         $stmt->execute();
     }
 
-    // 10. Retorno completo
+    // 12. Retorno completo
     echo json_encode([
         "mensagem" => "Dados de calorias atualizados com sucesso",
         "peso" => $peso,
+        "altura" => $altura,
+        "idade" => $idade,
         "sexo" => $sexo,
         "nivel_atividade" => $nivel,
-        "fator_atividade" => $fator,
+        "tmb" => round($tmb, 2),
+        "fator_atividade" => $fatorAtividade,
         "calorias_ingeridas" => $caloriasIngeridas,
         "calorias_gastas" => $caloriasGastas,
         "saldo_calorico" => $saldoCalorico,

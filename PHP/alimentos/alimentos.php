@@ -56,6 +56,11 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                 ":alimento_id" => $alimento["id"]
             ]);
         }
+        echo json_encode([
+            "mensagem" => "Alimentos filtrados com sucesso",
+            "total_alimentos" => count($alimentos),
+            "alimentos" => $alimentos
+        ]);
     } catch (PDOException $e) {
         echo json_encode(["erro" => "Erro ao buscar alimentos: " . $e->getMessage()]);
         exit();

@@ -111,7 +111,7 @@ CREATE TABLE refeicoes (
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
 
-CREATE TABLE refeicoes_alimento (
+CREATE TABLE refeicoes_alimentos (
     refeicao_id BIGINT NOT NULL,
     alimento_id BIGINT NOT NULL,
     PRIMARY KEY (refeicao_id, alimento_id),

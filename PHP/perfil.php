@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                 u.data_nascimento,
                 p.pergunta6_tipo_dieta
             FROM usuarios u
-            JOIN perfis p ON u.perfil_id = p.id
+            JOIN perguntas p ON u.perguntas_id = p.id
             WHERE u.id = :id
         ");
         $stmt->bindParam(":id", $usuario->id);
