@@ -37,6 +37,7 @@ try {
 
     // 2. Definir fator de atividade
     $fator = match ($nivel) {
+        "sedentario" => 0.0003,
         "baixo" => 0.0004,
         "medio" => 0.0005,
         "alto" => 0.0006,

@@ -27,7 +27,23 @@ if (!$tipo || !is_array($alimentos) || empty($alimentos)) {
 }
 
 try {
-    // 1. Inserir refeição
+    // 1. Validar se todos os alimentos estão na dieta do usuário
+    $alimentoIds = array_column($alimentos, "id");
+    $placeholders = implode(',', array_fill(0, count($alimentoIds), '?'));
+
+    $stmtValidar = $pdo->prepare("
+        SELECT alimento_id FROM dieta
+        WHERE usuario_id = ? AND alimento_id IN ($placeholders)
+    ");
+    $stmtValidar->execute(array_merge([$usuario->id], $alimentoIds));
+    $permitidos = $stmtValidar->fetchAll(PDO::FETCH_COLUMN);
+
+    if (count($permitidos) !== count($alimentoIds)) {
+        echo json_encode(["erro" => "Alguns alimentos não fazem parte da dieta do usuário"]);
+        exit();
+    }
+
+    // 2. Inserir refeição
     $stmt = $pdo->prepare("
         INSERT INTO refeicoes (usuario_id, data_registro, tipo_refeicao, sintoma)
         VALUES (:usuario_id, :data, :tipo, :sintoma)
@@ -40,9 +56,9 @@ try {
 
     $refeicaoId = $pdo->lastInsertId();
 
-    // 2. Associar alimentos com calorias
+    // 3. Associar alimentos com calorias
     $stmtAlimento = $pdo->prepare("
-        INSERT INTO refeicao_alimento (refeicao_id, alimento_id, calorias_por_alimento)
+        INSERT INTO refeicoes_alimentos (refeicao_id, alimento_id, calorias_por_alimento)
         VALUES (:refeicao_id, :alimento_id, :calorias)
     ");
 

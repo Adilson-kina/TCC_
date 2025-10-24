@@ -23,8 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     try {
         $stmt = $pdo->prepare("
             SELECT 
-                p.pergunta11_meta AS meta,
-                p.pergunta16_forma_avaliacao AS forma_avaliacao,
+                p.pergunta5_meta AS meta,
                 u.peso_inicial,
                 u.imc_inicial,
                 u.peso AS peso_atual,
@@ -59,77 +58,46 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 }
 
 // =======================
-// PUT: Atualizar progresso
+// PUT: Atualizar progresso (peso e IMC)
 // =======================
 if ($_SERVER["REQUEST_METHOD"] === "PUT") {
     $data = json_decode(file_get_contents("php://input"), true);
 
+    if (!isset($data["peso"])) {
+        echo json_encode(["erro" => "Peso não informado"]);
+        exit();
+    }
+
     try {
-        // Busca forma de avaliação e dados de IMC
-        $stmt = $pdo->prepare("
-            SELECT p.pergunta16_forma_avaliacao, u.altura, u.peso_inicial, u.imc_inicial
-            FROM usuarios u
-            JOIN perfis p ON u.perfil_id = p.id
-            WHERE u.id = :id
-        ");
+        $peso = $data["peso"];
+
+        // Busca altura atual do usuário
+        $stmt = $pdo->prepare("SELECT altura FROM usuarios WHERE id = :id");
         $stmt->bindParam(":id", $usuario->id);
         $stmt->execute();
-        $avaliacao = $stmt->fetch(PDO::FETCH_ASSOC);
+        $alturaCm = $stmt->fetchColumn();
 
-        if (!$avaliacao) {
-            echo json_encode(["erro" => "Perfil não encontrado"]);
+        if (!$alturaCm) {
+            echo json_encode(["erro" => "Altura não encontrada para o usuário"]);
             exit();
         }
 
-        $forma = $avaliacao["pergunta16_forma_avaliacao"];
-        $alturaCm = $avaliacao["altura"];
-        $pesoInicial = $avaliacao["peso_inicial"];
-        $imcInicial = $avaliacao["imc_inicial"];
+        $alturaM = $alturaCm / 100;
+        $imc = ($alturaM > 0) ? $peso / ($alturaM * $alturaM) : null;
 
-        if ($forma === "medidas") {
-            if (!isset($data["cintura"], $data["quadril"], $data["peito"])) {
-                echo json_encode(["erro" => "Dados de medidas incompletos"]);
-                exit();
-            }
+        // Atualiza peso e IMC
+        $stmt = $pdo->prepare("
+            UPDATE usuarios
+            SET peso = :peso,
+                imc = :imc
+            WHERE id = :id
+        ");
+        $stmt->bindParam(":peso", $peso);
+        $stmt->bindParam(":imc", $imc);
+        $stmt->bindParam(":id", $usuario->id);
+        $stmt->execute();
 
-            $stmt = $pdo->prepare("
-                UPDATE usuarios
-                SET medida_cintura = :cintura,
-                    medida_quadril = :quadril,
-                    medida_peito = :peito
-                WHERE id = :id
-            ");
-            $stmt->bindParam(":cintura", $data["cintura"]);
-            $stmt->bindParam(":quadril", $data["quadril"]);
-            $stmt->bindParam(":peito", $data["peito"]);
-            $stmt->bindParam(":id", $usuario->id);
-            $stmt->execute();
-
-            echo json_encode(["mensagem" => "Medidas atualizadas com sucesso!"]);
-        } else {
-            if (!isset($data["peso"])) {
-                echo json_encode(["erro" => "Peso não informado"]);
-                exit();
-            }
-
-            $peso = $data["peso"];
-            $alturaM = $alturaCm / 100;
-            $imc = ($alturaM > 0) ? round($peso / ($alturaM * $alturaM), 1) : null;
-
-            // Atualiza peso e IMC atual
-            $stmt = $pdo->prepare("
-                UPDATE usuarios
-                SET peso = :peso,
-                    imc = :imc
-                WHERE id = :id
-            ");
-            $stmt->bindParam(":peso", $peso);
-            $stmt->bindParam(":imc", $imc);
-            $stmt->bindParam(":id", $usuario->id);
-            $stmt->execute();
-
-            echo json_encode(["mensagem" => "Peso e IMC atualizados com sucesso!"]);
-        }
+        echo json_encode(["mensagem" => "Peso e IMC atualizados com sucesso!"]);
     } catch (PDOException $e) {
         echo json_encode(["erro" => "Erro ao atualizar progresso: " . $e->getMessage()]);
         exit();

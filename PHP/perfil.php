@@ -27,8 +27,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                 u.altura,
                 u.peso,
                 u.imc,
+                u.imc_inicial,
                 u.data_nascimento,
-                p.pergunta13_tipo_dieta
+                p.pergunta6_tipo_dieta
             FROM usuarios u
             JOIN perfis p ON u.perfil_id = p.id
             WHERE u.id = :id
@@ -42,7 +43,17 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             exit();
         }
 
-        echo json_encode($dados);
+        // Se imc estiver nulo, usa imc_inicial como fallback
+        $dados["imc"] = $dados["imc"] ?? $dados["imc_inicial"];
+
+        echo json_encode([
+            "nome" => $dados["nome"],
+            "altura" => $dados["altura"],
+            "peso" => $dados["peso"],
+            "imc" => $dados["imc"],
+            "data_nascimento" => $dados["data_nascimento"],
+            "tipo_dieta" => $dados["pergunta6_tipo_dieta"]
+        ]);
     } catch (PDOException $e) {
         echo json_encode(["erro" => "Erro ao buscar perfil: " . $e->getMessage()]);
         exit();
@@ -61,8 +72,8 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
         $peso = $data["peso"];
         $senha = $data["senha"] ?? null;
 
-        $alturaM = $altura / 100;
-        $imc = ($alturaM > 0) ? round($peso / ($alturaM * $alturaM), 1) : null;
+        $alturaMetros = $altura / 100;
+        $imc = ($alturaMetros > 0) ? $peso / ($alturaMetros * $alturaMetros) : null;
 
         if (!empty($senha)) {
             $senhaHash = password_hash($senha, PASSWORD_DEFAULT);

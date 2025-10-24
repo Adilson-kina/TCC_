@@ -22,6 +22,16 @@ IF %ERRORLEVEL% NEQ 0 (
     echo Erro ao executar o script SQL. Continuando...
 )
 
+echo.
+echo ================================
+echo (2.1) Importando dados da TACO...
+echo ================================
+
+php "%~dp0SQL\import.php"
+IF %ERRORLEVEL% NEQ 0 (
+    echo Erro ao importar os dados da TACO. Continuando...
+)
+
 cd /d "%~dp0"
 
 echo.
@@ -57,13 +67,10 @@ echo (5) Iniciando o servidor do NPM...
 echo ================================
 call npm start
 
-echo.
-echo ================================
-echo FECHANDO O SETUP...
-echo ================================
-pause
-exit /b
+goto :fim
 
+:fim
+exit /b
 
 :erro
 echo.
