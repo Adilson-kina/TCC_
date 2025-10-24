@@ -14,23 +14,15 @@ function aplicarFiltros($tipoDieta, $disturbios) {
         "excluir_frito" => "nome NOT LIKE '%frito%'",
         "excluir_industrializado" => "nome NOT LIKE '%industrializado%'",
         "excluir_gluten" => [
-            "categoria NOT IN ('Cereais e derivados', 'Massas', 'Pães')",
             "nome NOT LIKE '%trigo%'",
             "nome NOT LIKE '%centeio%'",
             "nome NOT LIKE '%cevada%'",
             "nome NOT LIKE '%glúten%'",
-            "nome NOT LIKE '%massa%'",
-            "nome NOT LIKE '%biscoito%'",
-            "nome NOT LIKE '%bolo%'",
-            "nome NOT LIKE '%farinha%'"
+            "nome NOT LIKE '%farinha refinada%'"
         ],
         "excluir_acucar" => [
             "nome NOT LIKE '%açúcar%'",
-            "nome NOT LIKE '%doce%'",
             "nome NOT LIKE '%recheado%'",
-            "nome NOT LIKE '%bolo%'",
-            "nome NOT LIKE '%biscoito%'",
-            "nome NOT LIKE '%mistura%'",
             "nome NOT LIKE '%xarope%'",
             "nome NOT LIKE '%glucose%'"
         ],
@@ -38,7 +30,8 @@ function aplicarFiltros($tipoDieta, $disturbios) {
             "nome NOT LIKE '%linguiça%'",
             "nome NOT LIKE '%presunto%'",
             "nome NOT LIKE '%mortadela%'",
-            "nome NOT LIKE '%bacon%'"
+            "nome NOT LIKE '%bacon%'",
+            "nome NOT LIKE '%salame%'"
         ],
         "excluir_lactose" => [
             "nome NOT LIKE '%leite%'",
@@ -88,8 +81,8 @@ function aplicarFiltros($tipoDieta, $disturbios) {
             $condicoes[] = "nome NOT LIKE '%frango%'";
             $condicoes[] = "nome NOT LIKE '%peixe%'";
             $condicoes[] = "nome NOT LIKE '%ovo%'";
-            $condicoes[] = "nome NOT LIKE '%leite%'";
             $condicoes[] = "nome NOT LIKE '%mel%'";
+            $condicoes = array_merge($condicoes, $filtros["excluir_lactose"]);
             break;
         case "vegetariana":
             $condicoes[] = "nome NOT LIKE '%carne%'";
@@ -97,8 +90,7 @@ function aplicarFiltros($tipoDieta, $disturbios) {
             $condicoes[] = "nome NOT LIKE '%peixe%'";
             break;
         case "paleolitica":
-            $condicoes[] = "categoria NOT IN ('Cereais e derivados', 'Massas', 'Pães')";
-            $condicoes[] = "nome NOT LIKE '%farinha%'";
+            $condicoes[] = "nome NOT LIKE '%farinha refinada%'";
             $condicoes[] = "nome NOT LIKE '%leite%'";
             break;
         case "dieta_das_zonas":
@@ -149,7 +141,6 @@ function aplicarFiltros($tipoDieta, $disturbios) {
         $condicoes[] = $filtros["excluir_frito"];
         $condicoes[] = "nome NOT LIKE '%embutido%'";
     }
-
     return $condicoes;
 }
 ?>
