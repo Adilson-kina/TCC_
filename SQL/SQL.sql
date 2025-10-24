@@ -1,8 +1,6 @@
 CREATE DATABASE IF NOT EXISTS dietase_db;
 USE dietase_db;
 
-SET default_storage_engine = InnoDB;
-
 CREATE TABLE perguntas (
     id BIGINT NOT NULL AUTO_INCREMENT,
     pergunta1_objetivo ENUM('perder', 'ganhar', 'manter', 'massa') NOT NULL,
@@ -14,7 +12,7 @@ CREATE TABLE perguntas (
     pergunta8_disturbios VARCHAR(400) NOT NULL,
     pergunta9_possui_dieta ENUM('sim', 'nao') NOT NULL,
     PRIMARY KEY (id)
-); ENGINE=InnoDB;
+); 
 
 CREATE TABLE pergunta5_meta (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -24,7 +22,7 @@ CREATE TABLE pergunta5_meta (
     faixa_recomendada VARCHAR(20) DEFAULT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (perguntas_id) REFERENCES perguntas(id)
-); ENGINE=InnoDB;
+); 
 
 CREATE TABLE usuarios (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -42,7 +40,7 @@ CREATE TABLE usuarios (
     ativo TINYINT(1) NOT NULL DEFAULT 1,
     PRIMARY KEY (id),
     FOREIGN KEY (perguntas_id) REFERENCES perguntas(id)
-); ENGINE=InnoDB;
+); 
 
 CREATE TABLE calorias (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -54,7 +52,7 @@ CREATE TABLE calorias (
     saldo_calorico DECIMAL(6,2) DEFAULT 0,
     PRIMARY KEY (id),
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-); ENGINE=InnoDB;
+); 
 
 CREATE TABLE alimentos (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -86,7 +84,7 @@ CREATE TABLE alimentos (
     niacina_mg VARCHAR(255),
     vitamina_c_mg VARCHAR(255),
     PRIMARY KEY (id)
-); ENGINE=InnoDB;
+); 
 
 CREATE TABLE alimentos_permitidos (
     usuario_id BIGINT NOT NULL,
@@ -94,7 +92,7 @@ CREATE TABLE alimentos_permitidos (
     PRIMARY KEY (usuario_id, alimento_id),
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
     FOREIGN KEY (alimento_id) REFERENCES alimentos(id) ON DELETE CASCADE
-); ENGINE=InnoDB;
+); 
 
 CREATE TABLE dieta (
     usuario_id BIGINT NOT NULL,
@@ -102,7 +100,7 @@ CREATE TABLE dieta (
     PRIMARY KEY (usuario_id, alimento_id),
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
     FOREIGN KEY (alimento_id) REFERENCES alimentos(id) ON DELETE CASCADE
-); ENGINE=InnoDB;
+); 
 
 CREATE TABLE refeicoes (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -112,7 +110,7 @@ CREATE TABLE refeicoes (
     sintoma ENUM('nenhum', 'azia', 'enjoo', 'diarreia', 'dor_estomago') NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-); ENGINE=InnoDB;
+); 
 
 CREATE TABLE refeicoes_alimentos (
     refeicao_id BIGINT NOT NULL,
@@ -120,7 +118,7 @@ CREATE TABLE refeicoes_alimentos (
     PRIMARY KEY (refeicao_id, alimento_id),
     FOREIGN KEY (refeicao_id) REFERENCES refeicoes(id) ON DELETE CASCADE,
     FOREIGN KEY (alimento_id) REFERENCES alimentos(id)
-); ENGINE=InnoDB;
+); 
 
 -- SELECT * FROM perguntas;
 -- SELECT * FROM pergunta5_meta;
