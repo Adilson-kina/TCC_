@@ -65,18 +65,29 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         // 2. Gerar resumo nutricional
         $resumo = gerarResumoNutricional($dados["pergunta8_disturbios"]);
 
-        // 3. Buscar alimentos permitidos
-        $stmtAlimentos = $pdo->prepare("
+        // 3. Buscar alimentos permitidos (todos os que o filtro liberou)
+        $stmtPermitidos = $pdo->prepare("
             SELECT a.id, a.nome, a.categoria, a.energia_kcal, a.carboidrato_g, a.proteina_g
             FROM alimentos a
             JOIN alimentos_permitidos ap ON ap.alimento_id = a.id
             WHERE ap.usuario_id = :usuario_id
             ORDER BY a.nome ASC
         ");
-        $stmtAlimentos->execute([":usuario_id" => $usuario->id]);
-        $alimentosPermitidos = $stmtAlimentos->fetchAll(PDO::FETCH_ASSOC);
+        $stmtPermitidos->execute([":usuario_id" => $usuario->id]);
+        $alimentosPermitidos = $stmtPermitidos->fetchAll(PDO::FETCH_ASSOC);
 
-        // 4. Retornar tudo
+        // 🆕 4. Buscar dieta salva (os que o usuário escolheu)
+        $stmtDieta = $pdo->prepare("
+            SELECT a.id, a.nome, a.categoria, a.energia_kcal, a.carboidrato_g, a.proteina_g
+            FROM alimentos a
+            JOIN dieta d ON d.alimento_id = a.id
+            WHERE d.usuario_id = :usuario_id
+            ORDER BY a.nome ASC
+        ");
+        $stmtDieta->execute([":usuario_id" => $usuario->id]);
+        $dietaSalva = $stmtDieta->fetchAll(PDO::FETCH_ASSOC);
+
+        // 5. Retornar tudo
         echo json_encode([
             "disturbios" => $dados["pergunta8_disturbios"],
             "meta" => [
@@ -84,7 +95,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             ],
             "restricoes" => $resumo["restricoes"],
             "recomendados" => $resumo["recomendados"],
-            "alimentos_permitidos" => $alimentosPermitidos
+            "alimentos_permitidos" => $alimentosPermitidos,
+            "dieta_salva" => $dietaSalva  // 🆕 Agora retorna a dieta salva também!
         ]);
     } catch (PDOException $e) {
         echo json_encode(["erro" => "Erro ao buscar dados da dieta: " . $e->getMessage()]);
@@ -132,7 +144,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ]);
         }
 
-        echo json_encode(["sucesso" => true, "mensagem" => "Dieta atualizada com sucesso"]);
+        // 🆕 4. Buscar a dieta atualizada com detalhes dos alimentos
+        $stmtDieta = $pdo->prepare("
+            SELECT a.id, a.nome, a.categoria, a.energia_kcal, a.carboidrato_g, a.proteina_g, a.lipideos_g
+            FROM alimentos a
+            JOIN dieta d ON d.alimento_id = a.id
+            WHERE d.usuario_id = :usuario_id
+            ORDER BY a.nome ASC
+        ");
+        $stmtDieta->execute([":usuario_id" => $usuario->id]);
+        $dietaAtualizada = $stmtDieta->fetchAll(PDO::FETCH_ASSOC);
+
+        echo json_encode([
+            "sucesso" => true,
+            "mensagem" => "Dieta atualizada com sucesso",
+            "total_alimentos" => count($dietaAtualizada),
+            "dieta_atualizada" => $dietaAtualizada
+        ]);
     } catch (PDOException $e) {
         echo json_encode(["erro" => "Erro ao salvar dieta: " . $e->getMessage()]);
         exit();

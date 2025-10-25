@@ -32,7 +32,7 @@ while (($linha = fgetcsv($csv, 0, ';')) !== false) {
     $stmt = $pdo->prepare("
         INSERT INTO alimentos (
             nome, categoria, umidade_porcentagem, energia_kcal, proteina_g, lipideos_g, colesterol_g,
-            carboidrato_g, fibra_g, cinzas_g, calcio_g, magnesio_g, manganês_mg, fosforo_mg,
+            carboidrato_g, fibra_g, cinzas_g, calcio_g, magnesio_g, manganes_mg, fosforo_mg,
             ferro_mg, sodio_mg, potassio_mg, cobre_mg, zinco_mg, retinol_mcg, re_mcg, rae_mcg,
             tiamina_mg, riboflavina_mg, piridoxina_mg, niacina_mg, vitamina_c_mg
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -48,5 +48,4 @@ while (($linha = fgetcsv($csv, 0, ';')) !== false) {
 }
 
 fclose($csv);
-echo "Importação concluída com sucesso.";
 ?>

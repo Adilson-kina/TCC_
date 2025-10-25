@@ -1,18 +1,47 @@
 <?php
 function aplicarFiltros($tipoDieta, $disturbios) {
     $condicoes = [];
+    
+    // Verificação de distúrbios 
+    $listaDisturbios = ['celíaca', 'diabetes', 'hipercolesterolemia', 'hipertensão', 'sii'];
+    $countDisturbios = 0;
+    
+    // Se disturbios estiver vazio ou for null, não conta nada
+    if (!empty($disturbios)) {
+        foreach ($listaDisturbios as $d) {
+            if (str_contains($disturbios, $d)) {
+                $countDisturbios++;
+            }
+        }
+    }
+    
+    // Se tem 3+ distúrbios, usa modo ADAPTATIVO (filtros mais leves)
+    $modoAdaptativo = ($countDisturbios >= 3);
 
+    // ========================================
+    // DEFINIÇÃO DOS FILTROS
+    // ========================================
     $filtros = [
-        "carboidrato_baixo" => "CAST(carboidrato_g AS DECIMAL) <= 50",  
-        "carboidrato_muito_baixo" => "CAST(carboidrato_g AS DECIMAL) <= 20", 
-        "lipideos_baixos" => "CAST(lipideos_g AS DECIMAL) <= 10",
+        "carboidrato_baixo" => $modoAdaptativo 
+            ? "CAST(carboidrato_g AS DECIMAL) <= 80"
+            : "CAST(carboidrato_g AS DECIMAL) <= 50",
+            
+        "energia_baixa" => $modoAdaptativo
+            ? "CAST(energia_kcal AS DECIMAL) <= 400"
+            : "CAST(energia_kcal AS DECIMAL) <= 250",
+            
+        "lipideos_baixos" => $modoAdaptativo
+            ? "CAST(lipideos_g AS DECIMAL) <= 15"
+            : "CAST(lipideos_g AS DECIMAL) <= 10",
+        
+        "carboidrato_muito_baixo" => "CAST(carboidrato_g AS DECIMAL) <= 20",
         "lipideos_altos" => "CAST(lipideos_g AS DECIMAL) >= 15",
         "sodio_baixo" => "CAST(sodio_mg AS DECIMAL) <= 200",
-        "energia_baixa" => "CAST(energia_kcal AS DECIMAL) <= 250",
         "fibra_alta" => "CAST(fibra_g AS DECIMAL) >= 2",
         "proteina_alta" => "CAST(proteina_g AS DECIMAL) >= 10",
         "excluir_frito" => "nome NOT LIKE '%frito%'",
         "excluir_industrializado" => "nome NOT LIKE '%industrializado%'",
+        
         "excluir_gluten" => [
             "nome NOT LIKE '%trigo%'",
             "nome NOT LIKE '%centeio%'",
@@ -62,85 +91,115 @@ function aplicarFiltros($tipoDieta, $disturbios) {
         ]
     ];
 
-    // Filtros por dieta
-    switch ($tipoDieta) {
-        case "low_carb":
+    // ========================================
+    // FILTROS POR DIETA (aplicáveis só caso o usuário tenha escolhido um tipo)
+    // ========================================
+    if (!empty($tipoDieta)) {
+        switch ($tipoDieta) {
+            case "low_carb":
+                $condicoes[] = $filtros["carboidrato_baixo"];
+                break;
+                
+            case "cetogenica":
+                $condicoes[] = $filtros["carboidrato_muito_baixo"];
+                $condicoes[] = $filtros["lipideos_altos"];
+                break;
+                
+            case "mediterranea":
+                $condicoes[] = $filtros["lipideos_baixos"];
+                $condicoes[] = $filtros["excluir_frito"];
+                $condicoes[] = $filtros["excluir_industrializado"];
+                break;
+                
+            case "vegana":
+                $condicoes[] = "nome NOT LIKE '%carne%'";
+                $condicoes[] = "nome NOT LIKE '%frango%'";
+                $condicoes[] = "nome NOT LIKE '%peixe%'";
+                $condicoes[] = "nome NOT LIKE '%ovo%'";
+                $condicoes[] = "nome NOT LIKE '%mel%'";
+                $condicoes = array_merge($condicoes, $filtros["excluir_lactose"]);
+                break;
+                
+            case "vegetariana":
+                $condicoes[] = "nome NOT LIKE '%carne%'";
+                $condicoes[] = "nome NOT LIKE '%frango%'";
+                $condicoes[] = "nome NOT LIKE '%peixe%'";
+                break;
+                
+            case "paleolitica":
+                $condicoes[] = "nome NOT LIKE '%farinha refinada%'";
+                $condicoes[] = "nome NOT LIKE '%leite%'";
+                break;
+                
+            case "dieta_das_zonas":
+                $condicoes[] = $filtros["carboidrato_baixo"];
+                $condicoes[] = $filtros["proteina_alta"];
+                $condicoes[] = $filtros["lipideos_baixos"];
+                break;
+        }
+    }
+
+    // ========================================
+    // FILTROS POR DISTÚRBIOS (aplicáveis só caso o usuário tenha escolhido um ou mais distúrbios)
+    // ========================================
+    if (!empty($disturbios)) {
+        if (str_contains($disturbios, "celíaca")) {
+            $condicoes = array_merge($condicoes, $filtros["excluir_gluten"]);
+        }
+        
+        if (str_contains($disturbios, "diabetes")) {
             $condicoes[] = $filtros["carboidrato_baixo"];
-            break;
-        case "cetogenica":
-            $condicoes[] = $filtros["carboidrato_muito_baixo"];
-            $condicoes[] = $filtros["lipideos_altos"];
-            break;
-        case "mediterranea":
+            $condicoes[] = $filtros["fibra_alta"];
+            
+            if (!$modoAdaptativo) {
+                $condicoes[] = $filtros["energia_baixa"];
+            }
+            
+            $condicoes[] = $filtros["lipideos_baixos"];
+            $condicoes = array_merge($condicoes, $filtros["excluir_acucar"]);
+            $condicoes[] = $filtros["excluir_frito"];
+            $condicoes[] = $filtros["excluir_industrializado"];
+        }
+        
+        if (str_contains($disturbios, "hipercolesterolemia")) {
             $condicoes[] = $filtros["lipideos_baixos"];
             $condicoes[] = $filtros["excluir_frito"];
             $condicoes[] = $filtros["excluir_industrializado"];
-            break;
-        case "vegana":
-            $condicoes[] = "nome NOT LIKE '%carne%'";
-            $condicoes[] = "nome NOT LIKE '%frango%'";
-            $condicoes[] = "nome NOT LIKE '%peixe%'";
-            $condicoes[] = "nome NOT LIKE '%ovo%'";
-            $condicoes[] = "nome NOT LIKE '%mel%'";
+            $condicoes = array_merge($condicoes, $filtros["excluir_embutidos"]);
+            
+            if (!$modoAdaptativo) {
+                $condicoes[] = "nome NOT LIKE '%queijo%'";
+                $condicoes[] = "nome NOT LIKE '%manteiga%'";
+            }
+        }
+        
+        if (str_contains($disturbios, "hipertensão")) {
+            $condicoes[] = $filtros["sodio_baixo"];
+            $condicoes[] = $filtros["excluir_frito"];
+            $condicoes[] = $filtros["excluir_industrializado"];
+            $condicoes = array_merge($condicoes, $filtros["excluir_embutidos"]);
+            $condicoes[] = "nome NOT LIKE '%sal%'";
+            $condicoes[] = "nome NOT LIKE '%salgado%'";
+            $condicoes[] = "nome NOT LIKE '%conserva%'";
+            $condicoes[] = "nome NOT LIKE '%caldo%'";
+            $condicoes[] = "nome NOT LIKE '%tempero%'";
+        }
+        
+        if (str_contains($disturbios, "sii")) {
             $condicoes = array_merge($condicoes, $filtros["excluir_lactose"]);
-            break;
-        case "vegetariana":
-            $condicoes[] = "nome NOT LIKE '%carne%'";
-            $condicoes[] = "nome NOT LIKE '%frango%'";
-            $condicoes[] = "nome NOT LIKE '%peixe%'";
-            break;
-        case "paleolitica":
-            $condicoes[] = "nome NOT LIKE '%farinha refinada%'";
-            $condicoes[] = "nome NOT LIKE '%leite%'";
-            break;
-        case "dieta_das_zonas":
-            $condicoes[] = $filtros["carboidrato_baixo"];
-            $condicoes[] = $filtros["proteina_alta"];
-            $condicoes[] = $filtros["lipideos_baixos"];
-            break;
+            
+            if (!$modoAdaptativo) {
+                $condicoes = array_merge($condicoes, $filtros["excluir_leguminosas"]);
+            }
+            
+            $condicoes = array_merge($condicoes, $filtros["excluir_vegetais_fermentaveis"]);
+            $condicoes = array_merge($condicoes, $filtros["excluir_adocantes"]);
+            $condicoes = array_merge($condicoes, $filtros["excluir_estimulantes"]);
+            $condicoes[] = $filtros["excluir_frito"];
+            $condicoes[] = "nome NOT LIKE '%embutido%'";
+        }
     }
-
-    // Filtros por distúrbios
-    if (str_contains($disturbios, "celíaca")) {
-        $condicoes = array_merge($condicoes, $filtros["excluir_gluten"]);
-    }
-    if (str_contains($disturbios, "diabetes")) {
-        $condicoes[] = $filtros["carboidrato_baixo"];
-        $condicoes[] = $filtros["fibra_alta"];
-        $condicoes[] = $filtros["energia_baixa"];
-        $condicoes[] = $filtros["lipideos_baixos"];
-        $condicoes = array_merge($condicoes, $filtros["excluir_acucar"]);
-        $condicoes[] = $filtros["excluir_frito"];
-        $condicoes[] = $filtros["excluir_industrializado"];
-    }
-    if (str_contains($disturbios, "hipercolesterolemia")) {
-        $condicoes[] = $filtros["lipideos_baixos"];
-        $condicoes[] = $filtros["excluir_frito"];
-        $condicoes[] = $filtros["excluir_industrializado"];
-        $condicoes = array_merge($condicoes, $filtros["excluir_embutidos"]);
-        $condicoes[] = "nome NOT LIKE '%queijo%'";
-        $condicoes[] = "nome NOT LIKE '%manteiga%'";
-    }
-    if (str_contains($disturbios, "hipertensão")) {
-        $condicoes[] = $filtros["sodio_baixo"];
-        $condicoes[] = $filtros["excluir_frito"];
-        $condicoes[] = $filtros["excluir_industrializado"];
-        $condicoes = array_merge($condicoes, $filtros["excluir_embutidos"]);
-        $condicoes[] = "nome NOT LIKE '%sal%'";
-        $condicoes[] = "nome NOT LIKE '%salgado%'";
-        $condicoes[] = "nome NOT LIKE '%conserva%'";
-        $condicoes[] = "nome NOT LIKE '%caldo%'";
-        $condicoes[] = "nome NOT LIKE '%tempero%'";
-    }
-    if (str_contains($disturbios, "sii")) {
-        $condicoes = array_merge($condicoes, $filtros["excluir_lactose"]);
-        $condicoes = array_merge($condicoes, $filtros["excluir_leguminosas"]);
-        $condicoes = array_merge($condicoes, $filtros["excluir_vegetais_fermentaveis"]);
-        $condicoes = array_merge($condicoes, $filtros["excluir_adocantes"]);
-        $condicoes = array_merge($condicoes, $filtros["excluir_estimulantes"]);
-        $condicoes[] = $filtros["excluir_frito"];
-        $condicoes[] = "nome NOT LIKE '%embutido%'";
-    }
+    
     return $condicoes;
 }
 ?>

@@ -1,4 +1,8 @@
 <?php
+// No início do calorias.php, adicione temporariamente:
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
@@ -22,7 +26,7 @@ $dataRegistro = date("Y-m-d");
 try {
     // 1. Buscar dados do usuário
     $stmt = $pdo->prepare("
-        SELECT u.peso, u.altura, u.sexo_biologico, u.data_nascimento, p.pergunta4_nivel_atividade
+        SELECT u.peso, u.peso_inicial, u.altura, u.sexo_biologico, u.data_nascimento, p.pergunta4_nivel_atividade
         FROM usuarios u
         JOIN perguntas p ON u.perguntas_id = p.id
         WHERE u.id = :id
@@ -31,7 +35,7 @@ try {
     $stmt->execute();
     $info = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $peso = floatval($info["peso"] ?? $info["peso_inicial"]);
+    $peso = floatval($info["peso"] ?? $info["peso_inicial"] ?? 0);
     $altura = intval($info["altura"]);
     $sexo = $info["sexo_biologico"];
     $nivel = $info["pergunta4_nivel_atividade"];

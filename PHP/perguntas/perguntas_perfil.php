@@ -15,12 +15,12 @@ permitirMetodos(["GET", "POST"]);
 $usuario = verificarToken($jwtSecretKey);
 
 // =======================
-// GET: retorna peso recomendado para exibir na tela 
+// GET: retorna dados para exibir na tela 
 // =======================
 if ($_SERVER["REQUEST_METHOD"] === "GET") {
     try {
         $stmt = $pdo->prepare("
-            SELECT peso_inicial, altura, data_nascimento, imc_inicial
+            SELECT peso_inicial, altura, data_nascimento, imc_inicial, peso
             FROM usuarios
             WHERE id = :id
         ");
@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             exit();
         }
 
-        $peso = floatval($dados["peso_inicial"]);
+        $pesoAtual = floatval($dados["peso"] ?? $dados["peso_inicial"]);
         $alturaCm = floatval($dados["altura"]);
         $alturaM = $alturaCm / 100;
         $imc = floatval($dados["imc_inicial"]);
@@ -42,13 +42,14 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $hoje = new DateTime();
         $idade = $hoje->diff($nascimento)->y;
 
+        // Calcula faixa recomendada (IMC saudável)
         $imcMin = 18.5;
         $imcMax = 24.9;
         $pesoMin = round($imcMin * ($alturaM * $alturaM), 1);
         $pesoMax = round($imcMax * ($alturaM * $alturaM), 1);
 
         echo json_encode([
-            "peso_atual" => $peso,
+            "peso_atual" => $pesoAtual,
             "idade" => $idade,
             "altura" => $alturaM,
             "imc_atual" => $imc,
@@ -68,10 +69,6 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 $data = json_decode(file_get_contents("php://input"), true);
 
 // Salva distúrbios numa única string ("compulsão, ansiedade alimentar, bulimia")
-
-// =======================
-// DOENÇAS DISPONÍVEIS: 
-// =======================
 $disturbiosStr = implode(", ", $data["disturbios"] ?? []);
 
 try {

@@ -72,7 +72,44 @@ try {
         }
     }
 
-    echo json_encode(["mensagem" => "Refeição registrada com sucesso"]);
+    // 🆕 4. Buscar detalhes da refeição registrada
+    $stmtDetalhes = $pdo->prepare("
+        SELECT a.id, a.nome, a.energia_kcal, a.carboidrato_g, a.proteina_g, a.lipideos_g
+        FROM refeicoes_alimentos ra
+        JOIN alimentos a ON a.id = ra.alimento_id
+        WHERE ra.refeicao_id = :refeicao_id
+    ");
+    $stmtDetalhes->execute([":refeicao_id" => $refeicaoId]);
+    $alimentosDetalhes = $stmtDetalhes->fetchAll(PDO::FETCH_ASSOC);
+
+    // 🆕 5. Calcular totais
+    $totalCalorias = 0;
+    $totalCarbo = 0;
+    $totalProteina = 0;
+    $totalGordura = 0;
+
+    foreach ($alimentosDetalhes as $alimento) {
+        $totalCalorias += floatval($alimento["energia_kcal"]);
+        $totalCarbo += floatval($alimento["carboidrato_g"]);
+        $totalProteina += floatval($alimento["proteina_g"]);
+        $totalGordura += floatval($alimento["lipideos_g"]);
+    }
+
+    echo json_encode([
+        "mensagem" => "Refeição registrada com sucesso",
+        "refeicao_id" => $refeicaoId,
+        "data" => $dataRegistro,
+        "tipo" => $tipo,
+        "sintoma" => $sintoma,
+        "total_alimentos" => count($alimentosDetalhes),
+        "alimentos" => $alimentosDetalhes,
+        "totais" => [
+            "calorias" => round($totalCalorias, 2),
+            "carboidratos_g" => round($totalCarbo, 2),
+            "proteinas_g" => round($totalProteina, 2),
+            "gorduras_g" => round($totalGordura, 2)
+        ]
+    ]);
 } catch (PDOException $e) {
     echo json_encode(["erro" => "Erro ao registrar refeição: " . $e->getMessage()]);
     exit();

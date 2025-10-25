@@ -25,6 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             SELECT 
                 u.nome,
                 u.altura,
+                u.peso_inicial,
                 u.peso,
                 u.imc,
                 u.imc_inicial,
@@ -42,6 +43,12 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             echo json_encode(["erro" => "Perfil não encontrado"]);
             exit();
         }
+
+        // Se a pergunta estiver nula, usa "Nenhuma" como fallback
+        $dados["pergunta6_tipo_dieta"] = !empty($dados["pergunta6_tipo_dieta"]) ? $dados["pergunta6_tipo_dieta"] : "Nenhuma";
+
+        // Se peso estiver nulo, usa peso_inicial como fallback
+        $dados["peso"] = $dados["peso"] ?? $dados["peso_inicial"];
 
         // Se imc estiver nulo, usa imc_inicial como fallback
         $dados["imc"] = $dados["imc"] ?? $dados["imc_inicial"];
