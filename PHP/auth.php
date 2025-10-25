@@ -42,9 +42,28 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
             $stmt->bindParam(":email", $data["email"]);
             $stmt->bindParam(":senha", $senhaHash);
 
-            echo $stmt->execute()
-                ? json_encode(["mensagem" => "Usuário criado!", "id" => $pdo->lastInsertId()])
-                : json_encode(["erro" => "Erro ao cadastrar usuário."]);
+            if ($stmt->execute()) {
+                $userId = $pdo->lastInsertId();
+                
+                // 🔧 CORRIGIDO: Usa as variáveis corretas!
+                $payload = [
+                    "id" => $userId,
+                    "email" => $data["email"],  // ← AQUI
+                    "nome" => $data["nome"],    // ← AQUI
+                    "perguntas_completas" => false, // ← SEMPRE false no cadastro
+                    "exp" => time() + (60 * 60 * 24)
+                ];
+                $jwt = gerarToken($payload, $jwtSecretKey);
+
+                echo json_encode([
+                    "mensagem" => "Usuário criado!",
+                    "id" => $userId,
+                    "token" => $jwt,
+                    "perguntas_completas" => false
+                ]);
+            } else {
+                echo json_encode(["erro" => "Erro ao cadastrar usuário."]);
+            }
         } else {
             echo json_encode(["erro" => "Dados inválidos"]);
         }
@@ -54,24 +73,27 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
 // =======================
     } elseif ($endpoint === "login") {
         if (!empty($data["email"]) && !empty($data["senha"])) {
-            $stmt = $pdo->prepare("SELECT id, nome, email, senha FROM usuarios WHERE email = :email AND ativo = 1");
+            $stmt = $pdo->prepare("SELECT id, nome, email, senha, perguntas_id FROM usuarios WHERE email = :email AND ativo = 1");
             $stmt->bindParam(":email", $data["email"]);
             $stmt->execute();
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($usuario && password_verify($data["senha"], $usuario["senha"])) {
+                // 🔧 CORRIGIDO: Usa os dados do $usuario
                 $payload = [
-                    "id" => $usuario["id"],
-                    "email" => $usuario["email"],
-                    "nome" => $usuario["nome"],
-                    "exp" => time() + (60 * 60 * 24) // Expira em 24 horas
+                    "id" => $usuario["id"],           // ← AQUI
+                    "email" => $usuario["email"],     // ← AQUI
+                    "nome" => $usuario["nome"],       // ← AQUI
+                    "perguntas_completas" => !is_null($usuario["perguntas_id"]), // ← AQUI
+                    "exp" => time() + (60 * 60 * 24)
                 ];
                 $jwt = gerarToken($payload, $jwtSecretKey);
 
                 echo json_encode([
                     "mensagem" => "Login bem-sucedido!",
                     "id" => $usuario["id"],
-                    "token" => $jwt
+                    "token" => $jwt,
+                    "perguntas_completas" => !is_null($usuario["perguntas_id"])
                 ]);
             } else {
                 echo json_encode(["erro" => "Email ou senha incorretos"]);

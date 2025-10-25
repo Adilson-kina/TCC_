@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste API Dieta</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { margin-bottom: 20px; color: #333; }
+        h2 { margin-bottom: 15px; color: #666; font-size: 18px; }
+        input, textarea, select, button { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background: #0056b3; }
+        .response { background: #f8f9fa; padding: 15px; border-radius: 4px; margin-top: 10px; white-space: pre-wrap; font-family: monospace; font-size: 12px; max-height: 400px; overflow-y: auto; }
+        .token-display { background: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 10px; font-size: 12px; word-break: break-all; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        .error { color: #dc3545; }
+        .success { color: #28a745; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste API Dieta</h1>
+        
+        <div class="token-display" id="tokenDisplay" style="display: none;">
+            <strong>Token atual:</strong> <span id="tokenValue"></span>
+        </div>
+
+        <!-- 1. CADASTRO -->
+        <div class="section">
+            <h2>1. Cadastro</h2>
+            <input type="text" id="cadNome" placeholder="Nome">
+            <input type="email" id="cadEmail" placeholder="Email">
+            <input type="password" id="cadSenha" placeholder="Senha">
+            <button onclick="cadastrar()">Cadastrar</button>
+            <div class="response" id="resCadastro"></div>
+        </div>
+
+        <!-- 2. LOGIN -->
+        <div class="section">
+            <h2>2. Login</h2>
+            <input type="email" id="logEmail" placeholder="Email">
+            <input type="password" id="logSenha" placeholder="Senha">
+            <button onclick="login()">Login</button>
+            <div class="response" id="resLogin"></div>
+        </div>
+
+        <!-- 3. PERGUNTAS ESSENCIAIS -->
+        <div class="section">
+            <h2>3. Perguntas Essenciais</h2>
+            <label>Sexo:</label>
+            <select id="sexo">
+                <option value="m">Masculino</option>
+                <option value="f">Feminino</option>
+            </select>
+            <input type="date" id="dataNasc" placeholder="Data de Nascimento">
+            <input type="number" id="altura" placeholder="Altura (cm)">
+            <input type="number" id="peso" placeholder="Peso (kg)">
+            <button onclick="salvarEssenciais()">Salvar</button>
+            <div class="response" id="resEssenciais"></div>
+        </div>
+
+        <!-- 4. GET PESO RECOMENDADO -->
+        <div class="section">
+            <h2>4.1. Calcular Peso Recomendado</h2>
+            <button onclick="calcularPesoRecomendado()">Calcular</button>
+            <div class="response" id="resCalculo"></div>
+        </div>
+
+        <!-- 5. PERGUNTAS PERFIL -->
+        <div class="section">
+            <h2>4.2. Perguntas de Perfil</h2>
+            <label>Objetivo:</label>
+            <select id="objetivo">
+                <option value="perder">Perder peso</option>
+                <option value="ganhar">Ganhar peso</option>
+                <option value="manter">Manter peso</option>
+                <option value="massa">Ganhar massa</option>
+            </select>
+            <label>Contagem calórica:</label>
+            <select id="contagem">
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+            </select>
+            <label>Jejum intermitente:</label>
+            <select id="jejum">
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+            </select>
+            <label>Nível de atividade:</label>
+            <select id="atividade">
+                <option value="sedentario">Sedentário</option>
+                <option value="baixo">Baixo</option>
+                <option value="medio">Médio</option>
+                <option value="alto">Alto</option>
+            </select>
+            <label>Tipo de dieta:</label>
+            <select id="dieta">
+                <option value="low_carb">Low Carb</option>
+                <option value="cetogenica">Cetogênica</option>
+                <option value="mediterranea">Mediterrânea</option>
+                <option value="vegana">Vegana</option>
+                <option value="vegetariana">Vegetariana</option>
+            </select>
+            <label>Come nos fins de semana:</label>
+            <select id="fds">
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+            </select>
+            <label>Distúrbios (separados por vírgula):</label>
+            <label>Distúrbios:</label>
+            <select id="disturbios" multiple size="6" style="height: auto;">
+                <option value="">Nenhum</option>
+                <option value="celíaca">Doença Celíaca</option>
+                <option value="diabetes">Diabetes</option>
+                <option value="hipercolesterolemia">Hipercolesterolemia</option>
+                <option value="hipertensão">Hipertensão</option>
+                <option value="sii">Síndrome do Intestino Irritável (SII)</option>
+            </select>
+            <small style="color: #666; display: block; margin-top: 5px;">
+                💡 Segure Ctrl (Windows) ou Cmd (Mac) para selecionar vários
+            </small>
+            <label>Possui dieta:</label>
+            <select id="possuiDieta">
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+            </select>
+            
+            <label>Valor desejado (kg) - <span style="color: #007bff;">Preencha após calcular!</span></label>
+            <input type="number" id="valorDesejado" placeholder="Ex: 65.5" step="0.1">
+            
+            <label>Faixa recomendada - <span style="color: #28a745;">Preenchido automaticamente</span></label>
+            <input type="text" id="faixaRecomendada" placeholder="Será preenchido automaticamente" readonly style="background: #e9ecef;">
+            
+            <button onclick="salvarPerfil()">Salvar Perfil</button>
+            <div class="response" id="resPerfil"></div>
+        </div>
+
+        <!-- 5. BUSCAR ALIMENTOS -->
+        <div class="section">
+            <h2>5. Buscar Alimentos Permitidos</h2>
+            <button onclick="buscarAlimentos()">Buscar</button>
+            <div class="response" id="resAlimentos"></div>
+        </div>
+
+        <!-- 6. SALVAR DIETA -->
+        <div class="section">
+            <h2>6. Salvar Dieta</h2>
+            <label>IDs dos alimentos (separados por vírgula):</label>
+            <input type="text" id="alimentosDieta" placeholder="Ex: 1,3,7,8">
+            <button onclick="salvarDieta()">Salvar Dieta</button>
+            <div class="response" id="resDieta"></div>
+        </div>
+
+        <!-- 7. REGISTRAR REFEIÇÃO -->
+        <div class="section">
+            <h2>7. Registrar Refeição</h2>
+            <label>Tipo:</label>
+            <select id="tipoRefeicao">
+                <option value="cafe">Café</option>
+                <option value="almoco">Almoço</option>
+                <option value="janta">Janta</option>
+                <option value="lanche">Lanche</option>
+            </select>
+            <label>Sintoma:</label>
+            <select id="sintoma">
+                <option value="nenhum">Nenhum</option>
+                <option value="azia">Azia</option>
+                <option value="enjoo">Enjoo</option>
+                <option value="diarreia">Diarreia</option>
+                <option value="dor_estomago">Dor de estômago</option>
+            </select>
+            <label>Alimentos (formato JSON):</label>
+            <textarea id="alimentosRefeicao" rows="4" placeholder='[{"id": 1}, {"id": 3}]'>[{"id": 1}, {"id": 3}]</textarea>
+            <button onclick="registrarRefeicao()">Registrar</button>
+            <div class="response" id="resRefeicao"></div>
+        </div>
+
+        <!-- 8. REGISTRAR CALORIAS -->
+        <div class="section">
+            <h2>8. Registrar Calorias/Passos</h2>
+            <input type="number" id="passos" placeholder="Número de passos" value="5000">
+            <button onclick="registrarCalorias()">Registrar</button>
+            <div class="response" id="resCalorias"></div>
+        </div>
+
+        <!-- 9. VER HISTÓRICO -->
+        <div class="section">
+            <h2>9. Ver Histórico</h2>
+            <button onclick="verHistorico()">Ver Histórico</button>
+            <div class="response" id="resHistorico"></div>
+        </div>
+
+        <!-- 10. VER INÍCIO -->
+        <div class="section">
+            <h2>10. Tela Inicial</h2>
+            <button onclick="verInicio()">Ver Dados Iniciais</button>
+            <div class="response" id="resInicio"></div>
+        </div>
+
+        <!-- 11. VER PERFIL -->
+        <div class="section">
+            <h2>11. Ver Perfil</h2>
+            <button onclick="verPerfil()">Ver Perfil</button>
+            <div class="response" id="resPerfil"></div>
+        </div>
+
+        <!-- 12. VER PROGRESSO -->
+        <div class="section">
+            <h2>12. Ver Progresso</h2>
+            <button onclick="verProgresso()">Ver Progresso</button>
+            <div class="response" id="resProgresso"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost/TCC/PHP'; // AJUSTE AQUI!
+        let token = '';
+
+        function showToken() {
+            if (token) {
+                document.getElementById('tokenDisplay').style.display = 'block';
+                document.getElementById('tokenValue').textContent = token;
+            }
+        }
+
+        async function cadastrar() {
+            const data = {
+                nome: document.getElementById('cadNome').value,
+                email: document.getElementById('cadEmail').value,
+                senha: document.getElementById('cadSenha').value
+            };
+            
+            const res = await fetch(`${API_BASE}/auth.php?endpoint=cadastro`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            
+            const json = await res.json();
+            
+            // 🆕 SE VIER TOKEN, GUARDA!
+            if (json.token) {
+                token = json.token;
+                showToken();
+            }
+            
+            document.getElementById('resCadastro').textContent = JSON.stringify(json, null, 2);
+        }
+
+        async function login() {
+            const data = {
+                email: document.getElementById('logEmail').value,
+                senha: document.getElementById('logSenha').value
+            };
+            
+            const res = await fetch(`${API_BASE}/auth.php?endpoint=login`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            
+            const json = await res.json();
+            if (json.token) {
+                token = json.token;
+                showToken();
+            }
+            document.getElementById('resLogin').textContent = JSON.stringify(json, null, 2);
+        }
+
+        async function salvarEssenciais() {
+            const data = {
+                sexo_biologico: document.getElementById('sexo').value,
+                data_nascimento: document.getElementById('dataNasc').value,
+                altura: document.getElementById('altura').value,
+                peso: document.getElementById('peso').value
+            };
+            
+            const res = await fetch(`${API_BASE}/perguntas/perguntas_essenciais.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const json = await res.json();
+            document.getElementById('resEssenciais').textContent = JSON.stringify(json, null, 2);
+        }
+
+        async function buscarAlimentos() {
+            const res = await fetch(`${API_BASE}/alimentos/alimentos.php`, {
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+            
+            const json = await res.json();
+            document.getElementById('resAlimentos').textContent = JSON.stringify(json, null, 2);
+        }
+
+        async function salvarDieta() {
+            const ids = document.getElementById('alimentosDieta').value.split(',').map(id => parseInt(id.trim()));
+            
+            const res = await fetch(`${API_BASE}/dieta.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({alimentos: ids})
+            });
+            
+            const json = await res.json();
+            document.getElementById('resDieta').textContent = JSON.stringify(json, null, 2);
+        }
+
+        async function registrarRefeicao() {
+            const data = {
+                tipo_refeicao: document.getElementById('tipoRefeicao').value,
+                sintoma: document.getElementById('sintoma').value,
+                alimentos: JSON.parse(document.getElementById('alimentosRefeicao').value)
+            };
+            
+            const res = await fetch(`${API_BASE}/refeicoes.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const json = await res.json();
+            document.getElementById('resRefeicao').textContent = JSON.stringify(json, null, 2);
+        }
+
+        async function registrarCalorias() {
+            const data = {
+                passos: parseInt(document.getElementById('passos').value)
+            };
+            
+            const res = await fetch(`${API_BASE}/calorias.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const json = await res.json();
+            document.getElementById('resCalorias').textContent = JSON.stringify(json, null, 2);
+        }
+
+        async function verHistorico() {
+            const res = await fetch(`${API_BASE}/historico.php`, {
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+            
+            const json = await res.json();
+            document.getElementById('resHistorico').textContent = JSON.stringify(json, null, 2);
+        }
+
+        async function verInicio() {
+            const res = await fetch(`${API_BASE}/inicio.php`, {
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+            
+            const json = await res.json();
+            document.getElementById('resInicio').textContent = JSON.stringify(json, null, 2);
+        }
+
+        async function verPerfil() {
+            const res = await fetch(`${API_BASE}/perfil.php`, {
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+            
+            const json = await res.json();
+            document.getElementById('resPerfil').textContent = JSON.stringify(json, null, 2);
+        }
+
+        async function verProgresso() {
+            const res = await fetch(`${API_BASE}/progresso.php`, {
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+            
+            const json = await res.json();
+            document.getElementById('resProgresso').textContent = JSON.stringify(json, null, 2);
+        }
+
+        let pesoMin = 0;
+let pesoMax = 0;
+
+async function calcularPesoRecomendado() {
+    const res = await fetch(`${API_BASE}/perguntas/perguntas_perfil.php`, {
+        method: 'GET',
+        headers: {'Authorization': `Bearer ${token}`}
+    });
+    
+    const json = await res.json();
+    
+    if (json.peso_recomendado_min && json.peso_recomendado_max) {
+        pesoMin = json.peso_recomendado_min;
+        pesoMax = json.peso_recomendado_max;
+        
+        // Preenche automaticamente o campo de faixa
+        document.getElementById('faixaRecomendada').value = `${pesoMin}-${pesoMax}`;
+    }
+    
+    document.getElementById('resCalculo').textContent = JSON.stringify(json, null, 2);
+}
+
+// Modifique a função salvarPerfil existente:
+async function salvarPerfil() {
+    // 🔧 NOVO: Pega os valores selecionados do select multiple
+    const selectDisturbios = document.getElementById('disturbios');
+    const disturbiosSelecionados = Array.from(selectDisturbios.selectedOptions).map(option => option.value).filter(v => v !== "");
+    
+    const data = {
+        objetivo: document.getElementById('objetivo').value,
+        contagem_calorica: document.getElementById('contagem').value,
+        jejum_intermitente: document.getElementById('jejum').value,
+        nivel_atividade: document.getElementById('atividade').value,
+        tipo_dieta: document.getElementById('dieta').value,
+        comer_fds: document.getElementById('fds').value,
+        disturbios: disturbiosSelecionados, // ← Array direto
+        possui_dieta: document.getElementById('possuiDieta').value,
+        valor_desejado: document.getElementById('valorDesejado').value,
+        faixa_recomendada: document.getElementById('faixaRecomendada').value
+    };
+    
+    const res = await fetch(`${API_BASE}/perguntas/perguntas_perfil.php`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+    });
+    
+    const json = await res.json();
+    document.getElementById('resPerfil').textContent = JSON.stringify(json, null, 2);
+}
+    </script>
+</body>
+</html>

@@ -92,7 +92,7 @@ try {
     if ($ultimaRefeicao) {
         $stmtAlimentos = $pdo->prepare("
             SELECT a.id, a.nome, a.energia_kcal
-            FROM refeicao_alimento ra
+            FROM refeicoes_alimentos ra
             JOIN alimentos a ON a.id = ra.alimento_id
             WHERE ra.refeicao_id = :refeicao_id
         ");

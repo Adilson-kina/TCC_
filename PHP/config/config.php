@@ -51,4 +51,10 @@ function permitirMetodos(array $metodos) {
         exit();
     }
 }
+
+function enviarErro($codigo, $mensagem) {
+    http_response_code($codigo);
+    echo json_encode(["erro" => $mensagem]);
+    exit();
+}
 ?>

@@ -66,12 +66,6 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 // POST: salva respostas do perfil no banco de dados
 // =======================
 $data = json_decode(file_get_contents("php://input"), true);
-$respostas = $data["respostas"] ?? [];
-
-if (!is_array($respostas) || empty($respostas)) {
-    echo json_encode(["erro" => "Respostas não fornecidas"]);
-    exit();
-}
 
 // Salva distúrbios numa única string ("compulsão, ansiedade alimentar, bulimia")
 

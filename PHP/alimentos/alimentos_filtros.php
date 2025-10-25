@@ -3,8 +3,8 @@ function aplicarFiltros($tipoDieta, $disturbios) {
     $condicoes = [];
 
     $filtros = [
-        "carboidrato_baixo" => "CAST(carboidrato_g AS DECIMAL) <= 20",
-        "carboidrato_muito_baixo" => "CAST(carboidrato_g AS DECIMAL) <= 10",
+        "carboidrato_baixo" => "CAST(carboidrato_g AS DECIMAL) <= 50",  
+        "carboidrato_muito_baixo" => "CAST(carboidrato_g AS DECIMAL) <= 20", 
         "lipideos_baixos" => "CAST(lipideos_g AS DECIMAL) <= 10",
         "lipideos_altos" => "CAST(lipideos_g AS DECIMAL) >= 15",
         "sodio_baixo" => "CAST(sodio_mg AS DECIMAL) <= 200",

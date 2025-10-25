@@ -48,4 +48,5 @@ while (($linha = fgetcsv($csv, 0, ';')) !== false) {
 }
 
 fclose($csv);
+echo "Importação concluída com sucesso.";
 ?>

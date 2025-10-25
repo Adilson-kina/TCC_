@@ -126,6 +126,7 @@ CREATE TABLE refeicoes_alimentos (
 -- SELECT * FROM calorias;
 -- SELECT * FROM alimentos;
 -- SELECT * FROM alimentos_permitidos;
+-- SELECT * FROM dieta;
 -- SELECT * FROM refeicoes;
 -- SELECT * FROM refeicao_alimento;
 
