@@ -28,8 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $dados = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$dados) {
-            echo json_encode(["erro" => "Dados de dieta e distúrbios não encontrados"]);
-            exit();
+            enviarErro(404, "Dados de dieta e distúrbios não encontrados.");
         }
 
         $tipoDieta = strtolower($dados["pergunta6_tipo_dieta"]);
@@ -56,14 +55,14 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                 ":alimento_id" => $alimento["id"]
             ]);
         }
-        echo json_encode([
-            "mensagem" => "Alimentos filtrados com sucesso",
+
+        enviarSucesso(201, [
+            "mensagem" => "Alimentos filtrados com sucesso!",
             "total_alimentos" => count($alimentos),
             "alimentos" => $alimentos
         ]);
     } catch (PDOException $e) {
-        echo json_encode(["erro" => "Erro ao buscar alimentos: " . $e->getMessage()]);
-        exit();
+        enviarErro(500, "Erro ao buscar alimentos: " . $e->getMessage());
     }
 }
 ?>

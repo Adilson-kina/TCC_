@@ -29,8 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $dados = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$dados) {
-            echo json_encode(["erro" => "Usuário não encontrado"]);
-            exit();
+            enviarErro(404, "Usuário não encontrado.");
         }
 
         $pesoAtual = floatval($dados["peso"] ?? $dados["peso_inicial"]);
@@ -48,8 +47,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $pesoMin = round($imcMin * ($alturaM * $alturaM), 1);
         $pesoMax = round($imcMax * ($alturaM * $alturaM), 1);
 
-        echo json_encode([
-            "peso_atual" => $pesoAtual,
+        enviarSucesso(200, [
+        "mensagem" => "Dados essenciais carregados com sucesso!",
             "idade" => $idade,
             "altura" => $alturaM,
             "imc_atual" => $imc,
@@ -58,8 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         ]);
         exit();
     } catch (PDOException $e) {
-        echo json_encode(["erro" => "Erro ao consultar dados: " . $e->getMessage()]);
-        exit();
+        enviarErro(500, "Erro ao consultar dados: " . $e->getMessage());
     }
 }
 
@@ -107,8 +105,7 @@ try {
 
     $perguntasId = $pdo->lastInsertId();
 } catch (PDOException $e) {
-    echo json_encode(["erro" => "Erro ao salvar respostas: " . $e->getMessage()]);
-    exit();
+    enviarErro(500, "Erro ao salvar respostas: " . $e->getMessage());
 }
 
 // =======================
@@ -141,8 +138,7 @@ try {
 
     $metaId = $pdo->lastInsertId();
 } catch (PDOException $e) {
-    echo json_encode(["erro" => "Erro ao salvar meta desejada: " . $e->getMessage()]);
-    exit();
+    enviarErro(500, "Erro ao salvar meta desejada: " . $e->getMessage());
 }
 
 // =======================
@@ -159,11 +155,10 @@ try {
     $stmt->bindParam(":id", $usuario->id);
     $stmt->execute();
 } catch (PDOException $e) {
-    echo json_encode(["erro" => "Erro ao atualizar usuário: " . $e->getMessage()]);
-    exit();
+    enviarErro(500, "Erro ao atualizar usuário: " . $e->getMessage());
 }
 
-echo json_encode([
+enviarSucesso(201, [
     "mensagem" => "Respostas salvas com sucesso!",
     "perguntas_id" => $perguntasId,
     "meta_id" => $metaId

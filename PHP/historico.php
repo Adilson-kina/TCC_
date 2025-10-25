@@ -27,12 +27,12 @@ try {
     $refeicoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // 2. Buscar alimentos de cada refeição
-    if (empty($refeicoes)) {
-        echo json_encode(["refeicoes" => []]);
-        exit();
+    $ids = array_column($refeicoes, 'refeicao_id');
+
+    if (empty($ids)) {
+        enviarErro(404, "Nenhuma refeição encontrada para buscar alimentos.");
     }
 
-    $ids = array_column($refeicoes, 'refeicao_id');
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
 
     $stmtAlimentos = $pdo->prepare("
@@ -41,7 +41,12 @@ try {
         JOIN alimentos a ON a.id = ra.alimento_id
         WHERE ra.refeicao_id IN ($placeholders)
     ");
-    $stmtAlimentos->execute($ids);
+
+    try {
+        $stmtAlimentos->execute($ids);
+    } catch (PDOException $e) {
+        enviarErro(500, "Erro ao buscar alimentos das refeições: " . $e->getMessage());
+    }
     $alimentosPorRefeicao = $stmtAlimentos->fetchAll(PDO::FETCH_ASSOC);
 
     // 3. Agrupar alimentos por refeição
@@ -58,9 +63,11 @@ try {
         $refeicao["alimentos"] = $mapaAlimentos[$id] ?? [];
     }
 
-    echo json_encode(["refeicoes" => $refeicoes]);
+    enviarSucesso(200, [
+        "mensagem" => "Histórico de refeições carregado com sucesso!",
+        "refeicoes" => $refeicoes
+    ]);
 } catch (PDOException $e) {
-    echo json_encode(["erro" => "Erro ao buscar histórico: " . $e->getMessage()]);
-    exit();
+    enviarErro(500, "Erro ao buscar histórico: " . $e->getMessage());
 }
 ?>

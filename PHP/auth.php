@@ -32,8 +32,7 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
             $stmt->execute();
 
             if ($stmt->fetch()) {
-                echo json_encode(["erro" => "Usuário já existente"]);
-                exit();
+                enviarErro(409, "Usuário já existente.");
             }
 
             $senhaHash = password_hash($data["senha"], PASSWORD_DEFAULT);
@@ -55,17 +54,17 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
                 ];
                 $jwt = gerarToken($payload, $jwtSecretKey);
 
-                echo json_encode([
-                    "mensagem" => "Usuário criado!",
+                enviarSucesso(201, [
+                    "mensagem" => "Usuário criado com sucesso!",
                     "id" => $userId,
                     "token" => $jwt,
                     "perguntas_completas" => false
                 ]);
             } else {
-                echo json_encode(["erro" => "Erro ao cadastrar usuário."]);
+                enviarErro(500, "Erro ao cadastrar usuário.");
             }
         } else {
-            echo json_encode(["erro" => "Dados inválidos"]);
+            enviarErro(400, "Dados inválidos.");
         }
 
 // =======================
@@ -89,17 +88,17 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
                 ];
                 $jwt = gerarToken($payload, $jwtSecretKey);
 
-                echo json_encode([
+                enviarSucesso(200, [
                     "mensagem" => "Login bem-sucedido!",
                     "id" => $usuario["id"],
                     "token" => $jwt,
                     "perguntas_completas" => !is_null($usuario["perguntas_id"])
                 ]);
             } else {
-                echo json_encode(["erro" => "Email ou senha incorretos"]);
+                enviarErro(401, "Email ou senha incorretos.");
             }
         } else {
-            echo json_encode(["erro" => "Dados inválidos"]);
+            enviarErro(400, "Dados inválidos.");
         }
     }
 

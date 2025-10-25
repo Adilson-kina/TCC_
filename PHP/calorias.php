@@ -141,7 +141,7 @@ try {
     }
 
     // 12. Retorno completo
-    echo json_encode([
+    enviarSucesso(201, [
         "mensagem" => "Dados de calorias atualizados com sucesso",
         "peso" => $peso,
         "altura" => $altura,
@@ -159,7 +159,6 @@ try {
         "objetivo_maximo" => $objetivoMaximo
     ]);
 } catch (PDOException $e) {
-    echo json_encode(["erro" => "Erro ao registrar calorias: " . $e->getMessage()]);
-    exit();
+    enviarErro(500, "Erro ao registrar calorias: " . $e->getMessage());
 }
 ?>

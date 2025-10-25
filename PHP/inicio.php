@@ -105,7 +105,8 @@ try {
     }
 
     // 4. Montar resposta final
-    echo json_encode([
+    enviarSucesso(200, [
+    "mensagem" => "Dados da tela inicial carregados com sucesso!",
         "dieta" => [
             "meta" => $dadosMeta["tipo_meta"] ?? null,
             "restricoes" => $resumo["restricoes"],
@@ -123,7 +124,6 @@ try {
         ] : null
     ]);
 } catch (PDOException $e) {
-    echo json_encode(["erro" => "Erro ao carregar dados da tela inicial: " . $e->getMessage()]);
-    exit();
+    enviarErro(500, "Erro ao carregar dados da tela inicial: " . $e->getMessage());
 }
 ?>

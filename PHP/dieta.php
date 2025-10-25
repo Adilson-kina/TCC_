@@ -58,8 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $dados = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$dados) {
-            echo json_encode(["erro" => "Dados de dieta não encontrados para este usuário"]);
-            exit();
+            enviarErro(404, "Dados de dieta não encontrados para este usuário.");
         }
 
         // 2. Gerar resumo nutricional
@@ -88,7 +87,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $dietaSalva = $stmtDieta->fetchAll(PDO::FETCH_ASSOC);
 
         // 5. Retornar tudo
-        echo json_encode([
+        enviarSucesso(200, [
+            "mensagem" => "Valores retornados com sucesso!",
             "disturbios" => $dados["pergunta8_disturbios"],
             "meta" => [
                 "tipo" => $dados["tipo_meta"],
@@ -96,11 +96,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             "restricoes" => $resumo["restricoes"],
             "recomendados" => $resumo["recomendados"],
             "alimentos_permitidos" => $alimentosPermitidos,
-            "dieta_salva" => $dietaSalva  // 🆕 Agora retorna a dieta salva também!
+            "dieta_salva" => $dietaSalva 
         ]);
     } catch (PDOException $e) {
-        echo json_encode(["erro" => "Erro ao buscar dados da dieta: " . $e->getMessage()]);
-        exit();
+        enviarErro(500, "Erro ao buscar dados da dieta: " . $e->getMessage());
     }
 }
 
@@ -109,8 +108,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $alimentosSelecionados = $data["alimentos"];
 
     if (!is_array($alimentosSelecionados)) {
-        echo json_encode(["erro" => "Formato inválido de alimentos"]);
-        exit();
+        enviarErro(400, "Formato inválido de alimentos.");
     }
 
     try {
@@ -124,8 +122,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $permitidos = $stmtValidar->fetchAll(PDO::FETCH_COLUMN);
 
         if (count($permitidos) !== count($alimentosSelecionados)) {
-            echo json_encode(["erro" => "Alguns alimentos não são permitidos para este usuário"]);
-            exit();
+            enviarErro(403, "Alguns alimentos não são permitidos para este usuário.");
         }
 
         // 2. Apagar dieta atual
@@ -155,15 +152,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmtDieta->execute([":usuario_id" => $usuario->id]);
         $dietaAtualizada = $stmtDieta->fetchAll(PDO::FETCH_ASSOC);
 
-        echo json_encode([
-            "sucesso" => true,
-            "mensagem" => "Dieta atualizada com sucesso",
+        enviarSucesso(201, [
+            "mensagem" => "Dieta atualizada com sucesso!",
             "total_alimentos" => count($dietaAtualizada),
             "dieta_atualizada" => $dietaAtualizada
         ]);
     } catch (PDOException $e) {
-        echo json_encode(["erro" => "Erro ao salvar dieta: " . $e->getMessage()]);
-        exit();
+        enviarErro(500, "Erro ao salvar dieta: " . $e->getMessage());
     }
 }
 ?>

@@ -40,8 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $dados = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$dados) {
-            echo json_encode(["erro" => "Perfil não encontrado"]);
-            exit();
+            enviarErro(404, "Perfil não encontrado.");
         }
 
         // Se a pergunta estiver nula, usa "Nenhuma" como fallback
@@ -53,7 +52,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         // Se imc estiver nulo, usa imc_inicial como fallback
         $dados["imc"] = $dados["imc"] ?? $dados["imc_inicial"];
 
-        echo json_encode([
+        enviarSucesso(200, [
+        "mensagem" => "Dados do perfil carregados com sucesso!",
             "nome" => $dados["nome"],
             "altura" => $dados["altura"],
             "peso" => $dados["peso"],
@@ -62,8 +62,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             "tipo_dieta" => $dados["pergunta6_tipo_dieta"]
         ]);
     } catch (PDOException $e) {
-        echo json_encode(["erro" => "Erro ao buscar perfil: " . $e->getMessage()]);
-        exit();
+        enviarErro(500, "Erro ao buscar perfil: " . $e->getMessage());
     }
 }
 
@@ -113,10 +112,9 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
 
         $stmt->execute();
 
-        echo json_encode(["mensagem" => "Perfil atualizado com sucesso"]);
+        enviarSucesso(200, ["mensagem" => "Perfil atualizado com sucesso!"]);
     } catch (PDOException $e) {
-        echo json_encode(["erro" => "Erro ao atualizar perfil: " . $e->getMessage()]);
-        exit();
+        enviarErro(500, "Erro ao atualizar perfil: " . $e->getMessage());
     }
 }
 
@@ -129,10 +127,9 @@ if ($_SERVER["REQUEST_METHOD"] === "DELETE") {
         $stmt->bindParam(":id", $usuario->id);
         $stmt->execute();
 
-        echo json_encode(["mensagem" => "Conta desativada com sucesso"]);
+        enviarSucesso(204, []);
     } catch (PDOException $e) {
-        echo json_encode(["erro" => "Erro ao desativar conta: " . $e->getMessage()]);
-        exit();
+        enviarErro(500, "Erro ao desativar conta: " . $e->getMessage());
     }
 }
 ?>

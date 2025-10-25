@@ -30,8 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $dados = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$dados) {
-            echo json_encode(["erro" => "Usuário não encontrado"]);
-            exit();
+            enviarErro(404, "Usuário não encontrado.");
         }
 
         // Lógica de ativação do jejum
@@ -40,13 +39,13 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             default => boolval($dados["jejum_ativo"])
         };
 
-        echo json_encode([
+        enviarSucesso(200, [
+            "mensagem" => "Status do jejum carregado com sucesso!",
             "usuario_id" => $usuario->id,
             "jejum_ativo" => $jejumAtivo
         ]);
     } catch (PDOException $e) {
-        echo json_encode(["erro" => "Erro ao verificar jejum: " . $e->getMessage()]);
-        exit();
+        enviarErro(500, "Erro ao verificar jejum: " . $e->getMessage());
     }
 }
 
@@ -58,8 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
     $ativar = isset($data["jejum_ativo"]) ? (int) $data["jejum_ativo"] : null;
 
     if (!in_array($ativar, [0, 1], true)) {
-        echo json_encode(["erro" => "Valor inválido para jejum_ativo"]);
-        exit();
+        enviarErro(400, "Valor inválido para jejum_ativo.");
     }
 
     try {
@@ -79,14 +77,13 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
         $stmtGet->execute([":id" => $usuario->id]);
         $dados = $stmtGet->fetch(PDO::FETCH_ASSOC);
 
-        echo json_encode([
-            "mensagem" => "Jejum " . ($ativar ? "ativado" : "desativado") . " com sucesso",
+        enviarSucesso(200, [
+            "mensagem" => "Jejum " . ($ativar ? "ativado" : "desativado") . " com sucesso!",
             "usuario" => $dados["nome"],
-            "jejum_ativo" => boolval($dados["jejum_ativo"]),
+            "jejum_ativo" => boolval($dados["jejum_ativo"])
         ]);
     } catch (PDOException $e) {
-        echo json_encode(["erro" => "Erro ao atualizar jejum: " . $e->getMessage()]);
-        exit();
+        enviarErro(500, "Erro ao atualizar jejum: " . $e->getMessage());
     }
 }
 ?>

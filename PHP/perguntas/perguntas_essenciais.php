@@ -21,8 +21,7 @@ $peso = floatval($data["peso"] ?? 0);
 $altura = floatval($data["altura"] ?? 0); 
 
 if ($peso <= 0 || $altura <= 0) {
-    echo json_encode(["erro" => "Peso ou altura inválidos para cálculo de IMC"]);
-    exit();
+    enviarErro(400, "Peso ou altura inválidos para cálculo de IMC.");
 }
 
 // Cálculo do IMC
@@ -52,7 +51,7 @@ try {
 
     $stmt->execute();
 
-    echo json_encode([
+    enviarSucesso(201, [
     "mensagem" => "Informações essenciais salvas com sucesso!",
     "dados_salvos" => [
         "sexo_biologico" => $data["sexo_biologico"],
@@ -63,7 +62,6 @@ try {
     ]
     ]);
 } catch (PDOException $e) {
-    echo json_encode(["erro" => "Erro ao salvar informações essenciais: " . $e->getMessage()]);
-    exit();
+    enviarErro(500, "Erro ao salvar informações essenciais: " . $e->getMessage());
 }
 ?>

@@ -22,8 +22,7 @@ $alimentos = $data["alimentos"] ?? [];
 $dataRegistro = date("Y-m-d");
 
 if (!$tipo || !is_array($alimentos) || empty($alimentos)) {
-    echo json_encode(["erro" => "Campos obrigatórios não preenchidos"]);
-    exit();
+    enviarErro(400, "Campos obrigatórios não preenchidos.");
 }
 
 try {
@@ -39,8 +38,7 @@ try {
     $permitidos = $stmtValidar->fetchAll(PDO::FETCH_COLUMN);
 
     if (count($permitidos) !== count($alimentoIds)) {
-        echo json_encode(["erro" => "Alguns alimentos não são permitidos para este usuário"]);
-        exit();
+        enviarErro(403, "Alguns alimentos não são permitidos para este usuário.");
     }
 
     // 2. Inserir refeição
@@ -95,8 +93,8 @@ try {
         $totalGordura += floatval($alimento["lipideos_g"]);
     }
 
-    echo json_encode([
-        "mensagem" => "Refeição registrada com sucesso",
+    enviarSucesso(201, [
+    "mensagem" => "Refeição registrada com sucesso!",
         "refeicao_id" => $refeicaoId,
         "data" => $dataRegistro,
         "tipo" => $tipo,
@@ -111,7 +109,6 @@ try {
         ]
     ]);
 } catch (PDOException $e) {
-    echo json_encode(["erro" => "Erro ao registrar refeição: " . $e->getMessage()]);
-    exit();
+    enviarErro(500, "Erro ao registrar refeição: " . $e->getMessage());
 }
 ?>

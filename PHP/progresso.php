@@ -41,11 +41,11 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $dados = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$dados) {
-            echo json_encode(["erro" => "Perfil não encontrado"]);
-            exit();
+            enviarErro(404, "Perfil não encontrado");
         }
 
-        echo json_encode([
+        enviarSucesso(200, [
+        "mensagem" => "Dados de progresso carregados com sucesso!",
             "meta" => $dados["meta"],
             "peso_inicial" => $dados["peso_inicial"],
             "imc_inicial" => $dados["imc_inicial"],
@@ -54,8 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             "altura" => $dados["altura"]
         ]);
     } catch (PDOException $e) {
-        echo json_encode(["erro" => "Erro ao buscar dados: " . $e->getMessage()]);
-        exit();
+        enviarErro(500, "Erro ao buscar dados: " . $e->getMessage());
     }
 }
 
@@ -66,8 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
     $data = json_decode(file_get_contents("php://input"), true);
 
     if (!isset($data["peso"])) {
-        echo json_encode(["erro" => "Peso não informado"]);
-        exit();
+        enviarErro(400, "Peso não informado.");
     }
 
     try {
@@ -80,8 +78,7 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
         $alturaCm = $stmt->fetchColumn();
 
         if (!$alturaCm) {
-            echo json_encode(["erro" => "Altura não encontrada para o usuário"]);
-            exit();
+            enviarErro(404, "Altura não encontrada para o usuário.");
         }
 
         $alturaM = $alturaCm / 100;
@@ -99,10 +96,9 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
         $stmt->bindParam(":id", $usuario->id);
         $stmt->execute();
 
-        echo json_encode(["mensagem" => "Peso e IMC atualizados com sucesso!"]);
+        enviarSucesso(200, ["mensagem" => "Peso e IMC atualizados com sucesso!"]);
     } catch (PDOException $e) {
-        echo json_encode(["erro" => "Erro ao atualizar progresso: " . $e->getMessage()]);
-        exit();
+        enviarErro(500, "Erro ao atualizar progresso: " . $e->getMessage());
     }
 }
 ?>

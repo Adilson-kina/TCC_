@@ -12,13 +12,24 @@ use \Firebase\JWT\Key;
 // Chave secreta JWT
 $jwtSecretKey = "dietasecreta";
 
+function enviarErro($codigo, $mensagem) {
+    http_response_code($codigo);
+    echo json_encode(["erro" => $mensagem]);
+    exit();
+}
+
+function enviarSucesso($codigo, $dados) {
+    http_response_code($codigo);
+    echo json_encode($dados);
+    exit();
+}
+
 // Conexão com o banco
 try {
     $pdo = new PDO("mysql:host=localhost;dbname=dietase_db", "root", "");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    echo json_encode(["erro" => "Erro na conexão com o banco: " . $e->getMessage()]);
-    exit();
+    enviarErro(500, "Erro na conexão com o banco: " . $e->getMessage());
 }
 
 // Função para validar token JWT
@@ -31,12 +42,10 @@ function verificarToken($jwtSecretKey) {
         try {
             return JWT::decode($jwt, new Key($jwtSecretKey, 'HS256'));
         } catch (Exception $e) {
-            echo json_encode(["erro" => "Token inválido"]);
-            exit();
+            enviarErro(401, "Token inválido.");
         }
     } else {
-        echo json_encode(["erro" => "Token não fornecido"]);
-        exit();
+        enviarErro(401, "Token não fornecido.");
     }
 }
 
@@ -47,14 +56,7 @@ function gerarToken(array $payload, string $jwtSecretKey): string {
 // Função para validar métodos permitidos
 function permitirMetodos(array $metodos) {
     if (!in_array($_SERVER["REQUEST_METHOD"], $metodos)) {
-        echo json_encode(["erro" => "Método não permitido"]);
-        exit();
+        enviarErro(405, "Método não permitido.");
     }
-}
-
-function enviarErro($codigo, $mensagem) {
-    http_response_code($codigo);
-    echo json_encode(["erro" => $mensagem]);
-    exit();
 }
 ?>
