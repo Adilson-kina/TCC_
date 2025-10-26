@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         }
 
         // Se a pergunta estiver nula, usa "Nenhuma" como fallback
-        $dados["pergunta6_tipo_dieta"] = !empty($dados["pergunta6_tipo_dieta"]) ? $dados["pergunta6_tipo_dieta"] : "Nenhuma";
+        $dados["pergunta6_tipo_dieta"] = !empty($dados["pergunta6_tipo_dieta"]) ? $dados["pergunta6_tipo_dieta"] : "nenhuma";
 
         // Se peso estiver nulo, usa peso_inicial como fallback
         $dados["peso"] = $dados["peso"] ?? $dados["peso_inicial"];
@@ -112,7 +112,14 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
 
         $stmt->execute();
 
-        enviarSucesso(200, ["mensagem" => "Perfil atualizado com sucesso!"]);
+        enviarSucesso(200, [
+        "mensagem" => "Perfil atualizado com sucesso!",
+            "nome" => $data["nome"],
+            "altura" => $data["altura"],
+            "peso" => $data["peso"],
+            "imc" => $imc,
+            "id" => $usuario->id
+        ]);
     } catch (PDOException $e) {
         enviarErro(500, "Erro ao atualizar perfil: " . $e->getMessage());
     }

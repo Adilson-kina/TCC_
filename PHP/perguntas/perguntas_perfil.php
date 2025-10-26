@@ -48,7 +48,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $pesoMax = round($imcMax * ($alturaM * $alturaM), 1);
 
         enviarSucesso(200, [
-        "mensagem" => "Dados essenciais carregados com sucesso!",
+            "mensagem" => "Dados essenciais carregados com sucesso!",
+            "peso_atual" => $pesoAtual,
             "idade" => $idade,
             "altura" => $alturaM,
             "imc_atual" => $imc,

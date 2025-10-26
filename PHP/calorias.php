@@ -142,7 +142,7 @@ try {
 
     // 12. Retorno completo
     enviarSucesso(201, [
-        "mensagem" => "Dados de calorias atualizados com sucesso",
+        "mensagem" => "Dados de calorias atualizados com sucesso!",
         "peso" => $peso,
         "altura" => $altura,
         "idade" => $idade,

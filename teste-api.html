@@ -232,6 +232,22 @@
             <h2>11. Ver Perfil</h2>
             <button onclick="verPerfil()">Ver Perfil</button>
             <div class="response" id="resVerPerfil"></div>
+            
+            <h2 style="margin-top: 20px;">Editar Perfil</h2>
+            <label>Nome:</label>
+            <input type="text" id="editNome" placeholder="Novo nome">
+            <label>Altura (cm):</label>
+            <input type="number" id="editAltura" placeholder="Nova altura">
+            <label>Peso (kg):</label>
+            <input type="number" id="editPeso" placeholder="Novo peso" step="0.1">
+            <label>Nova Senha (opcional):</label>
+            <input type="password" id="editSenha" placeholder="Deixe vazio para não alterar">
+            <button onclick="editarPerfil()">Salvar Alterações</button>
+            <div class="response" id="resEditarPerfil"></div>
+            
+            <h2 style="margin-top: 20px; color: #dc3545;">⚠️ Zona de Perigo</h2>
+            <button onclick="confirmarDelete()" style="background: #dc3545;">Desativar Conta</button>
+            <div class="response" id="resDeleteConta"></div>
         </div>
 
         <!-- 12. VER PROGRESSO -->
@@ -518,7 +534,72 @@
             });
             
             const json = await res.json();
+            
+            // Preenche os campos de edição automaticamente
+            if (json.nome) {
+                document.getElementById('editNome').value = json.nome;
+                document.getElementById('editAltura').value = json.altura;
+                document.getElementById('editPeso').value = json.peso;
+            }
+            
             document.getElementById('resVerPerfil').textContent = JSON.stringify(json, null, 2);
+        }
+
+        async function editarPerfil() {
+            const data = {
+                nome: document.getElementById('editNome').value,
+                altura: parseInt(document.getElementById('editAltura').value),
+                peso: parseFloat(document.getElementById('editPeso').value),
+                senha: document.getElementById('editSenha').value || undefined
+            };
+            
+            // Remove senha se estiver vazia
+            if (!data.senha) delete data.senha;
+            
+            const res = await fetch(`${API_BASE}/perfil.php`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const json = await res.json();
+            document.getElementById('resEditarPerfil').textContent = JSON.stringify(json, null, 2);
+            document.getElementById('resEditarPerfil').className = json.mensagem ? 'response success' : 'response error';
+            
+            // Limpa o campo senha após salvar
+            document.getElementById('editSenha').value = '';
+        }
+
+        async function confirmarDelete() {
+            const confirmacao = confirm('⚠️ ATENÇÃO!\n\nVocê tem certeza que deseja desativar sua conta?\n\nEsta ação irá:\n• Desativar seu acesso\n• Manter seus dados no sistema\n• Permitir reativação futura\n\nDeseja continuar?');
+            
+            if (!confirmacao) return;
+            
+            const res = await fetch(`${API_BASE}/perfil.php`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (res.status === 204) {
+                document.getElementById('resDeleteConta').textContent = '✅ Conta desativada com sucesso!';
+                document.getElementById('resDeleteConta').className = 'response success';
+                
+                // Limpa o token após 2 segundos
+                setTimeout(() => {
+                    token = '';
+                    document.getElementById('tokenDisplay').style.display = 'none';
+                    alert('Você foi desconectado. Faça login novamente para testar outras funcionalidades.');
+                }, 2000);
+            } else {
+                const json = await res.json();
+                document.getElementById('resDeleteConta').textContent = JSON.stringify(json, null, 2);
+                document.getElementById('resDeleteConta').className = 'response error';
+            }
         }
 
         async function verProgresso() {

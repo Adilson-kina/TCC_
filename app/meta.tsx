@@ -15,7 +15,7 @@ function widthPercent(percentage:number){
   return windowWidth * (percentage / 100);
 }
 
-export default function Etapa2(){
+export default function Meta(){
     const [isChecked1, setChecked1] = useState(false);
     const [isChecked2, setChecked2] = useState(false);
     const [isChecked3, setChecked3] = useState(false);

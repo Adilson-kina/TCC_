@@ -1,11 +1,8 @@
-import { Text, View, StyleSheet, TextInput, Pressable } from "react-native";
-import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
-import { useRouter, Link } from 'expo-router';
-import post from '../components/post.tsx';
-import { Dimensions, Image } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { Link, useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Dimensions, Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import post from '../components/post.tsx';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -35,10 +32,12 @@ export default function Login() {
       setErrorMessage(response.erro);
       return;
     }
-     
-    if (response && response.id) {
+    
+    if (response && response.token) { 
+      await AsyncStorage.setItem("token", response.token);
       await AsyncStorage.setItem("userId", response.id.toString());
-      router.navigate("/profile");
+
+      router.navigate("/home"); 
     }
   };
 

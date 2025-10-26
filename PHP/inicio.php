@@ -1,5 +1,5 @@
 <?php
-header("Content-Type: application/json");
+header("Content-Type: application/json; charset=utf-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
@@ -16,29 +16,37 @@ $usuario = verificarToken($jwtSecretKey);
 $dataHoje = date("Y-m-d");
 
 function gerarResumoNutricional($disturbios) {
-    $disturbios = strtolower($disturbios);
+    if (empty($disturbios)) {
+        return [
+            "restricoes" => [],
+            "recomendados" => []
+        ];
+    }
+    
+    $disturbios = mb_strtolower($disturbios, 'UTF-8');
     $resumo = [
         "restricoes" => [],
         "recomendados" => []
     ];
 
-    if (str_contains($disturbios, "celíaca")) {
+    // ✅ Aceita com ou sem acento
+    if (mb_stripos($disturbios, "celiac") !== false) {
         $resumo["restricoes"][] = "Pães, massas, alimentos com glúten (trigo, centeio, cevada)";
         $resumo["recomendados"][] = "Carnes, ovos, azeites, castanhas, queijos e vegetais de baixo carboidrato";
     }
-    if (str_contains($disturbios, "diabetes")) {
+    if (mb_stripos($disturbios, "diabetes") !== false) {
         $resumo["restricoes"][] = "Açúcares, doces, massas refinadas, refrigerantes";
         $resumo["recomendados"][] = "Alimentos com baixo índice glicêmico, ricos em fibras e proteínas magras";
     }
-    if (str_contains($disturbios, "hipertensão")) {
+    if (mb_stripos($disturbios, "hipertens") !== false) {
         $resumo["restricoes"][] = "Alimentos ricos em sódio, embutidos, conservas, temperos prontos";
         $resumo["recomendados"][] = "Frutas, vegetais frescos, alimentos naturais com pouco sal";
     }
-    if (str_contains($disturbios, "hipercolesterolemia")) {
+    if (mb_stripos($disturbios, "hipercolesterol") !== false) {
         $resumo["restricoes"][] = "Frituras, gorduras saturadas, embutidos, queijos gordurosos";
         $resumo["recomendados"][] = "Peixes, azeite de oliva, frutas, legumes e grãos integrais";
     }
-    if (str_contains($disturbios, "sii")) {
+    if (mb_stripos($disturbios, "sii") !== false || mb_stripos($disturbios, "intestino") !== false) {
         $resumo["restricoes"][] = "Laticínios, leguminosas, vegetais fermentáveis, adoçantes artificiais";
         $resumo["recomendados"][] = "Carnes magras, arroz, cenoura, abobrinha, alimentos leves e cozidos";
     }
@@ -51,12 +59,16 @@ try {
     $stmtMeta = $pdo->prepare("
         SELECT p.pergunta8_disturbios, m.tipo_meta
         FROM perguntas p
-        JOIN pergunta5_meta m ON m.perguntas_id = p.id
+        LEFT JOIN pergunta5_meta m ON m.perguntas_id = p.id
         JOIN usuarios u ON u.perguntas_id = p.id
         WHERE u.id = :usuario_id
     ");
     $stmtMeta->execute([":usuario_id" => $usuario->id]);
     $dadosMeta = $stmtMeta->fetch(PDO::FETCH_ASSOC);
+
+    if (!$dadosMeta) {
+        enviarErro(404, "Dados do usuário não encontrados. Complete seu perfil primeiro.");
+    }
 
     $resumo = gerarResumoNutricional($dadosMeta["pergunta8_disturbios"] ?? "");
 
@@ -70,10 +82,14 @@ try {
         ":usuario_id" => $usuario->id,
         ":data" => $dataHoje
     ]);
-    $atividade = $stmtCalorias->fetch(PDO::FETCH_ASSOC) ?? [
-        "passos" => 0,
-        "calorias_gastas" => 0,
-    ];
+    $atividade = $stmtCalorias->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$atividade) {
+        $atividade = [
+            "passos" => 0,
+            "calorias_gastas" => 0
+        ];
+    }
 
     // 3. Buscar última refeição
     $stmtUltima = $pdo->prepare("
@@ -100,21 +116,21 @@ try {
         $alimentos = $stmtAlimentos->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($alimentos as $a) {
-            $totalCalorias += floatval($a["energia_kcal"]);
+            $totalCalorias += floatval($a["energia_kcal"] ?? 0);
         }
     }
 
     // 4. Montar resposta final
     enviarSucesso(200, [
-    "mensagem" => "Dados da tela inicial carregados com sucesso!",
+        "mensagem" => "Dados da tela inicial carregados com sucesso!",
         "dieta" => [
             "meta" => $dadosMeta["tipo_meta"] ?? null,
             "restricoes" => $resumo["restricoes"],
             "recomendados" => $resumo["recomendados"]
         ],
         "atividade" => [
-            "passos" => $atividade["passos"],
-            "calorias_gastas" => $atividade["calorias_gastas"],
+            "passos" => (int)($atividade["passos"] ?? 0),
+            "calorias_gastas" => (float)($atividade["calorias_gastas"] ?? 0)
         ],
         "ultima_refeicao" => $ultimaRefeicao ? [
             "tipo" => $ultimaRefeicao["tipo_refeicao"],
@@ -125,5 +141,7 @@ try {
     ]);
 } catch (PDOException $e) {
     enviarErro(500, "Erro ao carregar dados da tela inicial: " . $e->getMessage());
+} catch (Exception $e) {
+    enviarErro(500, "Erro inesperado: " . $e->getMessage());
 }
 ?>

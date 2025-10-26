@@ -24,20 +24,29 @@ export default function SignUp() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async () => {
+    setErrorMessage("");
+
     const data = { nome, email, senha };
     const response = await post(data, "cadastro");
+
     if (response && response.erro) {
       setErrorMessage(response.erro);
-      window.alert(response.erro); // medida provisoria
+      window.alert(response.erro); // medida provisória
       return;
     }
-     
+
+    if (response && response.id && response.token) {
+      await AsyncStorage.setItem("userId", response.id.toString());
+      await AsyncStorage.setItem("token", response.token); 
+      router.navigate("/termos");
+      return;
+    }
+
+    // fallback caso não tenha token mas tenha id
     if (response && response.id) {
       await AsyncStorage.setItem("userId", response.id.toString());
       router.navigate("/termos");
     }
-
-    router.navigate('/termos');
   };
 
   return (

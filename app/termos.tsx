@@ -1,22 +1,35 @@
-import { useState } from "react";
-import CheckBox from "expo-checkbox";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, useRouter } from "expo-router";
-import { TouchableOpacity } from "react-native";
-import { Text, View, Image, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import CheckBoxWithLabel from './checkbox';
 
-export default function Etapa1() {
-  const [isChecked1, setChecked1] = useState(false)
-  const [isChecked2, setChecked2] = useState(false)
+export default function Termos() {
+  const [isChecked1, setChecked1] = useState(false);
+  const [isChecked2, setChecked2] = useState(false);
   const router = useRouter();
 
-  function prosseguir(){
-      if(isChecked1 == true && isChecked2 == true){
-        router.replace('/meta')
-      }else if(isChecked1 == true || isChecked2 == true){
-        alert("É NECESSÁRIO ACEITAR TODOS ACIMA!")
-      }else{
-        alert("PARA CONTINUARES, É NECESSÁRIO ACEITAR TODOS ACIMA!")
+  // ✅ Verifica se o token existe ao carregar a tela
+  useEffect(() => {
+    const verificarToken = async () => {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        Alert.alert("Sessão expirada", "Faça login novamente para continuar.");
+        router.replace("/login");
       }
+    };
+
+    verificarToken();
+  }, []);
+
+  function prosseguir() {
+    if (isChecked1 && isChecked2) {
+      router.replace('/perguntas_essenciais');
+    } else if (isChecked1 || isChecked2) {
+      alert("É NECESSÁRIO ACEITAR TODOS ACIMA!");
+    } else {
+      alert("PARA CONTINUARES, É NECESSÁRIO ACEITAR TODOS ACIMA!");
+    }
   }
 
   return (
@@ -27,28 +40,30 @@ export default function Etapa1() {
           style={estilo.img}
         />
       </View>
-      
+
       <View style={estilo.textContainer}>
         <Text style={estilo.title}>Dieta-se</Text>
         <Text style={estilo.subtitle}>Zelando sempre por sua privacidade e segurança</Text>
       </View>
 
-      <View style={estilo.checkboxContainer}>
-        <CheckBox
-          value={isChecked1}
+      <View style={estilo.checkboxWrapper}>
+        <CheckBoxWithLabel
+          isChecked={isChecked1}
           onValueChange={setChecked1}
-          style={estilo.checkbox}
+          label=""
+          rowStyle={estilo.checkboxRow}
         />
         <Text style={estilo.checkboxText}>
           Estou de acordo com a <Link href={".."} style={estilo.link}>Política de Privacidade</Link> e os <Link href={".."} style={estilo.link}>Termos de Uso</Link>.
         </Text>
       </View>
 
-      <View style={estilo.checkboxContainer}>
-        <CheckBox
-          value={isChecked2}
+      <View style={estilo.checkboxWrapper}>
+        <CheckBoxWithLabel
+          isChecked={isChecked2}
           onValueChange={setChecked2}
-          style={estilo.checkbox}
+          label=""
+          rowStyle={estilo.checkboxRow}
         />
         <Text style={estilo.checkboxText}>
           Autorizo o processamento dos meus dados pessoais de saúde para acessar os recursos da aplicação Dieta-se. Saiba mais na <Link href={".."} style={estilo.link}>Política de Privacidade</Link>.
@@ -56,11 +71,10 @@ export default function Etapa1() {
       </View>
 
       <View style={estilo.btnContainer}>
-        <TouchableOpacity 
-        style={estilo.button}
-        onPressIn={() => {
-          prosseguir()
-        }}>
+        <TouchableOpacity
+          style={estilo.button}
+          onPressIn={prosseguir}
+        >
           <Text style={estilo.buttonText}>Prosseguir</Text>
         </TouchableOpacity>
       </View>
@@ -75,7 +89,6 @@ const estilo = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#ecfcec',
   },
-
   imageContainer: {
     marginBottom: 20,
   },
@@ -86,7 +99,6 @@ const estilo = StyleSheet.create({
     justifyContent: 'flex-end',
     marginBottom: 40,
   },
-
   img: {
     width: 200,
     height: 200,
@@ -102,30 +114,23 @@ const estilo = StyleSheet.create({
     color: 'green',
     textAlign: 'center',
   },
-
   subtitle: {
     fontSize: 20,
     textAlign: 'center',
   },
-
-  checkboxContainer: {
+  checkboxWrapper: {
     width: '100%',
     marginBottom: 30,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
-
-  checkbox: {
+  checkboxRow: {
     marginRight: 10,
-    borderRadius: 30,
-    padding: 10,
   },
-
   checkboxText: {
     flex: 1,
     fontSize: 20,
   },
-
   button: {
     width: '100%',
     borderRadius: 10,
@@ -140,7 +145,6 @@ const estilo = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
-
   link: {
     color: 'green',
   }
