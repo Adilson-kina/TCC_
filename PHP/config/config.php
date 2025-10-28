@@ -1,5 +1,5 @@
 <?php
-// config.php
+// config.php - Versão Railway
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Chave secreta JWT
-$jwtSecretKey = "dietasecreta";
+$jwtSecretKey = getenv('JWT_SECRET') ?: "dietasecreta";
 
 function enviarErro($codigo, $mensagem) {
     http_response_code($codigo);
@@ -26,22 +26,36 @@ function enviarSucesso($codigo, $dados) {
     exit();
 }
 
-// ⚠️ CONFIGURAÇÕES DO INFINITYFREE - ALTERE AQUI! ⚠️
-define('DB_HOST', 'sql110.infinityfree.com');
-define('DB_NAME', 'if0_40271620_dietase_db');
-define('DB_USER', 'if0_40271620');
-define('DB_PASS', 'wQgSmEdRwKDAH');
+// 🚀 CONFIGURAÇÃO AUTOMÁTICA - Railway ou Local
+$isRailway = getenv('RAILWAY_ENVIRONMENT') !== false;
+
+if ($isRailway) {
+    // 🔥 Produção (Railway)
+    $dbHost = getenv('MYSQL_HOST');
+    $dbName = getenv('MYSQL_DATABASE');
+    $dbUser = getenv('MYSQL_USER');
+    $dbPass = getenv('MYSQL_PASSWORD');
+    $dbPort = getenv('MYSQL_PORT') ?: '3306';
+} else {
+    // 💻 Desenvolvimento Local
+    $dbHost = 'localhost';
+    $dbName = 'dietase_db';
+    $dbUser = 'root';
+    $dbPass = '';
+    $dbPort = '3306';
+}
 
 // Conexão com o banco
 try {
     $pdo = new PDO(
-        "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
-        DB_USER,
-        DB_PASS,
+        "mysql:host={$dbHost};port={$dbPort};dbname={$dbName};charset=utf8mb4",
+        $dbUser,
+        $dbPass,
         [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false
+            PDO::ATTR_EMULATE_PREPARES => false,
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
         ]
     );
 } catch (PDOException $e) {
@@ -71,12 +85,12 @@ function getAuthHeader() {
     return '';
 }
 
-// ✅ JWT SEM FIREBASE (compatível 100%)
+// JWT SEM FIREBASE
 function gerarToken(array $payload, string $jwtSecretKey): string {
     $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
     $header = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
     
-    $payload['exp'] = time() + (60 * 60 * 24 * 30); // 30 dias
+    $payload['exp'] = time() + (60 * 60 * 24 * 30);
     $payload = json_encode($payload);
     $payload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
     
@@ -106,7 +120,6 @@ function verificarToken($jwtSecretKey) {
     
     [$header, $payload, $signature] = $parts;
     
-    // Valida assinatura
     $validSignature = hash_hmac('sha256', "$header.$payload", $jwtSecretKey, true);
     $validSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($validSignature));
     
@@ -114,7 +127,6 @@ function verificarToken($jwtSecretKey) {
         enviarErro(401, "Assinatura inválida.");
     }
     
-    // Decodifica payload
     $payload = base64_decode(str_replace(['-', '_'], ['+', '/'], $payload));
     $data = json_decode($payload, true);
     
@@ -122,7 +134,6 @@ function verificarToken($jwtSecretKey) {
         enviarErro(401, "Payload inválido.");
     }
     
-    // Valida expiração
     if (isset($data['exp']) && $data['exp'] < time()) {
         enviarErro(401, "Token expirado.");
     }
@@ -130,7 +141,6 @@ function verificarToken($jwtSecretKey) {
     return (object)$data;
 }
 
-// Função para validar métodos permitidos
 function permitirMetodos(array $metodos) {
     if (!in_array($_SERVER["REQUEST_METHOD"], $metodos)) {
         enviarErro(405, "Método não permitido.");

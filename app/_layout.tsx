@@ -13,15 +13,6 @@ export default function RootLayout() {
         }}
       />
       <Stack.Screen 
-        name="profile"
-        options={{ 
-          title: "",
-          headerStyle: {
-            backgroundColor: "#ecfcec"
-          }
-        }} 
-      />
-      <Stack.Screen 
         name="signup"
         options={{ 
           title: "",
@@ -40,7 +31,7 @@ export default function RootLayout() {
         }} 
       />
       <Stack.Screen 
-        name="perguntas_essenciais"
+        name="perguntasEssenciais"
         options={{ 
           title: "",
           headerStyle: {
@@ -49,7 +40,7 @@ export default function RootLayout() {
         }} 
       />
       <Stack.Screen 
-        name="perguntas_perfil"
+        name="perguntasPerfil"
         options={{ 
           title: "",
           headerStyle: {

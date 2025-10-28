@@ -1,3 +1,6 @@
+CREATE DATABASE IF NOT EXISTS dietase_db;
+USE dietase_db;
+
 CREATE TABLE perguntas (
     id BIGINT NOT NULL AUTO_INCREMENT,
     pergunta1_objetivo ENUM('perder', 'ganhar', 'manter', 'massa') NOT NULL,
@@ -128,6 +131,63 @@ CREATE TABLE historico_peso (
     data_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+-- Primeiro, insere uma entrada na tabela perguntas
+INSERT INTO perguntas (
+    pergunta1_objetivo,
+    pergunta2_contagem_calorica,
+    pergunta3_jejum_intermitente,
+    pergunta4_nivel_atividade,
+    pergunta6_tipo_dieta,
+    pergunta7_comer_fds,
+    pergunta8_disturbios,
+    pergunta9_possui_dieta
+) VALUES (
+    'perder',
+    'sim',
+    'nao',
+    'medio',
+    'mediterranea',
+    'sim',
+    'nenhum',
+    'nao'
+);
+
+-- Em seguida, insere o usuário referenciando o ID da pergunta recém-criada
+-- Supondo que o ID gerado para a pergunta foi 1 (ajuste conforme necessário)
+INSERT INTO usuarios (
+    nome,
+    email,
+    senha,
+    sexo_biologico,
+    data_nascimento,
+    altura,
+    peso_inicial,
+    imc_inicial,
+    peso,
+    imc,
+    ordenacao_home,
+    total_registros_peso,
+    jejum_ativo,
+    perguntas_id,
+    ativo
+) VALUES (
+    'João Silva',
+    'joao@example.com',
+    'senha_segura_123',
+    'm',
+    '1990-05-15',
+    175,
+    85.0,
+    27.8,
+    85.0,
+    27.8,
+    'carboidrato_g',
+    0,
+    0,
+    1,
+    1
 );
 
 -- SELECT * FROM perguntas;

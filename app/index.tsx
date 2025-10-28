@@ -1,7 +1,25 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Dimensions, Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Dimensions,
+  Image, // ← ADICIONE
+  Keyboard // ← ADICIONE
+  ,
+
+
+
+
+
+  KeyboardAvoidingView, // ← ADICIONE
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput, // ← ADICIONE
+  TouchableWithoutFeedback,
+  View
+} from "react-native";
 import post from '../components/post.tsx';
 
 const windowWidth = Dimensions.get('window').width;
@@ -46,42 +64,82 @@ export default function Login() {
   };
 
   return (
-    <View style={styles.container}>
-      <Image 
-        style={styles.logo}
-        source={require("./../assets/images/Logo.png")}
-      />
-      
-      {/* 🆕 ADICIONE ESTE BLOCO AQUI */}
-      {errorMessage !== "" && (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorIcon}>⚠️</Text>
-          <Text style={styles.errorText}>{errorMessage}</Text>
-        </View>
-      )}
-      
-      <View style={styles.form}> {/* FORM*/ }
-        <View style={styles.items}>
-          <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="Email" />
-        </View>
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.innerContainer}>
+          <Image 
+            style={styles.logo}
+            source={require("./../assets/images/Logo.png")}
+          />
+          
+          {errorMessage !== "" && (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorIcon}>⚠️</Text>
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            </View>
+          )}
+          
+          <View style={styles.form}>
+            <View style={styles.items}>
+              <TextInput 
+                style={styles.input} 
+                value={email} 
+                onChangeText={setEmail} 
+                placeholder="Email"
+                returnKeyType="next"
+              />
+            </View>
 
-        <View style={styles.items}>
-          <TextInput style={styles.input} value={senha} onChangeText={setSenha} secureTextEntry placeholder="Senha" />
-        </View>
+            <View style={styles.items}>
+              <TextInput 
+                style={styles.input} 
+                value={senha} 
+                onChangeText={setSenha} 
+                secureTextEntry 
+                placeholder="Senha"
+                returnKeyType="done"
+                onSubmitEditing={handleSubmit}
+              />
+            </View>
 
-        <Pressable style={styles.button} onPress={handleSubmit} >
-          <Text style={styles.buttonText}>Entrar</Text>
-        </Pressable>
-      </View>
-      <View style={styles.goto}>
-        <Text style={styles.gotoText}>Não possui cadastro? </Text>
-        <Link href="/signup" style={styles.gotoTextLink}><Text>Registre-se</Text></Link>
-      </View>
-    </View>
+            <Pressable style={styles.button} onPress={handleSubmit}>
+              <Text style={styles.buttonText}>Entrar</Text>
+            </Pressable>
+          </View>
+          
+          <View style={styles.goto}>
+            <Text style={styles.gotoText}>Não possui cadastro? </Text>
+            <Link href="/signup">
+              <Text style={styles.gotoTextLink}>Registre-se</Text>
+            </Link>
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#ecfcec",
+  },
+  innerContainer: {
+    flex: 1,
+    width: '100%',
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logo: {
+    width: 280,              // ← Tamanho fixo responsivo
+    height: 160,             // ← Tamanho fixo responsivo
+    resizeMode: 'contain',
+    marginBottom: 40,
+  },
   errorBox: {
     backgroundColor: '#FFEBEE',
     borderLeftWidth: 4,
@@ -89,7 +147,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     marginBottom: 20,
-    width: widthPercent(90),
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -99,92 +157,70 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#C62828',
-    fontSize: heightPercent(1.8),
+    fontSize: 14,
     fontWeight: '600',
     flex: 1,
   },
-  logo:{
-    height: 210,
-    width: 400,
-    marginTop: heightPercent(10),
-    marginBottom: heightPercent(10),
-  },
-  gotoTextLink:{
-    fontSize: heightPercent(2),
-    color: "#3392FF",
-  },
-  gotoText:{
-    fontSize: heightPercent(2),
-  },
-  goto:{
-    flexDirection: "row",
-  },
-  title:{
-    fontSize: 30,
-    marginBottom: 20,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-
   form: {
+    width: '100%',
     alignItems: "center",
-    gap: 25,
-    padding: 50,
-    width: widthPercent(100),
+    gap: 15,                 // ← Reduzido
+    marginBottom: 20,
   },
-
-  container: {
-    flex: 1,
-    padding: 20,
-    alignItems: "center",
-    justifyContent: "flex-start",
-    backgroundColor: "#ecfcec",
-  },
-
   items: {
-    gap: 20,
-    flexDirection: "row",
-    alignItems: "center",
+    width: '100%',
   },
-
   input: {
-    padding: 20,
-    height: heightPercent(4),
-    width: widthPercent(90),
+    width: '100%',
+    height: 50,
+    paddingHorizontal: 15,
     borderRadius: 15,
     backgroundColor: "#dadada",
-    color: "#747474",
+    color: "#000000",        // ← Texto preto
+    fontSize: 16,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 3,
-    elevation: 5,
+    elevation: 3,
   },
-
-  button:{
-    padding: 6,
-    width: widthPercent(65),
-    height: heightPercent(5),
-    marginTop: 20,
-    margin: "auto",
-    marginBottom: -30,
+  button: {
+    width: '80%',
+    height: 50,
     borderRadius: 20,
     backgroundColor: "#007912",
     justifyContent: "center",
     alignItems: "center",
+    marginTop: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
   },
-
-  buttonText:{
-    fontSize: heightPercent(3),
+  buttonText: {
+    fontSize: 18,
     color: "white",
     fontWeight: "bold",
   },
-
-  legenda:{
-    fontSize: 20,
-    fontWeight: "bold",
-  }
-})
+  goto: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  gotoText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  gotoTextLink: {
+    fontSize: 16,
+    color: "#3392FF",
+    fontWeight: "600",
+  },
+});
