@@ -27,7 +27,7 @@ function enviarSucesso($codigo, $dados) {
 }
 
 $dbHost = getenv('MYSQLHOST') ?: 'localhost';
-$dbName = getenv('MYSQLDATABASE') ?: 'dietase_db';
+$dbName = getenv('MYSQL_DATABASE') ?: 'dietase_db';
 $dbUser = getenv('MYSQLUSER') ?: 'root';
 $dbPass = getenv('MYSQLPASSWORD') ?: '';
 $dbPort = getenv('MYSQLPORT') ?: '3306';
