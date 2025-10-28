@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import CheckBoxWithLabel from './checkbox';
+import CheckBoxWithLabel from '../components/checkbox';
 
 export default function Termos() {
   const [isChecked1, setChecked1] = useState(false);
@@ -24,7 +24,7 @@ export default function Termos() {
 
   function prosseguir() {
     if (isChecked1 && isChecked2) {
-      router.replace('/perguntas_essenciais');
+      router.replace('/perguntasEssenciais');
     } else if (isChecked1 || isChecked2) {
       alert("É NECESSÁRIO ACEITAR TODOS ACIMA!");
     } else {

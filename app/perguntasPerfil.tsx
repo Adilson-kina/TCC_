@@ -14,14 +14,14 @@ function widthPercent(percentage) {
   return windowWidth * (percentage / 100);
 }
 
-const API_BASE = 'http://localhost/TCC/PHP';
+const API_BASE = 'https://dietase.xo.je/TCC/PHP';
 
 export default function PerguntasPerfil() {
   const router = useRouter();
   const [etapa, setEtapa] = useState(1);
   const [errorMessage, setErrorMessage] = useState('');
   const [dadosCalculados, setDadosCalculados] = useState(null);
-  const [enviando, setEnviando] = useState(false); // Novo estado para evitar cliques múltiplos
+  const [enviando, setEnviando] = useState(false);
   
   // Estados das respostas
   const [objetivo, setObjetivo] = useState('');
@@ -29,12 +29,11 @@ export default function PerguntasPerfil() {
   const [contagemCalorica, setContagemCalorica] = useState('');
   const [jejumIntermitente, setJejumIntermitente] = useState('');
   const [nivelAtividade, setNivelAtividade] = useState('');
-  const [tipoDieta, setTipoDieta] = useState('');
   const [comerFds, setComerFds] = useState('');
+  const [tipoDieta, setTipoDieta] = useState('');
   const [disturbios, setDisturbios] = useState([]);
   const [possuiDieta, setPossuiDieta] = useState('');
 
-  // Busca os dados calculados na primeira renderização
   useEffect(() => {
     buscarDadosCalculados();
   }, []);
@@ -82,47 +81,46 @@ export default function PerguntasPerfil() {
     
     // Validações por etapa
     if (etapa === 1 && !objetivo) {
-      setErrorMessage('Por favor, selecione seu objetivo');
+      setErrorMessage('Por favor, selecione seu objetivo.');
       return;
     }
     
     if (etapa === 2 && (objetivo === 'perder' || objetivo === 'ganhar') && !valorDesejado) {
-      setErrorMessage('Por favor, informe o peso desejado');
+      setErrorMessage('Por favor, informe o peso desejado.');
       return;
     }
     
     if (etapa === 3 && !contagemCalorica) {
-      setErrorMessage('Por favor, selecione uma opção');
+      setErrorMessage('Por favor, selecione uma opção.');
       return;
     }
     
     if (etapa === 4 && !jejumIntermitente) {
-      setErrorMessage('Por favor, selecione uma opção');
+      setErrorMessage('Por favor, selecione uma opção.');
       return;
     }
     
     if (etapa === 5 && !nivelAtividade) {
-      setErrorMessage('Por favor, selecione seu nível de atividade');
+      setErrorMessage('Por favor, selecione seu nível de atividade.');
       return;
     }
     
-    // Etapa 6 (tipo de dieta) não é obrigatória - sempre pode avançar
-    
-    if (etapa === 7 && !comerFds) {
-      setErrorMessage('Por favor, selecione uma opção');
-      return;
-    }
-    
-    // Etapa 8 (distúrbios) não é obrigatória
-    
-    if (etapa === 9 && !possuiDieta) {
-      setErrorMessage('Por favor, selecione uma opção');
+    if (etapa === 6 && !comerFds) {
+      setErrorMessage('Por favor, selecione uma opção.');
       return;
     }
 
-    // Se for a última etapa, envia os dados
+    if (etapa === 7 && !possuiDieta) {
+      setErrorMessage('Por favor, selecione uma opção.');
+      return;
+    }
+    
+    // Etapa 8 (tipo de dieta) não é obrigatória
+    
+    // Etapa 9 (distúrbios) não é obrigatória
+
     if (etapa === 9) {
-      if (!enviando) { // Só envia se não estiver enviando
+      if (!enviando) {
         enviarDados();
       }
     } else {
@@ -131,9 +129,9 @@ export default function PerguntasPerfil() {
   };
 
   const enviarDados = async () => {
-    if (enviando) return; // Evita múltiplos cliques
+    if (enviando) return;
     
-    setEnviando(true); // Bloqueia o botão
+    setEnviando(true);
     
     try {
       const token = await AsyncStorage.getItem('token');
@@ -143,6 +141,8 @@ export default function PerguntasPerfil() {
         return;
       }
       
+      const disturbiosParaEnviar = disturbios.length === 0 ? ['nenhuma'] : disturbios;
+      
       const payload = {
         objetivo: objetivo,
         contagem_calorica: contagemCalorica,
@@ -150,12 +150,11 @@ export default function PerguntasPerfil() {
         nivel_atividade: nivelAtividade,
         tipo_dieta: tipoDieta || '',
         comer_fds: comerFds,
-        disturbios: disturbios,
+        disturbios: disturbiosParaEnviar,
         possui_dieta: possuiDieta,
         faixa_recomendada: dadosCalculados ? `${dadosCalculados.peso_recomendado_min}-${dadosCalculados.peso_recomendado_max}` : ''
       };
 
-      // Adiciona valor_desejado se aplicável
       if (objetivo === 'perder' || objetivo === 'ganhar') {
         payload.valor_desejado = parseFloat(valorDesejado);
       } else if (objetivo === 'manter' && dadosCalculados) {
@@ -177,9 +176,15 @@ export default function PerguntasPerfil() {
 
       if (data.erro) {
         setErrorMessage(data.erro);
-        setEnviando(false); // Desbloqueia se der erro
+        setEnviando(false);
       } else if (data.mensagem) {
-        // Sucesso! Redireciona para home
+        await fetch(`${API_BASE}/alimentos/alimentos.php`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
         router.push('/home');
         console.log('Navegando para home...');
         setEnviando(false);
@@ -187,7 +192,7 @@ export default function PerguntasPerfil() {
     } catch (error) {
       console.error('Erro ao enviar dados:', error);
       setErrorMessage('Erro ao enviar dados. Tente novamente.');
-      setEnviando(false); // Desbloqueia se der erro
+      setEnviando(false);
     }
   };
 
@@ -204,8 +209,6 @@ export default function PerguntasPerfil() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.formulario}>Formulário: Perfil</Text>
-        
         <View style={styles.card}>
           {/* ETAPA 1: OBJETIVO */}
           {etapa === 1 && (
@@ -219,7 +222,7 @@ export default function PerguntasPerfil() {
                 <View style={styles.radio}>
                   {objetivo === 'perder' && <View style={styles.radioSelecionado} />}
                 </View>
-                <Text style={styles.opcaoTexto}>Quero perder peso! 💪🔥</Text>
+                <Text style={styles.opcaoTexto}>Quero perder peso! 🏃‍♂️🔥</Text>
               </Pressable>
 
               <Pressable 
@@ -229,17 +232,7 @@ export default function PerguntasPerfil() {
                 <View style={styles.radio}>
                   {objetivo === 'ganhar' && <View style={styles.radioSelecionado} />}
                 </View>
-                <Text style={styles.opcaoTexto}>Ganhar massa muscular! 🏋️🐐</Text>
-              </Pressable>
-
-              <Pressable 
-                style={[styles.opcao, objetivo === 'comer' && styles.opcaoSelecionada]}
-                onPress={() => setObjetivo('comer')}
-              >
-                <View style={styles.radio}>
-                  {objetivo === 'comer' && <View style={styles.radioSelecionado} />}
-                </View>
-                <Text style={styles.opcaoTexto}>Quero comer melhor! 🥗⭐</Text>
+                <Text style={styles.opcaoTexto}>Quero ganhar peso! 🍽️🍔</Text>
               </Pressable>
 
               <Pressable 
@@ -251,10 +244,20 @@ export default function PerguntasPerfil() {
                 </View>
                 <Text style={styles.opcaoTexto}>Manter meu peso! ✨👌</Text>
               </Pressable>
+
+              <Pressable 
+                style={[styles.opcao, objetivo === 'massa' && styles.opcaoSelecionada]}
+                onPress={() => setObjetivo('massa')}
+              >
+                <View style={styles.radio}>
+                  {objetivo === 'massa' && <View style={styles.radioSelecionado} />}
+                </View>
+                <Text style={styles.opcaoTexto}>Ganhar massa muscular! 🏋️‍♂️💥</Text>
+              </Pressable>
             </>
           )}
 
-          {/* ETAPA 2: PESO DESEJADO (só aparece se objetivo for perder ou ganhar) */}
+          {/* ETAPA 2: PESO DESEJADO */}
           {etapa === 2 && (
             <>
               {(objetivo === 'perder' || objetivo === 'ganhar') ? (
@@ -276,6 +279,7 @@ export default function PerguntasPerfil() {
                     <TextInput
                       style={styles.inputNumero}
                       placeholder="65.5"
+                      placeholderTextColor="#747474"
                       value={valorDesejado}
                       onChangeText={setValorDesejado}
                       keyboardType="decimal-pad"
@@ -302,7 +306,7 @@ export default function PerguntasPerfil() {
           {/* ETAPA 3: CONTAGEM CALÓRICA */}
           {etapa === 3 && (
             <>
-              <Text style={styles.pergunta}>Você gostaria de{'\n'}contar calorias?</Text>
+              <Text style={styles.pergunta}>Você já fez{'\n'}contagem calórica?</Text>
               
               <Pressable 
                 style={[styles.opcao, contagemCalorica === 'sim' && styles.opcaoSelecionada]}
@@ -333,6 +337,18 @@ export default function PerguntasPerfil() {
                 </View>
                 <Text style={styles.opcaoTexto}>Não sei</Text>
               </Pressable>
+
+              {contagemCalorica === 'nao_sei' && (
+                <View style={styles.infoBox}>
+                  <Text style={styles.infoTitulo}>💡 O que é contagem calórica?</Text>
+                  <Text style={styles.infoTexto}>
+                    É o controle da quantidade de calorias que você consome por dia. Nosso app calcula automaticamente seu limite diário ideal baseado no seu objetivo!
+                  </Text>
+                  <Text style={styles.infoTexto}>
+                    ✨ Você poderá acompanhar suas calorias consumidas vs. gastas em tempo real.
+                  </Text>
+                </View>
+              )}
             </>
           )}
 
@@ -360,6 +376,16 @@ export default function PerguntasPerfil() {
                 </View>
                 <Text style={styles.opcaoTexto}>Não</Text>
               </Pressable>
+
+              <View style={[styles.infoBox, styles.alertBox]}>
+                <Text style={styles.alertTitulo}>⚠️ Importante sobre o jejum</Text>
+                <Text style={styles.infoTexto}>
+                  O jejum intermitente pode trazer riscos se não for feito com acompanhamento adequado. Por isso, esse recurso vem <Text style={styles.destaque}>desativado por padrão</Text> no app.
+                </Text>
+                <Text style={styles.infoTexto}>
+                  💡 Você poderá ativá-lo manualmente nas configurações quando desejar, mas recomendamos consultar um profissional de saúde primeiro.
+                </Text>
+              </View>
             </>
           )}
 
@@ -410,8 +436,72 @@ export default function PerguntasPerfil() {
             </>
           )}
 
-          {/* ETAPA 6: TIPO DE DIETA */}
+          {/* ETAPA 6: COMER FDS */}
           {etapa === 6 && (
+            <>
+              <Text style={styles.pergunta}>Você costuma{'\n'}comer mais nos{'\n'}fins de semana?</Text>
+              
+              <Pressable 
+                style={[styles.opcao, comerFds === 'sim' && styles.opcaoSelecionada]}
+                onPress={() => setComerFds('sim')}
+              >
+                <View style={styles.radio}>
+                  {comerFds === 'sim' && <View style={styles.radioSelecionado} />}
+                </View>
+                <Text style={styles.opcaoTexto}>Sim</Text>
+              </Pressable>
+
+              <Pressable 
+                style={[styles.opcao, comerFds === 'nao' && styles.opcaoSelecionada]}
+                onPress={() => setComerFds('nao')}
+              >
+                <View style={styles.radio}>
+                  {comerFds === 'nao' && <View style={styles.radioSelecionado} />}
+                </View>
+                <Text style={styles.opcaoTexto}>Não</Text>
+              </Pressable>
+            </>
+          )}
+
+          {/* ETAPA 7: POSSUI DIETA */}
+          {etapa === 7 && (
+            <>
+              <Text style={styles.pergunta}>Você já possui{'\n'}uma dieta definida{'\n'}por profissional?</Text>
+              
+              <Pressable 
+                style={[styles.opcao, possuiDieta === 'sim' && styles.opcaoSelecionada]}
+                onPress={() => setPossuiDieta('sim')}
+              >
+                <View style={styles.radio}>
+                  {possuiDieta === 'sim' && <View style={styles.radioSelecionado} />}
+                </View>
+                <Text style={styles.opcaoTexto}>Sim, tenho</Text>
+              </Pressable>
+
+              <Pressable 
+                style={[styles.opcao, possuiDieta === 'nao' && styles.opcaoSelecionada]}
+                onPress={() => setPossuiDieta('nao')}
+              >
+                <View style={styles.radio}>
+                  {possuiDieta === 'nao' && <View style={styles.radioSelecionado} />}
+                </View>
+                <Text style={styles.opcaoTexto}>Não, não tenho</Text>
+              </Pressable>
+
+              <Pressable 
+                style={[styles.opcao, possuiDieta === 'nao_sei' && styles.opcaoSelecionada]}
+                onPress={() => setPossuiDieta('nao_sei')}
+              >
+                <View style={styles.radio}>
+                  {possuiDieta === 'nao_sei' && <View style={styles.radioSelecionado} />}
+                </View>
+                <Text style={styles.opcaoTexto}>Não sei</Text>
+              </Pressable>
+            </>
+          )}
+
+          {/* ETAPA 8: TIPO DE DIETA */}
+          {etapa === 8 && (
             <>
               <Text style={styles.pergunta}>Você segue alguma{'\n'}dieta específica?</Text>
               
@@ -499,35 +589,8 @@ export default function PerguntasPerfil() {
             </>
           )}
 
-          {/* ETAPA 7: COMER FDS */}
-          {etapa === 7 && (
-            <>
-              <Text style={styles.pergunta}>Você costuma{'\n'}comer mais nos{'\n'}fins de semana?</Text>
-              
-              <Pressable 
-                style={[styles.opcao, comerFds === 'sim' && styles.opcaoSelecionada]}
-                onPress={() => setComerFds('sim')}
-              >
-                <View style={styles.radio}>
-                  {comerFds === 'sim' && <View style={styles.radioSelecionado} />}
-                </View>
-                <Text style={styles.opcaoTexto}>Sim</Text>
-              </Pressable>
-
-              <Pressable 
-                style={[styles.opcao, comerFds === 'nao' && styles.opcaoSelecionada]}
-                onPress={() => setComerFds('nao')}
-              >
-                <View style={styles.radio}>
-                  {comerFds === 'nao' && <View style={styles.radioSelecionado} />}
-                </View>
-                <Text style={styles.opcaoTexto}>Não</Text>
-              </Pressable>
-            </>
-          )}
-
-          {/* ETAPA 8: DISTÚRBIOS */}
-          {etapa === 8 && (
+          {/* ETAPA 9: DISTÚRBIOS */}
+          {etapa === 9 && (
             <>
               <Text style={styles.pergunta}>Você possui alguma{'\n'}doença ou restrição{'\n'}alimentar?</Text>
               <Text style={styles.dica}>
@@ -588,43 +651,6 @@ export default function PerguntasPerfil() {
             </>
           )}
 
-          {/* ETAPA 9: POSSUI DIETA */}
-          {etapa === 9 && (
-            <>
-              <Text style={styles.pergunta}>Você já possui{'\n'}uma dieta definida{'\n'}por profissional?</Text>
-              
-              <Pressable 
-                style={[styles.opcao, possuiDieta === 'sim' && styles.opcaoSelecionada]}
-                onPress={() => setPossuiDieta('sim')}
-              >
-                <View style={styles.radio}>
-                  {possuiDieta === 'sim' && <View style={styles.radioSelecionado} />}
-                </View>
-                <Text style={styles.opcaoTexto}>Sim, tenho</Text>
-              </Pressable>
-
-              <Pressable 
-                style={[styles.opcao, possuiDieta === 'nao' && styles.opcaoSelecionada]}
-                onPress={() => setPossuiDieta('nao')}
-              >
-                <View style={styles.radio}>
-                  {possuiDieta === 'nao' && <View style={styles.radioSelecionado} />}
-                </View>
-                <Text style={styles.opcaoTexto}>Não, não tenho</Text>
-              </Pressable>
-
-              <Pressable 
-                style={[styles.opcao, possuiDieta === 'nao_sei' && styles.opcaoSelecionada]}
-                onPress={() => setPossuiDieta('nao_sei')}
-              >
-                <View style={styles.radio}>
-                  {possuiDieta === 'nao_sei' && <View style={styles.radioSelecionado} />}
-                </View>
-                <Text style={styles.opcaoTexto}>Não sei</Text>
-              </Pressable>
-            </>
-          )}
-
           {errorMessage ? (
             <Text style={styles.erro}>{errorMessage}</Text>
           ) : null}
@@ -640,10 +666,10 @@ export default function PerguntasPerfil() {
               style={[
                 styles.botaoAvancar, 
                 etapa === 1 && styles.botaoAvancarFull,
-                enviando && styles.botaoDesabilitado // Adiciona estilo quando está enviando
+                enviando && styles.botaoDesabilitado
               ]}
               onPress={handleAvancar}
-              disabled={enviando} // Desabilita o botão quando está enviando
+              disabled={enviando}
             >
               <Text style={styles.botaoTexto}>
                 {enviando ? 'Enviando...' : (etapa === 9 ? 'Finalizar' : 'Avançar')}
@@ -669,7 +695,7 @@ export default function PerguntasPerfil() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#C8E6C9',
+    backgroundColor: '#ecfcec',
   },
   scrollContent: {
     flexGrow: 1,
@@ -684,14 +710,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   card: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#ecfcec',
     width: widthPercent(85),
     borderRadius: 20,
     padding: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
     elevation: 5,
     maxHeight: heightPercent(80),
   },
@@ -699,7 +721,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#1B5E20',
+    color: '#000000',
     marginBottom: 30,
     lineHeight: 32,
   },
@@ -780,7 +802,7 @@ const styles = StyleSheet.create({
   inputNumero: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#1B5E20',
+    color: '#007912',
     minWidth: 100,
     textAlign: 'center',
   },
@@ -837,7 +859,7 @@ const styles = StyleSheet.create({
   },
   botaoAvancar: {
     flex: 1,
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#007912',
     paddingVertical: 18,
     borderRadius: 15,
     alignItems: 'center',
@@ -867,6 +889,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#C8E6C9',
   },
   bolinhaAtiva: {
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#007912',
   },
 });

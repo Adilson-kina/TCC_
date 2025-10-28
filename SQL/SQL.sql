@@ -1,6 +1,3 @@
-CREATE DATABASE IF NOT EXISTS dietase_db;
-USE dietase_db;
-
 CREATE TABLE perguntas (
     id BIGINT NOT NULL AUTO_INCREMENT,
     pergunta1_objetivo ENUM('perder', 'ganhar', 'manter', 'massa') NOT NULL,
@@ -36,6 +33,8 @@ CREATE TABLE usuarios (
     imc_inicial DECIMAL(4, 1) DEFAULT NULL,
     peso DECIMAL(4, 1) DEFAULT NULL,
     imc DECIMAL(4, 1) DEFAULT NULL,
+	ordenacao_home VARCHAR(50) DEFAULT 'carboidrato_g',
+    total_registros_peso INT DEFAULT 0,
     jejum_ativo TINYINT(1) DEFAULT NULL,
     perguntas_id BIGINT DEFAULT NULL,
     ativo TINYINT(1) NOT NULL DEFAULT 1,
@@ -120,6 +119,16 @@ CREATE TABLE refeicoes_alimentos (
     FOREIGN KEY (refeicao_id) REFERENCES refeicoes(id) ON DELETE CASCADE,
     FOREIGN KEY (alimento_id) REFERENCES alimentos(id)
 ); 
+
+CREATE TABLE historico_peso (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    usuario_id BIGINT NOT NULL,
+    peso DECIMAL(4,1) NOT NULL,
+    imc DECIMAL(4,1) NOT NULL,
+    data_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
 
 -- SELECT * FROM perguntas;
 -- SELECT * FROM pergunta5_meta;

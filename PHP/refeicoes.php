@@ -1,7 +1,7 @@
 <?php
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
 if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
@@ -11,10 +11,36 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 
 require_once(__DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.php');
 
-permitirMetodos(["POST"]);
+permitirMetodos(["POST", "GET"]); // ← CORREÇÃO AQUI: separar em dois elementos
 
 $usuario = verificarToken($jwtSecretKey);
 $data = json_decode(file_get_contents("php://input"), true);
+
+// GET para buscar alimentos permitidos
+if ($_SERVER["REQUEST_METHOD"] === "GET") {
+    $usuario = verificarToken($jwtSecretKey);
+    
+    try {
+        // Buscar alimentos permitidos (NÃO da dieta)
+        $stmt = $pdo->prepare("
+            SELECT a.id, a.nome, a.categoria, a.energia_kcal, a.carboidrato_g, a.proteina_g, a.lipideos_g
+            FROM alimentos a
+            JOIN alimentos_permitidos ap ON ap.alimento_id = a.id
+            WHERE ap.usuario_id = :usuario_id
+            ORDER BY a.nome ASC
+        ");
+        $stmt->execute([":usuario_id" => $usuario->id]);
+        $alimentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        enviarSucesso(200, [
+            "mensagem" => "Alimentos permitidos carregados com sucesso!",
+            "alimentos" => $alimentos
+        ]);
+    } catch (PDOException $e) {
+        enviarErro(500, "Erro ao buscar alimentos: " . $e->getMessage());
+    }
+    exit();
+}
 
 $tipo = $data["tipo_refeicao"] ?? null;
 $sintoma = $data["sintoma"] ?? "nenhum";
@@ -70,7 +96,7 @@ try {
         }
     }
 
-    // 🆕 4. Buscar detalhes da refeição registrada
+    // 4. Buscar detalhes da refeição registrada
     $stmtDetalhes = $pdo->prepare("
         SELECT a.id, a.nome, a.energia_kcal, a.carboidrato_g, a.proteina_g, a.lipideos_g
         FROM refeicoes_alimentos ra
@@ -80,7 +106,7 @@ try {
     $stmtDetalhes->execute([":refeicao_id" => $refeicaoId]);
     $alimentosDetalhes = $stmtDetalhes->fetchAll(PDO::FETCH_ASSOC);
 
-    // 🆕 5. Calcular totais
+    // 5. Calcular totais
     $totalCalorias = 0;
     $totalCarbo = 0;
     $totalProteina = 0;
@@ -94,7 +120,7 @@ try {
     }
 
     enviarSucesso(201, [
-    "mensagem" => "Refeição registrada com sucesso!",
+        "mensagem" => "Refeição registrada com sucesso!",
         "refeicao_id" => $refeicaoId,
         "data" => $dataRegistro,
         "tipo" => $tipo,

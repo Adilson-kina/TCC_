@@ -26,18 +26,22 @@ export default function Login() {
     setErrorMessage("");
 
     const data = { email, senha };
-    const response = await post(data, "login");
-
-    if (response && response.erro) {
-      setErrorMessage(response.erro);
-      return;
-    }
     
-    if (response && response.token) { 
-      await AsyncStorage.setItem("token", response.token);
-      await AsyncStorage.setItem("userId", response.id.toString());
+    try {
+      const response = await post(data, "login");
 
-      router.navigate("/home"); 
+      if (response && response.erro) {
+        setErrorMessage(response.erro);
+        return;
+      }
+      
+      if (response && response.token) { 
+        await AsyncStorage.setItem("token", response.token);
+        await AsyncStorage.setItem("userId", response.id.toString());
+        router.navigate("/home"); 
+      }
+    } catch (error) {
+      setErrorMessage("Erro ao conectar com o servidor. Tente novamente.");
     }
   };
 
@@ -47,6 +51,15 @@ export default function Login() {
         style={styles.logo}
         source={require("./../assets/images/Logo.png")}
       />
+      
+      {/* 🆕 ADICIONE ESTE BLOCO AQUI */}
+      {errorMessage !== "" && (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorIcon}>⚠️</Text>
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        </View>
+      )}
+      
       <View style={styles.form}> {/* FORM*/ }
         <View style={styles.items}>
           <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="Email" />
@@ -64,12 +77,32 @@ export default function Login() {
         <Text style={styles.gotoText}>Não possui cadastro? </Text>
         <Link href="/signup" style={styles.gotoTextLink}><Text>Registre-se</Text></Link>
       </View>
-      <Link href="/restricao"><Text>test</Text></Link>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  errorBox: {
+    backgroundColor: '#FFEBEE',
+    borderLeftWidth: 4,
+    borderLeftColor: '#F44336',
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 20,
+    width: widthPercent(90),
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  errorIcon: {
+    fontSize: 20,
+    marginRight: 10,
+  },
+  errorText: {
+    color: '#C62828',
+    fontSize: heightPercent(1.8),
+    fontWeight: '600',
+    flex: 1,
+  },
   logo:{
     height: 210,
     width: 400,

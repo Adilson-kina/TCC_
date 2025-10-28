@@ -30,7 +30,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                 u.imc,
                 u.imc_inicial,
                 u.data_nascimento,
-                p.pergunta6_tipo_dieta
+                p.pergunta6_tipo_dieta,
+                p.pergunta8_disturbios
             FROM usuarios u
             JOIN perguntas p ON u.perguntas_id = p.id
             WHERE u.id = :id
@@ -52,14 +53,56 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         // Se imc estiver nulo, usa imc_inicial como fallback
         $dados["imc"] = $dados["imc"] ?? $dados["imc_inicial"];
 
+        // Calcular idade
+        $dataNascimento = new DateTime($dados["data_nascimento"]);
+        $hoje = new DateTime();
+        $idade = $dataNascimento->diff($hoje)->y;
+
+        // Formatar tipo de dieta
+        $tipoDieta = (!empty($dados["pergunta6_tipo_dieta"]) && strtolower($dados["pergunta6_tipo_dieta"]) !== "nenhuma") 
+            ? $dados["pergunta6_tipo_dieta"] 
+            : "Nenhum tipo de dieta foi registrado.";
+
+        // Formatar restrições alimentares (distúrbios)
+        if (!empty($dados["pergunta8_disturbios"]) && strtolower($dados["pergunta8_disturbios"]) !== "nenhum") {
+            // Mapear nomes técnicos para nomes formatados
+            $mapeamentoDisturbios = [
+                'celíaca' => 'Celíaca',
+                'diabetes' => 'Diabetes',
+                'hipercolesterolemia' => 'Hipercolesterolemia',
+                'hipertensão' => 'Hipertensão',
+                'sii' => 'SII (Síndrome do Intestino Irritável)'
+            ];
+            
+            // Separar os distúrbios por vírgula
+            $disturbiosArray = array_map('trim', explode(',', $dados["pergunta8_disturbios"]));
+            $disturbiosFormatados = [];
+            
+            foreach ($disturbiosArray as $disturbio) {
+                $disturbioLower = strtolower($disturbio);
+                if (isset($mapeamentoDisturbios[$disturbioLower])) {
+                    $disturbiosFormatados[] = $mapeamentoDisturbios[$disturbioLower];
+                } else {
+                    // Se não estiver no mapeamento, capitaliza a primeira letra
+                    $disturbiosFormatados[] = ucfirst($disturbio);
+                }
+            }
+            
+            $restricoesAlimentares = implode(', ', $disturbiosFormatados);
+        } else {
+            $restricoesAlimentares = "Nenhuma restrição alimentar foi registrada.";
+        }
+
         enviarSucesso(200, [
-        "mensagem" => "Dados do perfil carregados com sucesso!",
+            "mensagem" => "Dados do perfil carregados com sucesso!",
             "nome" => $dados["nome"],
             "altura" => $dados["altura"],
             "peso" => $dados["peso"],
             "imc" => $dados["imc"],
+            "idade" => $idade,
             "data_nascimento" => $dados["data_nascimento"],
-            "tipo_dieta" => $dados["pergunta6_tipo_dieta"]
+            "tipo_dieta" => $tipoDieta,
+            "restricoes_alimentares" => $restricoesAlimentares
         ]);
     } catch (PDOException $e) {
         enviarErro(500, "Erro ao buscar perfil: " . $e->getMessage());
@@ -73,52 +116,121 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
     $data = json_decode(file_get_contents("php://input"), true);
 
     try {
-        $nome = $data["nome"];
-        $altura = $data["altura"];
-        $peso = $data["peso"];
-        $senha = $data["senha"] ?? null;
+        // Campos obrigatórios
+        if (empty($data["nome"]) || empty($data["data_nascimento"]) || empty($data["altura"])) {
+            enviarErro(400, "Nome, data de nascimento e altura são obrigatórios.");
+        }
 
+        $nome = $data["nome"];
+        $dataNascimento = $data["data_nascimento"];
+        $altura = $data["altura"];
+        
+        // Campos opcionais
+        $tipoDieta = $data["tipo_dieta"] ?? null;
+        $disturbios = $data["disturbios"] ?? null;
+        $senhaAtual = $data["senha_atual"] ?? null;
+        $novaSenha = $data["nova_senha"] ?? null;
+
+        // Buscar peso atual para calcular IMC
+        $stmtPeso = $pdo->prepare("SELECT peso, peso_inicial FROM usuarios WHERE id = :id");
+        $stmtPeso->bindParam(":id", $usuario->id);
+        $stmtPeso->execute();
+        $pesoData = $stmtPeso->fetch(PDO::FETCH_ASSOC);
+        $peso = $pesoData["peso"] ?? $pesoData["peso_inicial"];
+
+        // Calcular IMC com a nova altura
         $alturaMetros = $altura / 100;
         $imc = ($alturaMetros > 0) ? $peso / ($alturaMetros * $alturaMetros) : null;
 
-        if (!empty($senha)) {
-            $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("
-                UPDATE usuarios SET 
-                    nome = :nome,
-                    altura = :altura,
-                    peso = :peso,
-                    imc = :imc,
-                    senha = :senha
-                WHERE id = :id
-            ");
-            $stmt->bindParam(":senha", $senhaHash);
-        } else {
-            $stmt = $pdo->prepare("
-                UPDATE usuarios SET 
-                    nome = :nome,
-                    altura = :altura,
-                    peso = :peso,
-                    imc = :imc
-                WHERE id = :id
-            ");
+        // 1. Atualizar tabela usuarios (incluindo IMC recalculado)
+        $updateUsuarios = "UPDATE usuarios SET nome = :nome, data_nascimento = :data_nascimento, altura = :altura, imc = :imc";
+        $paramsUsuarios = [
+            ":nome" => $nome,
+            ":data_nascimento" => $dataNascimento,
+            ":altura" => $altura,
+            ":imc" => $imc,
+            ":id" => $usuario->id
+        ];
+
+        // Se está mudando senha
+        if (!empty($novaSenha)) {
+            // Verificar senha atual
+            $stmtVerifica = $pdo->prepare("SELECT senha FROM usuarios WHERE id = :id");
+            $stmtVerifica->bindParam(":id", $usuario->id);
+            $stmtVerifica->execute();
+            $senhaHash = $stmtVerifica->fetchColumn();
+
+            if (!password_verify($senhaAtual, $senhaHash)) {
+                enviarErro(401, "Senha atual incorreta.");
+            }
+
+            $updateUsuarios .= ", senha = :senha";
+            $paramsUsuarios[":senha"] = password_hash($novaSenha, PASSWORD_DEFAULT);
         }
 
-        $stmt->bindParam(":nome", $nome);
-        $stmt->bindParam(":altura", $altura);
-        $stmt->bindParam(":peso", $peso);
-        $stmt->bindParam(":imc", $imc);
-        $stmt->bindParam(":id", $usuario->id);
+        $updateUsuarios .= " WHERE id = :id";
 
-        $stmt->execute();
+        $stmtUsuarios = $pdo->prepare($updateUsuarios);
+        $stmtUsuarios->execute($paramsUsuarios);
+
+        // 2. Buscar perguntas_id do usuário
+        $stmtPerguntasId = $pdo->prepare("SELECT perguntas_id FROM usuarios WHERE id = :id");
+        $stmtPerguntasId->bindParam(":id", $usuario->id);
+        $stmtPerguntasId->execute();
+        $perguntasId = $stmtPerguntasId->fetchColumn();
+
+        if (!$perguntasId) {
+            enviarErro(404, "Perguntas não encontradas para este usuário.");
+        }
+
+        // 3. Atualizar tabela perguntas (tipo_dieta e disturbios)
+        $updatePerguntas = "UPDATE perguntas SET ";
+        $paramsPerguntas = [":id" => $perguntasId];
+        $updates = [];
+
+        if ($tipoDieta !== null) {
+            $updates[] = "pergunta6_tipo_dieta = :tipo_dieta";
+            $paramsPerguntas[":tipo_dieta"] = $tipoDieta;
+        }
+
+        if ($disturbios !== null) {
+            $updates[] = "pergunta8_disturbios = :disturbios";
+            $paramsPerguntas[":disturbios"] = $disturbios;
+        }
+
+        if (!empty($updates)) {
+            $updatePerguntas .= implode(", ", $updates) . " WHERE id = :id";
+            $stmtPerguntas = $pdo->prepare($updatePerguntas);
+            $stmtPerguntas->execute($paramsPerguntas);
+        }
+
+        // 4. Buscar dados atualizados para retornar
+        $stmtRetorno = $pdo->prepare("
+            SELECT 
+                u.nome,
+                u.altura,
+                u.peso,
+                u.imc,
+                u.data_nascimento,
+                p.pergunta6_tipo_dieta,
+                p.pergunta8_disturbios
+            FROM usuarios u
+            JOIN perguntas p ON u.perguntas_id = p.id
+            WHERE u.id = :id
+        ");
+        $stmtRetorno->bindParam(":id", $usuario->id);
+        $stmtRetorno->execute();
+        $dadosAtualizados = $stmtRetorno->fetch(PDO::FETCH_ASSOC);
 
         enviarSucesso(200, [
-        "mensagem" => "Perfil atualizado com sucesso!",
-            "nome" => $data["nome"],
-            "altura" => $data["altura"],
-            "peso" => $data["peso"],
-            "imc" => $imc,
-            "id" => $usuario->id
+            "mensagem" => "Perfil atualizado com sucesso!",
+            "nome" => $dadosAtualizados["nome"],
+            "altura" => $dadosAtualizados["altura"],
+            "peso" => $dadosAtualizados["peso"],
+            "imc" => $dadosAtualizados["imc"],
+            "data_nascimento" => $dadosAtualizados["data_nascimento"],
+            "tipo_dieta" => $dadosAtualizados["pergunta6_tipo_dieta"],
+            "disturbios" => $dadosAtualizados["pergunta8_disturbios"]
         ]);
     } catch (PDOException $e) {
         enviarErro(500, "Erro ao atualizar perfil: " . $e->getMessage());
@@ -129,12 +241,31 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
 // DELETE: Desativar conta
 // =======================
 if ($_SERVER["REQUEST_METHOD"] === "DELETE") {
+    $data = json_decode(file_get_contents("php://input"), true);
+
     try {
+        // Verificar senha antes de deletar
+        if (empty($data["senha"])) {
+            enviarErro(400, "Senha é obrigatória para deletar a conta.");
+        }
+
+        $stmtVerifica = $pdo->prepare("SELECT senha FROM usuarios WHERE id = :id");
+        $stmtVerifica->bindParam(":id", $usuario->id);
+        $stmtVerifica->execute();
+        $senhaHash = $stmtVerifica->fetchColumn();
+
+        if (!password_verify($data["senha"], $senhaHash)) {
+            enviarErro(401, "Senha incorreta.");
+        }
+
+        // Desativar conta
         $stmt = $pdo->prepare("UPDATE usuarios SET ativo = 0 WHERE id = :id");
         $stmt->bindParam(":id", $usuario->id);
         $stmt->execute();
 
-        enviarSucesso(204, []);
+        enviarSucesso(204, [
+            "mensagem" => "Conta desativada com sucesso!"
+        ]);
     } catch (PDOException $e) {
         enviarErro(500, "Erro ao desativar conta: " . $e->getMessage());
     }

@@ -1,5 +1,4 @@
 import { Stack } from "expo-router";
-import { Text, View } from 'react-native';
 
 export default function RootLayout() {
   return (
@@ -41,7 +40,7 @@ export default function RootLayout() {
         }} 
       />
       <Stack.Screen 
-        name="meta"
+        name="perguntas_essenciais"
         options={{ 
           title: "",
           headerStyle: {
@@ -50,7 +49,17 @@ export default function RootLayout() {
         }} 
       />
       <Stack.Screen 
-        name="restricao"
+        name="perguntas_perfil"
+        options={{ 
+          title: "",
+          headerStyle: {
+            backgroundColor: "#ecfcec"
+          },
+          headerLeft: () => null // remove o botão de voltar
+        }} 
+      />
+      <Stack.Screen 
+        name="dieta"
         options={{ 
           title: "",
           headerStyle: {
@@ -59,9 +68,18 @@ export default function RootLayout() {
         }} 
       />
       <Stack.Screen 
-        name="perfil"
+        name="verPerfil"
         options={{ 
           title: "",
+          headerStyle: {
+            backgroundColor: "#ecfcec"
+          }
+        }} 
+      />
+      <Stack.Screen 
+        name="editarPerfil"
+        options={{ 
+          title: "Editar Perfil",
           headerStyle: {
             backgroundColor: "#ecfcec"
           }

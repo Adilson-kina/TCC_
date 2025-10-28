@@ -73,7 +73,6 @@ export default function SignUp() {
         <Text style={styles.gotoText}>Já possui uma conta? </Text>
         <Link href="/" style={styles.gotoTextLink}><Text>Entrar</Text></Link>
       </View>
-      <Link href="/termos"><Text>test</Text></Link>
     </View>
   );
 }

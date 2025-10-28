@@ -1,5 +1,5 @@
 export default async function post(data, endpoint) {
-  const server = `http://localhost/TCC/PHP/auth.php?endpoint=${endpoint}`;
+  const server = `https://dietase.xo.je/TCC/PHP/auth.php?endpoint=${endpoint}`;
 
   try {
     const res = await fetch(server, {
@@ -10,25 +10,25 @@ export default async function post(data, endpoint) {
       body: JSON.stringify(data),
     });
 
-    if (!res.ok) {
-      console.error(`Erro do servidor: Status ${res.status}`);
-      return { erro: `Erro do servidor (${res.status})` };
-    }
-
     const text = await res.text(); // Lê a resposta como texto primeiro
+    
     if (!text.trim()) {
       console.error("Resposta do servidor vazia.");
       return { erro: "Resposta do servidor vazia" };
     }
 
     try {
-      return JSON.parse(text); // Tenta converter para JSON
+      const json = JSON.parse(text); // Tenta converter para JSON
+      
+      // ✅ MUDANÇA AQUI: Retorna o JSON mesmo se não for ok (para pegar a mensagem de erro)
+      return json;
+      
     } catch (err) {
       console.error("Erro ao converter resposta para JSON:", text);
       return { erro: "Resposta inválida do servidor" };
     }
   } catch (err) {
     console.error("Erro na requisição:", err.message);
-    return { erro: "Erro na requisição" };
+    return { erro: "Erro de conexão com o servidor" };
   }
 }

@@ -15,7 +15,7 @@ function widthPercent(percentage: number) {
   return windowWidth * (percentage / 100);
 }
 
-const API_BASE = 'http://localhost/TCC/PHP';
+const API_BASE = 'https://dietase.xo.je/TCC/PHP';
 
 export default function PerguntasEssenciais() {
   const router = useRouter();
@@ -68,7 +68,7 @@ export default function PerguntasEssenciais() {
         return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
     }
     return data;
-}
+  }
 
   const enviarDados = async () => {
     try {
@@ -99,7 +99,7 @@ export default function PerguntasEssenciais() {
         setErrorMessage(data.erro);
       } else if (data.mensagem) {
         // Sucesso! Redireciona para as perguntas de perfil
-        router.push('/perguntas_perfil'); // Ajuste o caminho conforme necessário
+        router.push('/perguntasPerfil'); // Ajuste o caminho conforme necessário
       }
     } catch (error) {
       console.error('Erro ao enviar dados:', error);
@@ -121,8 +121,6 @@ export default function PerguntasEssenciais() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.formulario}>Formulário: Padrão</Text>
-        
         <View style={styles.card}>
           {/* ETAPA 1: SEXO BIOLÓGICO */}
           {etapa === 1 && (
@@ -159,6 +157,7 @@ export default function PerguntasEssenciais() {
               <TextInput
                 style={styles.input}
                 placeholder="DD/MM/AAAA"
+                placeholderTextColor="#747474"
                 value={dataNascimento}
                 onChangeText={(text) => {
                   // Formata automaticamente DD/MM/YYYY
@@ -190,6 +189,7 @@ export default function PerguntasEssenciais() {
                 <TextInput
                   style={styles.inputNumero}
                   placeholder="170"
+                  placeholderTextColor="#747474"
                   value={altura}
                   onChangeText={setAltura}
                   keyboardType="numeric"
@@ -213,6 +213,7 @@ export default function PerguntasEssenciais() {
                 <TextInput
                   style={styles.inputNumero}
                   placeholder="70.5"
+                  placeholderTextColor="#747474"
                   value={peso}
                   onChangeText={setPeso}
                   keyboardType="decimal-pad"
@@ -264,7 +265,7 @@ export default function PerguntasEssenciais() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#C8E6C9',
+    backgroundColor: '#ecfcec',
   },
   scrollContent: {
     flexGrow: 1,
@@ -279,28 +280,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   card: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#ecfcec',
     width: widthPercent(85),
     borderRadius: 20,
     padding: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
     elevation: 5,
   },
   pergunta: {
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#1B5E20',
+    color: '#000000',
     marginBottom: 30,
     lineHeight: 32,
   },
   opcao: {
+    backgroundColor: '#ffffff',
+    color: '#747474',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
     padding: 18,
     borderRadius: 15,
     marginBottom: 15,
@@ -337,7 +335,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   input: {
-    backgroundColor: 'white',
+    backgroundColor: '#ffffff',
     padding: 20,
     borderRadius: 15,
     fontSize: 20,
@@ -350,10 +348,10 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   inputContainer: {
+    backgroundColor: '#ffffff',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
     borderRadius: 15,
     paddingVertical: 20,
     paddingHorizontal: 30,
@@ -367,13 +365,13 @@ const styles = StyleSheet.create({
   inputNumero: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#1B5E20',
+    color: '#007912',
     minWidth: 100,
     textAlign: 'center',
   },
   unidade: {
     fontSize: 24,
-    color: '#666',
+    color: '#000000',
     marginLeft: 10,
     fontWeight: '500',
   },
@@ -409,7 +407,7 @@ const styles = StyleSheet.create({
   },
   botaoAvancar: {
     flex: 1,
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#007912',
     paddingVertical: 18,
     borderRadius: 15,
     alignItems: 'center',
@@ -435,6 +433,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#C8E6C9',
   },
   bolinhaAtiva: {
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#007912',
   },
 });

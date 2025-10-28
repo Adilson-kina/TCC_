@@ -66,7 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
         // 3. Buscar alimentos permitidos (todos os que o filtro liberou)
         $stmtPermitidos = $pdo->prepare("
-            SELECT a.id, a.nome, a.categoria, a.energia_kcal, a.carboidrato_g, a.proteina_g
+            SELECT a.id, a.nome, a.categoria, a.energia_kcal, a.carboidrato_g, a.proteina_g, a.lipideos_g
             FROM alimentos a
             JOIN alimentos_permitidos ap ON ap.alimento_id = a.id
             WHERE ap.usuario_id = :usuario_id
@@ -75,9 +75,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $stmtPermitidos->execute([":usuario_id" => $usuario->id]);
         $alimentosPermitidos = $stmtPermitidos->fetchAll(PDO::FETCH_ASSOC);
 
-        // 🆕 4. Buscar dieta salva (os que o usuário escolheu)
+        // 4. Buscar dieta salva (os que o usuário escolheu)
         $stmtDieta = $pdo->prepare("
-            SELECT a.id, a.nome, a.categoria, a.energia_kcal, a.carboidrato_g, a.proteina_g
+            SELECT a.id, a.nome, a.categoria, a.energia_kcal, a.carboidrato_g, a.proteina_g, a.lipideos_g
             FROM alimentos a
             JOIN dieta d ON d.alimento_id = a.id
             WHERE d.usuario_id = :usuario_id
@@ -86,7 +86,15 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $stmtDieta->execute([":usuario_id" => $usuario->id]);
         $dietaSalva = $stmtDieta->fetchAll(PDO::FETCH_ASSOC);
 
-        // 5. Retornar tudo
+        // 5. Buscar preferência de ordenação para a home (da tabela usuarios)
+        $stmtOrdenacao = $pdo->prepare("
+            SELECT ordenacao_home FROM usuarios WHERE id = :usuario_id
+        ");
+        $stmtOrdenacao->execute([":usuario_id" => $usuario->id]);
+        $config = $stmtOrdenacao->fetch(PDO::FETCH_ASSOC);
+        $ordenacaoHome = $config['ordenacao_home'] ?? 'carboidrato_g';
+
+        // 6. Retornar tudo
         enviarSucesso(200, [
             "mensagem" => "Valores retornados com sucesso!",
             "disturbios" => $dados["pergunta8_disturbios"],
@@ -96,7 +104,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             "restricoes" => $resumo["restricoes"],
             "recomendados" => $resumo["recomendados"],
             "alimentos_permitidos" => $alimentosPermitidos,
-            "dieta_salva" => $dietaSalva 
+            "dieta_salva" => $dietaSalva,
+            "ordenacao_home" => $ordenacaoHome
         ]);
     } catch (PDOException $e) {
         enviarErro(500, "Erro ao buscar dados da dieta: " . $e->getMessage());
@@ -106,9 +115,16 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $data = json_decode(file_get_contents("php://input"), true);
     $alimentosSelecionados = $data["alimentos"];
+    $ordenacaoHome = $data["ordenacao_home"] ?? 'carboidrato_g';
 
     if (!is_array($alimentosSelecionados)) {
         enviarErro(400, "Formato inválido de alimentos.");
+    }
+
+    // Validar campo de ordenação
+    $camposValidos = ['carboidrato_g', 'proteina_g', 'energia_kcal', 'lipideos_g'];
+    if (!in_array($ordenacaoHome, $camposValidos)) {
+        enviarErro(400, "Campo de ordenação inválido.");
     }
 
     try {
@@ -141,7 +157,56 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ]);
         }
 
-        // 🆕 4. Buscar a dieta atualizada com detalhes dos alimentos
+        // 4. Salvar preferência de ordenação para a home (UPDATE na tabela usuarios)
+        $avisoOrdenacao = '';
+
+        // 5. Verificar se existem valores não numéricos nos alimentos da dieta
+        if ($ordenacaoHome !== 'energia_kcal') {
+            $stmtVerificar = $pdo->prepare("
+                SELECT a.id, a.nome, a.carboidrato_g, a.proteina_g, a.lipideos_g
+                FROM alimentos a
+                JOIN dieta d ON d.alimento_id = a.id
+                WHERE d.usuario_id = :usuario_id
+            ");
+            $stmtVerificar->execute([":usuario_id" => $usuario->id]);
+            $alimentosDieta = $stmtVerificar->fetchAll(PDO::FETCH_ASSOC);
+            
+            $temValoresInvalidos = false;
+            foreach ($alimentosDieta as $alimento) {
+                $valor = null;
+                
+                if ($ordenacaoHome === 'carboidrato_g') {
+                    $valor = $alimento['carboidrato_g'];
+                } elseif ($ordenacaoHome === 'proteina_g') {
+                    $valor = $alimento['proteina_g'];
+                } elseif ($ordenacaoHome === 'lipideos_g') {
+                    $valor = $alimento['lipideos_g'];
+                }
+                
+                // Verifica se é nulo, vazio, traço, ou não numérico
+                if ($valor === null || $valor === '' || $valor === '-' || $valor === 'NA' || !is_numeric($valor)) {
+                    $temValoresInvalidos = true;
+                    break;
+                }
+            }
+            
+            if ($temValoresInvalidos) {
+                // Forçar ordenação por calorias
+                $ordenacaoHome = 'energia_kcal';
+                $avisoOrdenacao = 'Alguns alimentos possuem valores nutricionais inválidos. A ordenação foi ajustada para "Mais calóricos" automaticamente.';
+            }
+        }
+
+        $stmtUpdateConfig = $pdo->prepare("
+            UPDATE usuarios SET ordenacao_home = :ordenacao_home 
+            WHERE id = :usuario_id
+        ");
+        $stmtUpdateConfig->execute([
+            ":ordenacao_home" => $ordenacaoHome,
+            ":usuario_id" => $usuario->id
+        ]);
+
+        // 6. Buscar a dieta atualizada com detalhes dos alimentos
         $stmtDieta = $pdo->prepare("
             SELECT a.id, a.nome, a.categoria, a.energia_kcal, a.carboidrato_g, a.proteina_g, a.lipideos_g
             FROM alimentos a
@@ -152,11 +217,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmtDieta->execute([":usuario_id" => $usuario->id]);
         $dietaAtualizada = $stmtDieta->fetchAll(PDO::FETCH_ASSOC);
 
-        enviarSucesso(201, [
+        $resposta = [
             "mensagem" => "Dieta atualizada com sucesso!",
             "total_alimentos" => count($dietaAtualizada),
-            "dieta_atualizada" => $dietaAtualizada
-        ]);
+            "dieta_atualizada" => $dietaAtualizada,
+            "ordenacao_home" => $ordenacaoHome
+        ];
+
+        if ($avisoOrdenacao) {
+            $resposta['aviso_ordenacao'] = $avisoOrdenacao;
+        }
+
+        enviarSucesso(201, $resposta);
     } catch (PDOException $e) {
         enviarErro(500, "Erro ao salvar dieta: " . $e->getMessage());
     }

@@ -53,22 +53,7 @@ cd /d "%PROJETO_PATH%"
 
 echo.
 echo ================================
-echo (3) Instalando Composer...
-echo ================================
-
-call composer install
-IF %ERRORLEVEL% NEQ 0 (
-    echo.
-    echo [ERRO] Falha ao instalar o Composer.
-    goto :erro
-) ELSE (
-    echo.
-    echo [OK] Composer instalado.
-)
-
-echo.
-echo ================================
-echo (4) Instalando pacotes do projeto (NPM)...
+echo (3) Instalando pacotes do projeto (NPM)...
 echo ================================
 
 call npm install
@@ -88,7 +73,7 @@ echo ================================
 
 echo.
 echo ================================
-echo (5) Iniciando o servidor do NPM...
+echo (4) Iniciando o servidor do NPM...
 echo ================================
 
 call npm start
