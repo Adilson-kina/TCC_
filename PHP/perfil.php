@@ -71,7 +71,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                 'diabetes' => 'Diabetes',
                 'hipercolesterolemia' => 'Hipercolesterolemia',
                 'hipertensão' => 'Hipertensão',
-                'sii' => 'SII (Síndrome do Intestino Irritável)'
+                'sii' => 'SII (Síndrome do Intestino Irritável)',
+                'intolerancia_lactose' => 'Intolerância à Lactose' // ← ADICIONAR
             ];
             
             // Separar os distúrbios por vírgula

@@ -1,9 +1,11 @@
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -230,6 +232,11 @@ export default function EditarPerfil() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.backButtonBackground} />
+      <Pressable style={styles.backButton} onPress={() => router.back()}>
+        <Ionicons name="arrow-back" size={20} color="white" />
+      </Pressable>
+
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Informações Básicas</Text>
@@ -415,6 +422,35 @@ export default function EditarPerfil() {
 }
 
 const styles = StyleSheet.create({
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    width: 35,
+    height: 35,
+    borderRadius: 20,
+    backgroundColor: "#007912",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 10,
+  },
+  backButtonBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: "#ecfcec",
+    zIndex: 9,
+  },
   container: {
     flex: 1,
     backgroundColor: '#ecfcec',
@@ -430,6 +466,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    paddingTop: 70,  // adiciona isso para dar espaço pro botão
   },
   card: {
     backgroundColor: '#FFF',

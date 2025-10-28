@@ -41,6 +41,11 @@ function gerarResumoNutricional($disturbios) {
         $resumo["recomendados"][] = "Carnes magras, arroz, cenoura, abobrinha, alimentos leves e cozidos";
     }
 
+    if (str_contains($disturbios, "intolerancia_lactose")) {
+        $resumo["restricoes"][] = "Leite, queijos, iogurtes, sorvetes e derivados lácteos";
+        $resumo["recomendados"][] = "Leites vegetais (amêndoa, aveia, coco), queijos veganos";
+    }
+
     return $resumo;
 }
 

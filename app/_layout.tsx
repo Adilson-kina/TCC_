@@ -39,8 +39,9 @@ export default function RootLayout() {
         }} 
       />
       <Stack.Screen 
-        name="dieta"
+        name="home"
         options={{ 
+          headerShown: false,
           title: "",
           headerStyle: {
             backgroundColor: "#ecfcec"
@@ -51,24 +52,19 @@ export default function RootLayout() {
         name="verPerfil"
         options={{ 
           title: "",
-          headerStyle: {
-            backgroundColor: "#ecfcec"
-          }
+          headerShown: false  // muda de true para false
         }} 
       />
       <Stack.Screen 
         name="editarPerfil"
         options={{ 
-          title: "Editar Perfil",
-          headerStyle: {
-            backgroundColor: "#ecfcec"
-          }
+          title: "",
+          headerShown: false  // muda de true para false
         }} 
       />
       <Stack.Screen 
-        name="home"
+        name="dieta"
         options={{ 
-          headerShown: false,
           title: "",
           headerStyle: {
             backgroundColor: "#ecfcec"

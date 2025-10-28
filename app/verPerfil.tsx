@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -5,6 +6,7 @@ import {
   ActivityIndicator,
   Image,
   Modal,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -196,7 +198,12 @@ export default function Perfil() {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <View style={styles.backButtonBackground} />
+      <Pressable style={styles.backButton} onPress={() => router.back()}>
+        <Ionicons name="arrow-back" size={20} color="white" />
+      </Pressable>
+
+    <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.profileCard}>
           {/* Avatar Section */}
           <TouchableOpacity style={styles.avatarSection} onPress={pickImage}>
@@ -385,6 +392,35 @@ export default function Perfil() {
 }
 
 const styles = StyleSheet.create({
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    width: 35,
+    height: 35,
+    borderRadius: 20,
+    backgroundColor: "#007912",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 10,
+  },
+  backButtonBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: "#ecfcec",
+    zIndex: 9,
+  },
   container: {
     flex: 1,
     backgroundColor: '#ecfcec',
@@ -404,7 +440,7 @@ const styles = StyleSheet.create({
   profileCard: {
     backgroundColor: '#FFF',
     margin: 15,
-    marginTop: 20,
+    marginTop: 85,  // muda de 20 para 85
     padding: 20,
     borderRadius: 15,
     borderWidth: 2,
@@ -435,7 +471,7 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
   },
-    modalButtons: {
+  modalButtons: {
     flexDirection: 'row',
     marginTop: 20,
     gap: 10,
@@ -444,9 +480,9 @@ const styles = StyleSheet.create({
   saveButton: {
     flex: 1,
     paddingVertical: 14,
-    paddingHorizontal: 30,
     backgroundColor: '#4CAF50',
     borderRadius: 12,
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -457,7 +493,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
-    textAlign: 'center',
   },
   editIcon: {
     position: 'absolute',
@@ -748,9 +783,9 @@ const styles = StyleSheet.create({
   closeButton: {
     flex: 1,
     paddingVertical: 14,
-    paddingHorizontal: 30,
     backgroundColor: '#FF6B6B',
     borderRadius: 12,
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,

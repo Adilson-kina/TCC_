@@ -369,10 +369,7 @@ export default function Home() {
     if (historico.length === 0) {
       return (
         <View style={styles.chartPlaceholder}>
-          <Text style={styles.noDataText}>📊 Sem dados</Text>
-          <Text style={[styles.noDataText, { fontSize: 10, marginTop: 5 }]}>
-            Registre seu peso!
-          </Text>
+          <Text style={styles.noDataText}>🚫 Sem dados</Text>
         </View>
       );
     }
@@ -566,21 +563,21 @@ export default function Home() {
             
             <View style={styles.mealInfo}>
               <View style={styles.mealStatRow}>
-                <Text style={styles.mealStatLabel}>📊 Refeições realizadas hoje:</Text>
+                <Text style={styles.mealStatLabel} numberOfLines={1}>📊 Refeições hoje:</Text>
                 <Text style={styles.mealStatValue}>
-                  {formatarRefeicoes(dadosInicio.refeicoes_hoje?.total || 0)}
+                  {dadosInicio.refeicoes_hoje?.total || 0}
                 </Text>
               </View>
               
               <View style={styles.mealStatRow}>
-                <Text style={styles.mealStatLabel}>🔥 Total de calorias consumidas:</Text>
+                <Text style={styles.mealStatLabel} numberOfLines={1}>🔥 Calorias:</Text>
                 <Text style={styles.mealStatValue}>
                   {parseFloat(dadosInicio.refeicoes_hoje?.calorias_total || 0).toFixed(0)} kcal
                 </Text>
               </View>
               
               <View style={[styles.mealStatRow, styles.nextMealRow]}>
-                <Text style={styles.mealStatLabel}>⏰ Próxima refeição sugerida:</Text>
+                <Text style={styles.mealStatLabel} numberOfLines={1}>⏰ Próxima:</Text>
                 <Text style={styles.nextMealValue}>
                   {dadosInicio.proxima_refeicao || 'Almoço'}
                 </Text>
@@ -669,9 +666,9 @@ export default function Home() {
               </View>
             ) : (
               <View style={styles.historicoContent}>
-                <Text style={styles.historicoItem}>
-                  Nenhuma refeição registrada
-                </Text>
+                <View style={styles.noHistoricoBox}>
+                  <Text style={styles.noHistoricoText}>Nenhuma refeição registrada</Text>
+                </View>
               </View>
             )}
             
@@ -695,12 +692,15 @@ export default function Home() {
           </View>
           
           {(jejumAtivo === false || jejumAtivo === null) ? (
-            <>
-              <Text style={styles.jejumDisabledText}>🔒 Funcionalidade Desativada</Text>
+            <View style={styles.jejumDisabledContainer}>
+              <View style={styles.jejumLockIconContainer}>
+                <Text style={styles.jejumLockIcon}>🔒</Text>
+              </View>
               <Text style={styles.jejumDisabledSubtext}>
-                Toque para ativar o jejum intermitente
+                O jejum intermitente está desativado.{'\n'}
+                Toque aqui para ativar e gerenciar seus períodos de jejum.
               </Text>
-            </>
+            </View>
           ) : jejumEmAndamento ? (
             <>
               <Text style={styles.jejumSubtitle}>Tempo restante:</Text>
@@ -713,14 +713,16 @@ export default function Home() {
               <Text style={styles.jejumDescription}>Toque para iniciar o contador</Text>
             </>
           )}
-          
-          <Text style={styles.jejumFooter}>
-            {(jejumAtivo === false || jejumAtivo === null) 
-              ? '⚠️ Leia o termo de ciência antes de ativar' 
-              : jejumEmAndamento
-                ? '⏱️ Jejum em andamento'
-                : '⏰ Toque para gerenciar seu jejum'}
-          </Text>
+
+          <View style={styles.jejumDisabledFooterBox}>
+            <Text style={styles.jejumDisabledFooter}>
+              {(jejumAtivo === false || jejumAtivo === null) 
+                ? '⚠️ Leia o termo de ciência antes de ativar' 
+                : jejumEmAndamento
+                  ? '⏱️ Jejum em andamento'
+                  : '⏰ Toque para gerenciar seu jejum'}
+            </Text>
+          </View>
         </TouchableOpacity>
 
         <View style={styles.bottomPadding} />
@@ -825,6 +827,59 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
+  noHistoricoBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 30,  // aumentei de 20
+    flex: 1,  // adicione isso
+  },
+  noHistoricoIcon: {
+    fontSize: 40,
+    marginBottom: 8,
+  },
+  noHistoricoText: {
+    fontSize: 13,
+    color: '#999',
+    textAlign: 'center',
+  },
+  jejumDisabledContainer: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  jejumLockIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  jejumLockIcon: {
+    fontSize: 40,
+  },
+  jejumDisabledSubtext: {
+    fontSize: 13,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 15,
+    paddingHorizontal: 10,
+  },
+  jejumDisabledFooterBox: {
+    backgroundColor: '#FFF9C4',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FFE082',
+  },
+  jejumDisabledFooter: {
+    fontSize: 11,
+    color: '#F57C00',
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
   cardDisabled: {
     backgroundColor: '#F5F5F5',
     opacity: 0.6,
@@ -943,9 +998,10 @@ const styles = StyleSheet.create({
   paddingHorizontal: 4,
 },
   mealStatLabel: {
-    fontSize: 12,
+    fontSize: 11,  // reduzi de 12
     color: '#666',
     fontWeight: '500',
+    flex: 1,  // adicione isso
   },
   mealStatValue: {
     fontSize: 13,

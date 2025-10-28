@@ -505,7 +505,10 @@ export default function PerguntasPerfil() {
             <>
               <Text style={styles.pergunta}>Você segue alguma{'\n'}dieta específica?</Text>
               
-              <ScrollView style={styles.scrollOpcoes}>
+              <ScrollView 
+              style={styles.scrollOpcoes}
+              showsVerticalScrollIndicator={true}
+              >
                 <Pressable 
                   style={[styles.opcao, tipoDieta === '' && styles.opcaoSelecionada]}
                   onPress={() => setTipoDieta('nenhuma')}
@@ -647,6 +650,16 @@ export default function PerguntasPerfil() {
                   </View>
                   <Text style={styles.opcaoTexto}>Síndrome do Intestino Irritável (SII)</Text>
                 </Pressable>
+
+                <Pressable 
+                  style={[styles.opcao, disturbios.includes('intolerancia_lactose') && styles.opcaoSelecionada]}
+                  onPress={() => toggleDisturbio('intolerancia_lactose')}
+                >
+                  <View style={styles.checkbox}>
+                    {disturbios.includes('intolerancia_lactose') && <View style={styles.checkboxSelecionado} />}
+                  </View>
+                  <Text style={styles.opcaoTexto}>Intolerância à Lactose</Text>
+                </Pressable>
               </ScrollView>
             </>
           )}
@@ -693,6 +706,32 @@ export default function PerguntasPerfil() {
 }
 
 const styles = StyleSheet.create({
+  infoTitulo: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#333',
+  },
+
+  alertBox: {
+    backgroundColor: '#FFF9C4',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#FBC02D',
+  },
+
+  destaque: {
+    fontWeight: 'bold',
+    color: '#D32F2F',
+  },
+  alertTitulo: {
+    fontSize: 16,  // adicione isso
+    fontWeight: 'bold',  // adicione isso
+    marginBottom: 8,  // adicione isso para dar espaço
+    color: '#333',
+  },
   container: {
     flex: 1,
     backgroundColor: '#ecfcec',
@@ -711,30 +750,31 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#ecfcec',
-    width: widthPercent(85),
+    width: widthPercent(90),  // era 85
     borderRadius: 20,
-    padding: 30,
+    padding: 20,  // era 30
     elevation: 5,
     maxHeight: heightPercent(80),
   },
   pergunta: {
-    fontSize: 24,
+    fontSize: 20,  // era 24
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#000000',
-    marginBottom: 30,
-    lineHeight: 32,
+    marginBottom: 25,  // era 30
+    lineHeight: 28,  // era 32
   },
   scrollOpcoes: {
     maxHeight: heightPercent(40),
+    paddingRight: 5,  // adicione isso para dar espaço para o scroll
   },
   opcao: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'white',
-    padding: 18,
+    padding: 15,  // era 18
     borderRadius: 15,
-    marginBottom: 15,
+    marginBottom: 12,  // era 15
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -779,7 +819,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
   },
   opcaoTexto: {
-    fontSize: 18,
+    fontSize: 16,  // era 18
     color: '#333',
     fontWeight: '500',
     flex: 1,

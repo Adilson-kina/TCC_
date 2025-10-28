@@ -90,9 +90,9 @@ const estilo = StyleSheet.create({
     backgroundColor: '#ecfcec',
   },
   imageContainer: {
-    marginBottom: 20,
+    marginBottom: 10,  // era 20
+    marginTop: 20,  // adicione isso
   },
-  
   btnContainer: {
     flex: 1,
     alignItems: "center",
@@ -100,36 +100,36 @@ const estilo = StyleSheet.create({
     marginBottom: 40,
   },
   img: {
-    width: 200,
-    height: 200,
+    width: 150,  // era 200
+    height: 150,  // era 200
   },
-  
   textContainer: {
     marginBottom: 30,
     alignItems: 'center',
   },
-  
   title: {
-    fontSize: 50,
+    fontSize: 40,  // era 50
     color: 'green',
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: 16,  // era 20
     textAlign: 'center',
   },
   checkboxWrapper: {
     width: '100%',
-    marginBottom: 30,
+    marginBottom: 20,  // era 30
     flexDirection: 'row',
     alignItems: 'flex-start',
-  },
+},
   checkboxRow: {
     marginRight: 10,
+    marginTop: 3,  // adicione isso pra alinhar melhor
   },
   checkboxText: {
     flex: 1,
-    fontSize: 20,
+    fontSize: 16,  // era 20
+    lineHeight: 22,
   },
   button: {
     width: '100%',
