@@ -1,5 +1,5 @@
 <?php
-// config.php - Versão Railway
+// config.php para Railway
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Chave secreta JWT
-$jwtSecretKey = getenv('JWT_SECRET') ?: "dietasecreta";
+$jwtSecretKey = "dietasecreta";
 
 function enviarErro($codigo, $mensagem) {
     http_response_code($codigo);
@@ -26,24 +26,11 @@ function enviarSucesso($codigo, $dados) {
     exit();
 }
 
-// 🚀 CONFIGURAÇÃO AUTOMÁTICA - Railway ou Local
-$isRailway = getenv('RAILWAY_ENVIRONMENT') !== false;
-
-if ($isRailway) {
-    // 🔥 Produção (Railway)
-    $dbHost = getenv('MYSQL_HOST');
-    $dbName = getenv('MYSQL_DATABASE');
-    $dbUser = getenv('MYSQL_USER');
-    $dbPass = getenv('MYSQL_PASSWORD');
-    $dbPort = getenv('MYSQL_PORT') ?: '3306';
-} else {
-    // 💻 Desenvolvimento Local
-    $dbHost = 'localhost';
-    $dbName = 'dietase_db';
-    $dbUser = 'root';
-    $dbPass = '';
-    $dbPort = '3306';
-}
+$dbHost = getenv('MYSQLHOST') ?: 'localhost';
+$dbName = getenv('MYSQLDATABASE') ?: 'dietase_db';
+$dbUser = getenv('MYSQLUSER') ?: 'root';
+$dbPass = getenv('MYSQLPASSWORD') ?: '';
+$dbPort = getenv('MYSQLPORT') ?: '3306';
 
 // Conexão com o banco
 try {
@@ -54,8 +41,7 @@ try {
         [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
+            PDO::ATTR_EMULATE_PREPARES => false
         ]
     );
 } catch (PDOException $e) {
