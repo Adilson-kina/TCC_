@@ -58,8 +58,17 @@ function aplicarFiltros($tipoDieta, $disturbios) {
         ],
         "excluir_estimulantes" => [
             "nome NOT LIKE '%refrigerante%'"
-        ]
-    ];
+        ],
+        "excluir_lactose" => [
+                "nome NOT LIKE '%leite%'",
+                "nome NOT LIKE '%queijo%'",
+                "nome NOT LIKE '%iogurte%'",
+                "nome NOT LIKE '%manteiga%'",
+                "nome NOT LIKE '%creme de leite%'",
+                "nome NOT LIKE '%requeijão%'",
+                "nome NOT LIKE '%sorvete%'"
+            ]
+        ];
 
     // FILTROS POR DIETA
     if (!empty($tipoDieta)) {

@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMotionUsageDescription": "Este aplicativo precisa acessar seus dados de movimento para contar passos e calcular calorias gastas."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +20,10 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.adilsonkina.TCC"
+      "package": "com.adilsonkina.TCC",
+      "permissions": [
+        "android.permission.ACTIVITY_RECOGNITION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -34,6 +40,12 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-sensors",
+        {
+          "motionPermission": "Permitir que o Dieta-se acesse seus dados de atividade física para contar seus passos diários."
+        }
       ]
     ],
     "experiments": {
@@ -45,6 +57,6 @@
         "projectId": "18d40f16-a75e-4174-a053-2515e42e98d2"
       }
     },
-    "owner": "adilson-kina"
+    "owner": "possatogabriel"
   }
 }

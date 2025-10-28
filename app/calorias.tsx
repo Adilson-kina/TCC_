@@ -1,503 +1,578 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Dimensions,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { LineChart } from 'react-native-chart-kit';
 
-export default function Calorias() {
-  const [showTermsModal, setShowTermsModal] = useState(false);
+const API_BASE = 'http://localhost/TCC/PHP';
+
+const CaloriasScreen = () => {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [passos, setPassos] = useState(4200);
+  const [dadosCalorias, setDadosCalorias] = useState(null);
+  const [historico, setHistorico] = useState([]);
+
+  useEffect(() => {
+    carregarDados();
+  }, []);
+
+  useEffect(() => {
+    if (passos > 0 && !loading) {
+      enviarDados();
+    }
+  }, [passos]);
+
+  const enviarDados = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) return;
+      
+      const response = await fetch(`${API_BASE}/calorias/calorias.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ passos })
+      });
+
+      const text = await response.text();
+      const data = JSON.parse(text);
+      
+      if (data.mensagem && data.tmb !== undefined) {
+        setDadosCalorias(data);
+      }
+    } catch (error) {
+      console.error('Erro ao enviar dados:', error);
+    }
+  };
+
+  const carregarHistorico = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) return;
+      
+      const response = await fetch(`${API_BASE}/calorias/calorias_historico.php`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const data = await response.json();
+      if (data.dados) {
+        setHistorico(data.dados);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar histórico:', error);
+    }
+  };
+
+  const carregarDados = async () => {
+    try {
+      setLoading(true);
+      await enviarDados();
+      await carregarHistorico();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await carregarDados();
+    setRefreshing(false);
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4CAF50" />
+        <Text style={styles.loadingText}>Carregando...</Text>
+      </View>
+    );
+  }
+
+  if (!dadosCalorias) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#FFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Calorias</Text>
+        </View>
+        <View style={styles.errorCard}>
+          <Text style={styles.errorText}>⚠️ Complete o questionário para ver seus dados</Text>
+        </View>
+      </View>
+    );
+  }
+
+  const caloriasIngeridas = dadosCalorias?.calorias_ingeridas || 0;
+  const caloriasGastas = dadosCalorias?.calorias_gastas || 0;
+  const saldoCalorico = caloriasIngeridas - caloriasGastas;
+
+  return (
+    <ScrollView 
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+      {/* Header Verde */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#FFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Calorias</Text>
+      </View>
+
+      {/* Card Principal */}
+      <View style={styles.mainCard}>
+        {/* Gráfico Circular - Consumidas vs Gastas */}
+        <View style={styles.graficoSection}>
+          <GraficoCircularBalanco 
+            consumidas={caloriasIngeridas} 
+            gastas={caloriasGastas}
+          />
+          
+          <View style={styles.infoSection}>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoIcon}>🍽️</Text>
+              <View>
+                <Text style={styles.infoLabel}>Alimentos</Text>
+                <Text style={styles.infoValue}>
+                  {Math.round(caloriasIngeridas)} Kcal
+                </Text>
+              </View>
+            </View>
+            
+            <View style={styles.infoRow}>
+              <Text style={styles.infoIcon}>🚶</Text>
+              <View>
+                <Text style={styles.infoLabel}>Andando</Text>
+                <Text style={styles.infoValue}>
+                  {passos} passos ({Math.round(caloriasGastas)} Kcal)
+                </Text>
+              </View>
+            </View>
+            
+            <View style={[styles.infoRow, styles.finaisRow]}>
+              <Text style={styles.infoIcon}>▶️</Text>
+              <View>
+                <Text style={styles.infoLabel}>Calorias finais</Text>
+                <Text style={[
+                  styles.infoValueFinais,
+                  { color: saldoCalorico > 0 ? '#ef4444' : '#10b981' }
+                ]}>
+                  {saldoCalorico > 0 ? '+' : ''}{Math.round(saldoCalorico)} Kcal
+                </Text>
+                <Text style={styles.infoSubtext}>
+                  {saldoCalorico > 0 ? 'Superávit (ganho)' : 'Déficit (perda)'}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Contagem Calórica */}
+        <View style={styles.contagemSection}>
+          <Text style={styles.contagemTitle}>🔥 Contagem Calórica</Text>
+          <Text style={styles.contagemSubtitle}>Seu limite diário ideal:</Text>
+          
+          <View style={styles.contagemValores}>
+            <View style={styles.contagemItem}>
+              <Text style={styles.contagemLabel}>Meta</Text>
+              <Text style={styles.contagemValor}>
+                {Math.round(dadosCalorias.objetivo_minimo)} - {Math.round(dadosCalorias.objetivo_maximo)}
+              </Text>
+              <Text style={styles.contagemUnidade}>kcal/dia</Text>
+            </View>
+            
+            <View style={styles.contagemDivisor} />
+            
+            <View style={styles.contagemItem}>
+              <Text style={styles.contagemLabel}>Gasto Estimado</Text>
+              <Text style={[styles.contagemValor, { color: '#f97316' }]}>
+                {Math.round(dadosCalorias.estimativa_gasto_diario)}
+              </Text>
+              <Text style={styles.contagemUnidade}>kcal/dia</Text>
+            </View>
+          </View>
+
+          <View style={styles.avisoMinimo}>
+            <Text style={styles.avisoTexto}>
+              ⚠️ Limite mínimo seguro: <Text style={styles.avisoValor}>{Math.round(dadosCalorias.limite_minimo_seguro)} kcal</Text>
+            </Text>
+            <Text style={styles.avisoSubtexto}>
+              Nunca consuma menos que isso!
+            </Text>
+          </View>
+        </View>
+
+        {/* Gráfico de Histórico - Calorias Finais */}
+        {historico.length > 0 && (
+          <View style={styles.graficoHistoricoWrapper}>
+            <Text style={styles.graficoHistoricoTitulo}>📈 Histórico Semanal</Text>
+            <Text style={styles.graficoHistoricoSubtitulo}>
+              Calorias finais por dia (consumidas - gastas)
+            </Text>
+            <GraficoHistoricoSaldo historico={historico} />
+          </View>
+        )}
+      </View>
+    </ScrollView>
+  );
+};
+
+const GraficoCircularBalanco = ({ consumidas, gastas }) => {
+  const total = consumidas + gastas;
+  const percentualConsumidas = total > 0 ? (consumidas / total) * 100 : 50;
+  const anguloConsumidas = (percentualConsumidas / 100) * 360;
+
+  return (
+    <View style={styles.graficoCircular}>
+      <View style={[styles.circuloCompacto, {
+        borderTopColor: anguloConsumidas >= 90 ? '#3b82f6' : '#10b981',
+        borderRightColor: anguloConsumidas >= 180 ? '#3b82f6' : '#10b981',
+        borderBottomColor: anguloConsumidas >= 270 ? '#3b82f6' : '#10b981',
+        borderLeftColor: '#3b82f6',
+      }]}>
+        <Text style={styles.circuloTexto}>{Math.round(percentualConsumidas)}%</Text>
+        <Text style={styles.circuloLabel}>consumidas</Text>
+      </View>
+      
+      <View style={styles.legendaCompacta}>
+        <View style={styles.legendaItem}>
+          <View style={[styles.legendaBolinha, { backgroundColor: '#3b82f6' }]} />
+          <Text style={styles.legendaTexto}>Consumidas</Text>
+        </View>
+        <View style={styles.legendaItem}>
+          <View style={[styles.legendaBolinha, { backgroundColor: '#10b981' }]} />
+          <Text style={styles.legendaTexto}>Gastas</Text>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+const GraficoHistoricoSaldo = ({ historico }) => {
+  if (!historico || historico.length === 0) return null;
+
+  const screenWidth = Dimensions.get('window').width - 60;
+
+  const labels = historico.map(h => {
+    const data = new Date(h.data_registro);
+    return data.toLocaleDateString('pt-BR', { weekday: 'short' }).substring(0, 3);
+  });
+
+  // Saldo calórico = calorias_ingeridas - calorias_gastas
+  const dataSaldo = historico.map(h => Math.round(h.saldo_calorico));
   
-  const navigateTo = (screen) => {
-    console.log(`Navigating to: ${screen}`);
-    //const router = useRouter();
-    //router.navigate("/place");
+  // Linha do zero para referência
+  const linhaZero = Array(historico.length).fill(0);
+
+  const chartData = {
+    labels: labels,
+    datasets: [
+      {
+        data: dataSaldo,
+        color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+        strokeWidth: 3,
+      },
+      {
+        data: linhaZero,
+        color: (opacity = 1) => `rgba(0, 0, 0, ${opacity * 0.3})`,
+        strokeWidth: 1,
+        withDots: false,
+        strokeDashArray: [5, 5],
+      },
+    ],
+  };
+
+  const chartConfig = {
+    backgroundColor: '#ffffff',
+    backgroundGradientFrom: '#ffffff',
+    backgroundGradientTo: '#ffffff',
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    propsForDots: {
+      r: '4',
+      strokeWidth: '2',
+      stroke: '#3b82f6',
+      fill: '#fff'
+    },
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Text style={styles.logoText}>🌾</Text>
-        </View>
-        <TouchableOpacity 
-          style={styles.profileButton}
-          onPress={() => navigateTo('perfil')}
-        >
-          <View style={styles.profilePhoto} />
-        </TouchableOpacity>
+    <View style={styles.graficoHistoricoContainer}>
+      <LineChart
+        data={chartData}
+        width={screenWidth}
+        height={200}
+        chartConfig={chartConfig}
+        bezier={false}
+        style={styles.lineChartCompacto}
+        withInnerLines={true}
+        withOuterLines={true}
+        withVerticalLines={false}
+        withHorizontalLines={true}
+      />
+      <View style={styles.legendaGrafico}>
+        <Text style={styles.legendaGraficoTexto}>
+          📊 Acima de zero = ganho de peso | Abaixo de zero = perda de peso
+        </Text>
       </View>
-
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Minha Dieta Card */}
-        <TouchableOpacity 
-          style={styles.dietCard}
-          onPress={() => navigateTo('minha-dieta')}
-        >
-          <View style={styles.dietHeader}>
-            <Text style={styles.dietIcon}>🍽️</Text>
-            <Text style={styles.dietTitle}>Minha Dieta</Text>
-            <View style={styles.editIcon}>
-              <Text style={styles.editIconText}>✏️</Text>
-            </View>
-          </View>
-
-          <View style={styles.metaSection}>
-            <Text style={styles.metaLabel}>🎯 META:</Text>
-            <Text style={styles.metaText}>Quero perder peso! 💪🔥</Text>
-          </View>
-
-          <View style={styles.foodSection}>
-            <Text style={styles.foodAllowed}>
-              ✅ Carnes, ovos, azeites, castanhas, queijos e vegetais de baixo carboidrato
-            </Text>
-            <Text style={styles.foodRestricted}>
-              🚫 Pães, massas, açúcar e grãos ricos em carboidratos
-            </Text>
-          </View>
-
-          <Text style={styles.editTip}>
-            Lembre-se você pode editar sua dieta quando quiser.
-          </Text>
-        </TouchableOpacity>
-
-        {/* Refeições and Calorias Row */}
-        <View style={styles.row}>
-          <TouchableOpacity 
-            style={[styles.card, styles.cardLeft]}
-            onPress={() => navigateTo('refeicoes')}
-          >
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardIcon}>🍴</Text>
-              <Text style={styles.cardTitle}>Refeições</Text>
-            </View>
-            <View style={styles.mealInfo}>
-              <Text style={styles.mealTime}>🕐 ÚLTIMA REFEIÇÃO: Almoço</Text>
-              <Text style={styles.mealDetail}>⏰ 12 de dez - 15:30</Text>
-              <Text style={styles.mealDetail}>🍽️ Arroz de atum + 968 kcal</Text>
-              <Text style={styles.mealDetail}>📍 Salvador - Bahia</Text>
-            </View>
-            <Text style={styles.mealFooter}>
-              📊 Registre sua refeição
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.card, styles.cardRight]}
-            onPress={() => navigateTo('calorias')}
-          >
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardIcon}>🔥</Text>
-              <Text style={styles.cardTitle}>Calorias</Text>
-            </View>
-            <View style={styles.pieChartPlaceholder}>
-              <View style={styles.pieSlice1} />
-              <View style={styles.pieSlice2} />
-              <View style={styles.pieSlice3} />
-            </View>
-            <View style={styles.calorieInfo}>
-              <Text style={styles.calorieConsumed}>⬇️ 10.320</Text>
-              <Text style={styles.calorieBurned}>🔥 450kcal</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Progresso and Histórico Row */}
-        <View style={styles.row}>
-          <TouchableOpacity 
-            style={[styles.card, styles.cardLeft]}
-            onPress={() => navigateTo('progresso')}
-          >
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardIcon}>📊</Text>
-              <Text style={styles.cardTitle}>Progresso</Text>
-            </View>
-            <View style={styles.chartPlaceholder}>
-              <View style={styles.chartBar1} />
-              <View style={styles.chartBar2} />
-              <View style={styles.chartBar3} />
-              <View style={styles.chartBar4} />
-              <View style={styles.chartBar5} />
-            </View>
-            <Text style={styles.progressFooter}>
-              📈 2 semanas sem recaídas!
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.card, styles.cardRight]}
-            onPress={() => navigateTo('historico')}
-          >
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardIcon}>⏱️</Text>
-              <Text style={styles.cardTitle}>Histórico</Text>
-            </View>
-            <View style={styles.historicoContent}>
-              <Text style={styles.historicoItem}>
-                📅 <Text style={styles.historicoLabel}>ÚLTIMA REFEIÇÃO:</Text>{' '}
-                <Text style={styles.historicoGood}>Café da tarde</Text>
-              </Text>
-              <Text style={styles.historicoItem}>
-                📅 <Text style={styles.historicoLabel}>Ontem:</Text>{' '}
-                <Text style={styles.historicoBad}>+29 kcal (Abacaxi)</Text>
-              </Text>
-              <Text style={styles.historicoItem}>
-                📅 <Text style={styles.historicoLabel}>Semana:</Text>{' '}
-                <Text style={styles.historicoBad}>-20 kcal (Abacaxi)</Text>
-              </Text>
-            </View>
-            <Text style={styles.historicoFooter}>
-              📊 7 refeições perdidas nas últimas 2 semanas
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Jejum Card */}
-        <TouchableOpacity 
-          style={styles.jejumCard}
-          onPress={() => navigateTo('jejum')}
-        >
-          <View style={styles.jejumHeader}>
-            <Text style={styles.jejumIcon}>⏰</Text>
-            <Text style={styles.jejumTitle}>Jejum</Text>
-          </View>
-          <Text style={styles.jejumSubtitle}>Faltam</Text>
-          <Text style={styles.jejumTime}>2 HORAS</Text>
-          <Text style={styles.jejumDescription}>para sua próxima refeição</Text>
-          <Text style={styles.jejumFooter}>
-            ⏰ Dificuldade com o jejum intermitente? Ajuste suas preferências!
-          </Text>
-        </TouchableOpacity>
-
-        <View style={styles.bottomPadding} />
-      </ScrollView>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#ecfcec',
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#ecfcec',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#666',
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    backgroundColor: '#4CAF50',
     paddingTop: 50,
-    paddingBottom: 15,
-  },
-  logoContainer: {
-    width: 50,
-    height: 50,
-    backgroundColor: 'white',
-    borderRadius: 12,
-    justifyContent: 'center',
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  logoText: {
-    fontSize: 30,
+  backButton: {
+    marginRight: 15,
   },
-  profileButton: {
-    width: 50,
-    height: 50,
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFF',
   },
-  profilePhoto: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#333',
-    borderWidth: 3,
-    borderColor: '#FF1493',
-  },
-  scrollView: {
-    flex: 1,
-    backgroundColor: '#E8F5E9',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 15,
-  },
-  dietCard: {
-    backgroundColor: 'white',
-    marginHorizontal: 15,
-    marginBottom: 15,
-    padding: 15,
-    borderRadius: 15,
+  mainCard: {
+    backgroundColor: '#FFF',
+    margin: 15,
+    borderRadius: 20,
+    padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  dietHeader: {
+  errorCard: {
+    backgroundColor: '#FFF',
+    margin: 15,
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#DC2626',
+    textAlign: 'center',
+  },
+  graficoSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 20,
   },
-  dietIcon: {
+  graficoCircular: {
+    marginRight: 20,
+  },
+  circuloCompacto: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  circuloTexto: {
     fontSize: 20,
-    marginRight: 8,
-  },
-  dietTitle: {
-    fontSize: 18,
     fontWeight: 'bold',
-    color: '#00BFA5',
-    flex: 1,
+    color: '#333',
   },
-  editIcon: {
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
+  circuloLabel: {
+    fontSize: 10,
+    color: '#666',
+  },
+  legendaCompacta: {
+    marginTop: 10,
+  },
+  legendaItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-  },
-  editIconText: {
-    fontSize: 18,
-  },
-  metaSection: {
-    marginBottom: 10,
-  },
-  metaLabel: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  metaText: {
-    fontSize: 13,
-    color: '#333',
-    marginTop: 2,
-  },
-  foodSection: {
-    marginBottom: 10,
-  },
-  foodAllowed: {
-    fontSize: 12,
-    color: '#2E7D32',
     marginBottom: 5,
-    lineHeight: 18,
   },
-  foodRestricted: {
-    fontSize: 12,
-    color: '#C62828',
-    lineHeight: 18,
-  },
-  editTip: {
-    fontSize: 11,
-    color: '#757575',
-    fontStyle: 'italic',
-    marginTop: 5,
-  },
-  row: {
-    flexDirection: 'row',
-    marginHorizontal: 15,
-    marginBottom: 15,
-  },
-  card: {
-    backgroundColor: 'white',
-    padding: 12,
-    borderRadius: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardLeft: {
-    flex: 1,
-    marginRight: 7.5,
-  },
-  cardRight: {
-    flex: 1,
-    marginLeft: 7.5,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  cardIcon: {
-    fontSize: 18,
+  legendaBolinha: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     marginRight: 6,
   },
-  cardTitle: {
+  legendaTexto: {
+    fontSize: 11,
+    color: '#666',
+  },
+  infoSection: {
+    flex: 1,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  finaisRow: {
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  infoIcon: {
+    fontSize: 20,
+    marginRight: 10,
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: '#666',
+  },
+  infoValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  infoValueFinais: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  infoSubtext: {
+    fontSize: 10,
+    color: '#666',
+    marginTop: 2,
+  },
+  contagemSection: {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  contagemTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  contagemSubtitle: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 15,
+  },
+  contagemValores: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  contagemItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  contagemLabel: {
+    fontSize: 11,
+    color: '#666',
+    marginBottom: 5,
+  },
+  contagemValor: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#16a34a',
+  },
+  contagemUnidade: {
+    fontSize: 10,
+    color: '#999',
+    marginTop: 2,
+  },
+  contagemDivisor: {
+    width: 1,
+    height: 50,
+    backgroundColor: '#E0E0E0',
+    marginHorizontal: 15,
+  },
+  avisoMinimo: {
+    backgroundColor: '#fef2f2',
+    padding: 12,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#ef4444',
+  },
+  avisoTexto: {
+    fontSize: 12,
+    color: '#666',
+  },
+  avisoValor: {
+    fontWeight: 'bold',
+    color: '#ef4444',
+  },
+  avisoSubtexto: {
+    fontSize: 10,
+    color: '#999',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  graficoHistoricoWrapper: {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  graficoHistoricoTitulo: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
-  },
-  mealInfo: {
-    marginBottom: 10,
-  },
-  mealTime: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 3,
-  },
-  mealDetail: {
-    fontSize: 10,
-    color: '#666',
-    marginBottom: 2,
-  },
-  mealFooter: {
-    fontSize: 10,
-    color: '#757575',
-    fontStyle: 'italic',
-  },
-  pieChartPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    alignSelf: 'center',
-    marginVertical: 10,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  pieSlice1: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-    backgroundColor: '#FF6B9D',
-    borderRadius: 50,
-  },
-  pieSlice2: {
-    position: 'absolute',
-    width: 50,
-    height: 100,
-    right: 0,
-    backgroundColor: '#FFD93D',
-  },
-  pieSlice3: {
-    position: 'absolute',
-    width: 100,
-    height: 40,
-    bottom: 0,
-    backgroundColor: '#6BCB77',
-  },
-  calorieInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  calorieConsumed: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  calorieBurned: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#FF5722',
-  },
-  chartPlaceholder: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-around',
-    height: 80,
-    marginVertical: 10,
-  },
-  chartBar1: {
-    width: 15,
-    height: 30,
-    backgroundColor: '#4FC3F7',
-    borderRadius: 3,
-  },
-  chartBar2: {
-    width: 15,
-    height: 50,
-    backgroundColor: '#4FC3F7',
-    borderRadius: 3,
-  },
-  chartBar3: {
-    width: 15,
-    height: 70,
-    backgroundColor: '#4FC3F7',
-    borderRadius: 3,
-  },
-  chartBar4: {
-    width: 15,
-    height: 45,
-    backgroundColor: '#4FC3F7',
-    borderRadius: 3,
-  },
-  chartBar5: {
-    width: 15,
-    height: 60,
-    backgroundColor: '#4FC3F7',
-    borderRadius: 3,
-  },
-  progressFooter: {
-    fontSize: 10,
-    color: '#757575',
-    textAlign: 'center',
-  },
-  historicoContent: {
-    marginBottom: 8,
-  },
-  historicoItem: {
-    fontSize: 11,
-    color: '#333',
-    marginBottom: 4,
-  },
-  historicoLabel: {
-    fontWeight: 'bold',
-  },
-  historicoGood: {
-    color: '#2E7D32',
-  },
-  historicoBad: {
-    color: '#C62828',
-  },
-  historicoFooter: {
-    fontSize: 10,
-    color: '#757575',
-    fontStyle: 'italic',
-  },
-  jejumCard: {
-    backgroundColor: 'white',
-    marginHorizontal: 15,
-    marginBottom: 15,
-    padding: 20,
-    borderRadius: 15,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  jejumHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  jejumIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  jejumTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  jejumSubtitle: {
-    fontSize: 14,
-    color: '#666',
     marginBottom: 5,
   },
-  jejumTime: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-    marginVertical: 5,
-  },
-  jejumDescription: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 10,
-  },
-  jejumFooter: {
+  graficoHistoricoSubtitulo: {
     fontSize: 11,
-    color: '#757575',
-    fontStyle: 'italic',
-    textAlign: 'center',
+    color: '#666',
+    marginBottom: 15,
   },
-  bottomPadding: {
-    height: 20,
+  graficoHistoricoContainer: {
+    alignItems: 'center',
+  },
+  lineChartCompacto: {
+    borderRadius: 10,
+  },
+  legendaGrafico: {
+    marginTop: 10,
+    paddingHorizontal: 10,
+  },
+  legendaGraficoTexto: {
+    fontSize: 10,
+    color: '#666',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });
+
+export default CaloriasScreen;

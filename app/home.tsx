@@ -363,6 +363,51 @@ export default function Home() {
     return '📈 Continue assim!';
   };
 
+  const MiniGraficoCircular = ({ consumidas, gastas }) => {
+    // Verificar se há dados
+    const temDados = consumidas > 0 || gastas > 0;
+    
+    if (!temDados) {
+      return (
+        <View style={styles.miniGraficoContainer}>
+          <View style={styles.semDadosCirculo}>
+            <Text style={styles.semDadosIcon}>📊</Text>
+            <Text style={styles.semDadosTexto}>Sem dados</Text>
+          </View>
+          <Text style={styles.semDadosSubtexto}>Registre refeições e passos</Text>
+        </View>
+      );
+    }
+    
+    const total = consumidas + gastas;
+    const percentualConsumidas = (consumidas / total) * 100;
+    const anguloConsumidas = (percentualConsumidas / 100) * 360;
+
+    return (
+      <View style={styles.miniGraficoContainer}>
+        <View style={[styles.miniCirculo, {
+          borderTopColor: anguloConsumidas >= 90 ? '#3b82f6' : '#10b981',
+          borderRightColor: anguloConsumidas >= 180 ? '#3b82f6' : '#10b981',
+          borderBottomColor: anguloConsumidas >= 270 ? '#3b82f6' : '#10b981',
+          borderLeftColor: '#3b82f6',
+        }]}>
+          <Text style={styles.miniCirculoTexto}>{Math.round(percentualConsumidas)}%</Text>
+        </View>
+        
+        <View style={styles.miniLegenda}>
+          <View style={styles.miniLegendaItem}>
+            <View style={[styles.miniLegendaBola, { backgroundColor: '#3b82f6' }]} />
+            <Text style={styles.miniLegendaTexto}>Consumidas</Text>
+          </View>
+          <View style={styles.miniLegendaItem}>
+            <View style={[styles.miniLegendaBola, { backgroundColor: '#10b981' }]} />
+            <Text style={styles.miniLegendaTexto}>Gastas</Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   const renderMiniGrafico = () => {
     const historico = dadosInicio.progresso || [];
     
@@ -591,7 +636,6 @@ export default function Home() {
           )}
         </TouchableOpacity>
 
-          {/* O card de Calorias continua igual */}
           <TouchableOpacity 
             style={[styles.card, styles.cardRight]}
             onPress={() => router.push('/calorias')}
@@ -600,18 +644,49 @@ export default function Home() {
               <Text style={styles.cardIcon}>🔥</Text>
               <Text style={styles.cardTitle}>Calorias</Text>
             </View>
-            <View style={styles.pieChartPlaceholder}>
-              <View style={styles.pieSlice1} />
-              <View style={styles.pieSlice2} />
-              <View style={styles.pieSlice3} />
-            </View>
+            
+            {/* Gráfico Circular Mini */}
+            <MiniGraficoCircular 
+              consumidas={dadosInicio.atividade.calorias_ingeridas || 0}
+              gastas={dadosInicio.atividade.calorias_gastas || 0}
+            />
+            
             <View style={styles.calorieInfo}>
-              <Text style={styles.calorieConsumed}>
-                ⬇️ {parseInt(dadosInicio.atividade.passos || 0).toLocaleString('pt-BR')}
-              </Text>
-              <Text style={styles.mealDetail}>
-                🔥 {parseFloat(dadosInicio.ultima_refeicao?.total_calorias || 0).toFixed(0)} kcal
-              </Text>
+              {/* Passos */}
+              <View style={styles.calorieInfoItem}>
+                <Text style={styles.calorieLabel}>🚶 Passos:</Text>
+                <Text style={styles.calorieConsumed}>
+                  {dadosInicio.atividade.passos > 0 
+                    ? parseInt(dadosInicio.atividade.passos).toLocaleString('pt-BR')
+                    : '--'}
+                </Text>
+              </View>
+              
+              {/* Saldo Calórico */}
+              <View style={styles.calorieInfoItem}>
+                <Text style={styles.calorieLabel}>
+                  {dadosInicio.atividade.saldo_calorico === 0 
+                    ? '⚖️' 
+                    : dadosInicio.atividade.saldo_calorico > 0 
+                      ? '📈' 
+                      : '📉'}
+                  {' Saldo:'}
+                </Text>
+                <Text style={[
+                  styles.calorieBurned,
+                  { 
+                    color: dadosInicio.atividade.saldo_calorico === 0 
+                      ? '#666'
+                      : dadosInicio.atividade.saldo_calorico > 0 
+                        ? '#ef4444' 
+                        : '#10b981' 
+                  }
+                ]}>
+                  {dadosInicio.atividade.calorias_ingeridas > 0 || dadosInicio.atividade.calorias_gastas > 0
+                    ? `${dadosInicio.atividade.saldo_calorico > 0 ? '+' : ''}${Math.round(dadosInicio.atividade.saldo_calorico)} kcal`
+                    : '--'}
+                </Text>
+              </View>
             </View>
           </TouchableOpacity>
         </View>
@@ -1196,39 +1271,10 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 'auto',  // 🆕 ADICIONAR para empurrar para baixo
   },
-  pieChartPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    alignSelf: 'center',
-    marginVertical: 10,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  pieSlice1: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-    backgroundColor: '#FF6B9D',
-    borderRadius: 50,
-  },
-  pieSlice2: {
-    position: 'absolute',
-    width: 50,
-    height: 100,
-    right: 0,
-    backgroundColor: '#FFD93D',
-  },
-  pieSlice3: {
-    position: 'absolute',
-    width: 100,
-    height: 40,
-    bottom: 0,
-    backgroundColor: '#6BCB77',
-  },
   calorieInfo: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    gap: 8,  // Adicione esta linha
   },
   calorieConsumed: {
     fontSize: 13,  // AUMENTADO de 11
@@ -1449,4 +1495,87 @@ jejumDisabledSubtext: {
     fontSize: 16,
     fontWeight: '600',
   },
+  miniGraficoContainer: {
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  miniCirculo: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniCirculoTexto: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  miniLegenda: {
+    flexDirection: 'row',
+    marginTop: 8,
+    gap: 12,
+  },
+  miniLegendaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  miniLegendaBola: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 4,
+  },
+  miniLegendaTexto: {
+    fontSize: 9,
+    color: '#666',
+  },
+  // Estilos para dados vazios
+  semDadosCirculo: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F5F5F5',
+    borderWidth: 3,
+    borderColor: '#E0E0E0',
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  semDadosIcon: {
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  semDadosTexto: {
+    fontSize: 10,
+    color: '#999',
+    fontWeight: '600',
+  },
+  semDadosSubtexto: {
+    fontSize: 9,
+    color: '#999',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+
+  // Estilos para info de calorias
+  calorieInfoItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  calorieLabel: {
+    fontSize: 10,
+    color: '#666',
+    marginBottom: 2,
+  },
+  calorieConsumed: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  calorieBurned: {
+    fontSize: 13,
+    fontWeight: 'bold',
+  }
 });

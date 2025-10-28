@@ -135,7 +135,22 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $stmtAtividade->execute([":usuario_id" => $usuario->id]);
         $atividade = $stmtAtividade->fetch(PDO::FETCH_ASSOC);
 
-        // 4. Buscar última refeição
+        // 4. Buscar calorias ingeridas de hoje
+        $stmt = $pdo->prepare("
+            SELECT 
+                COALESCE(SUM(CAST(a.energia_kcal AS DECIMAL(10,2))), 0) as calorias_ingeridas
+            FROM refeicoes r
+            JOIN refeicoes_alimentos ra ON r.id = ra.refeicao_id
+            JOIN alimentos a ON a.id = ra.alimento_id
+            WHERE r.usuario_id = :usuario_id 
+            AND DATE(r.data_registro) = CURDATE()
+        ");
+        $stmt->bindParam(":usuario_id", $usuario->id);
+        $stmt->execute();
+        $resultCalorias = $stmt->fetch(PDO::FETCH_ASSOC);
+        $caloriasIngeridas = floatval($resultCalorias["calorias_ingeridas"]);
+
+        // 5. Buscar última refeição
         $stmtUltimaRefeicao = $pdo->prepare("
             SELECT r.id, r.tipo_refeicao, r.data_registro, r.sintoma
             FROM refeicoes r
@@ -146,7 +161,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $stmtUltimaRefeicao->execute([":usuario_id" => $usuario->id]);
         $ultimaRefeicao = $stmtUltimaRefeicao->fetch(PDO::FETCH_ASSOC);
 
-        // 🆕 4. ADICIONAR ISTO AQUI - Buscar total de refeições de HOJE
+        // 🆕 6. ADICIONAR ISTO AQUI - Buscar total de refeições de HOJE
         $dataHoje = date("Y-m-d");
         $stmtHoje = $pdo->prepare("
             SELECT 
@@ -234,7 +249,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
         // 7. Buscar últimos 5 registros de peso para o gráfico
         $stmtProgresso = $pdo->prepare("
-            SELECT peso, DATE_FORMAT(data_registro, '%d/%m') as data_formatada
+            SELECT peso, data_registro, DATE_FORMAT(data_registro, '%d/%m') as data_formatada
             FROM historico_peso
             WHERE usuario_id = :usuario_id
             ORDER BY data_registro DESC
@@ -246,9 +261,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         // Inverter ordem para mostrar do mais antigo ao mais recente
         $historicoProgresso = array_reverse($historicoProgresso);
 
-        // 7. Montar resposta final (MODIFICAR O EXISTENTE)
+        // 8. Montar resposta final
         enviarSucesso(200, [
-        "mensagem" => "Dados da tela inicial carregados com sucesso!",
+            "mensagem" => "Dados da tela inicial carregados com sucesso!",
             "dieta" => [
                 "meta" => $dadosMeta["tipo_meta"] ?? null,
                 "top_alimentos" => $topAlimentosFormatados,
@@ -257,7 +272,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             ],
             "atividade" => [
                 "passos" => (int)($atividade["passos"] ?? 0),
-                "calorias_gastas" => (float)($atividade["calorias_gastas"] ?? 0)
+                "calorias_gastas" => (float)($atividade["calorias_gastas"] ?? 0),
+                "calorias_ingeridas" => $caloriasIngeridas,
+                "saldo_calorico" => $caloriasIngeridas - (float)($atividade["calorias_gastas"] ?? 0)
             ],
             "refeicoes_hoje" => [
                 "total" => (int)($refeicoesHoje["total_refeicoes"] ?? 0),
@@ -265,7 +282,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             ],
             "proxima_refeicao" => $proximaRefeicao,
             "ultima_refeicao" => $ultimaRefeicaoData,
-            "progresso" => $historicoProgresso  // 🆕 ADICIONE ESTA LINHA
+            "progresso" => $historicoProgresso
         ]);
     } catch (PDOException $e) {
         enviarErro(500, "Erro ao buscar dados da tela inicial: " . $e->getMessage());

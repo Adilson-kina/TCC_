@@ -52,7 +52,7 @@ export default function Jejum() {
         return;
       }
 
-      const response = await fetch(API_URL, {
+      const response = await fetch(API_BASE, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -195,7 +195,7 @@ export default function Jejum() {
         return;
       }
 
-      const response = await fetch(API_URL, {
+      const response = await fetch(API_BASE, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -237,7 +237,7 @@ export default function Jejum() {
         return;
       }
 
-      const response = await fetch(API_URL, {
+      const response = await fetch(API_BASE, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

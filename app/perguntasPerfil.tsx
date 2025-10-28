@@ -510,14 +510,14 @@ export default function PerguntasPerfil() {
               showsVerticalScrollIndicator={true}
               >
                 <Pressable 
-                  style={[styles.opcao, tipoDieta === '' && styles.opcaoSelecionada]}
-                  onPress={() => setTipoDieta('nenhuma')}
-                >
-                  <View style={styles.radio}>
-                    {tipoDieta === '' && <View style={styles.radioSelecionado} />}
-                  </View>
-                  <Text style={styles.opcaoTexto}>Nenhuma dieta específica</Text>
-                </Pressable>
+                style={[styles.opcao, (tipoDieta === '' || tipoDieta === 'nenhuma') && styles.opcaoSelecionada]}
+                onPress={() => setTipoDieta('')}
+              >
+                <View style={styles.radio}>
+                  {(tipoDieta === '' || tipoDieta === 'nenhuma') && <View style={styles.radioSelecionado} />}
+                </View>
+                <Text style={styles.opcaoTexto}>Nenhuma dieta específica</Text>
+              </Pressable>
 
                 <Pressable 
                   style={[styles.opcao, tipoDieta === 'low_carb' && styles.opcaoSelecionada]}
