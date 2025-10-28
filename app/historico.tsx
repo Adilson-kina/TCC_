@@ -10,7 +10,7 @@ import {
   View
 } from 'react-native';
 
-const API_BASE = 'https://dietase.xo.je/TCC/PHP';
+const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
 
 interface Alimento {
   id: number;

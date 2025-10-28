@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-const API_URL = 'https://dietase.xo.je/TCC/PHP/jejum.php';
+const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
 
 interface JejumData {
   horaInicio: string;

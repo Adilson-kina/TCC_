@@ -3,7 +3,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-const API_BASE = 'https://dietase.xo.je/TCC/PHP'; // Altere para seu IP/domínio
+const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
 
 export default function Home() {
   const router = useRouter();
