@@ -1,16 +1,11 @@
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   Dimensions,
   Image, // ← ADICIONE
-  Keyboard // ← ADICIONE
-  ,
-
-
-
-
-
+  Keyboard, // ← ADICIONE
   KeyboardAvoidingView, // ← ADICIONE
   Platform,
   Pressable,
@@ -20,7 +15,7 @@ import {
   TouchableWithoutFeedback,
   View
 } from "react-native";
-import post from '../components/post.tsx';
+import post from '../components/post';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -84,22 +79,26 @@ export default function Login() {
           
           <View style={styles.form}>
             <View style={styles.items}>
+              <Ionicons name="mail-outline" size={20} color="#666" style={styles.icon} />
               <TextInput 
                 style={styles.input} 
                 value={email} 
                 onChangeText={setEmail} 
                 placeholder="Email"
+                placeholderTextColor="#888"
                 returnKeyType="next"
               />
             </View>
 
             <View style={styles.items}>
+              <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.icon} />
               <TextInput 
                 style={styles.input} 
                 value={senha} 
                 onChangeText={setSenha} 
                 secureTextEntry 
                 placeholder="Senha"
+                placeholderTextColor="#888"
                 returnKeyType="done"
                 onSubmitEditing={handleSubmit}
               />
@@ -169,15 +168,12 @@ const styles = StyleSheet.create({
   },
   items: {
     width: '100%',
-  },
-  input: {
-    width: '100%',
-    height: 50,
-    paddingHorizontal: 15,
-    borderRadius: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: "#dadada",
-    color: "#000000",        // ← Texto preto
-    fontSize: 16,
+    borderRadius: 15,
+    paddingHorizontal: 15,
+    height: 50,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -186,6 +182,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
+  },
+  icon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    height: '100%',
+    color: "#000000",
+    fontSize: 16,
   },
   button: {
     width: '80%',

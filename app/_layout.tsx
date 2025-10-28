@@ -6,47 +6,36 @@ export default function RootLayout() {
       <Stack.Screen 
         name="index" 
         options={{
-          title: '',
-          headerStyle: {
-            backgroundColor: "#ecfcec"
-          }
+          title: "",
+          headerShown: false
         }}
       />
       <Stack.Screen 
         name="signup"
         options={{ 
           title: "",
-          headerStyle: {
-            backgroundColor: "#ecfcec"
-          }
+          headerShown: false
         }} 
       />
       <Stack.Screen 
         name="termos"
         options={{ 
           title: "",
-          headerStyle: {
-            backgroundColor: "#ecfcec"
-          }
+          headerShown: false
         }} 
       />
       <Stack.Screen 
         name="perguntasEssenciais"
         options={{ 
           title: "",
-          headerStyle: {
-            backgroundColor: "#ecfcec"
-          }
+          headerShown: false
         }} 
       />
       <Stack.Screen 
         name="perguntasPerfil"
         options={{ 
           title: "",
-          headerStyle: {
-            backgroundColor: "#ecfcec"
-          },
-          headerLeft: () => null // remove o botão de voltar
+          headerShown: false
         }} 
       />
       <Stack.Screen 

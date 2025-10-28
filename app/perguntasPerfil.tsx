@@ -148,7 +148,7 @@ export default function PerguntasPerfil() {
         contagem_calorica: contagemCalorica,
         jejum_intermitente: jejumIntermitente,
         nivel_atividade: nivelAtividade,
-        tipo_dieta: tipoDieta || '',
+        tipo_dieta: tipoDieta || 'nenhuma',
         comer_fds: comerFds,
         disturbios: disturbiosParaEnviar,
         possui_dieta: possuiDieta,
@@ -508,7 +508,7 @@ export default function PerguntasPerfil() {
               <ScrollView style={styles.scrollOpcoes}>
                 <Pressable 
                   style={[styles.opcao, tipoDieta === '' && styles.opcaoSelecionada]}
-                  onPress={() => setTipoDieta('')}
+                  onPress={() => setTipoDieta('nenhuma')}
                 >
                   <View style={styles.radio}>
                     {tipoDieta === '' && <View style={styles.radioSelecionado} />}
