@@ -67,7 +67,7 @@ export default function ProgressoScreen() {
         setDadosProgresso(data);
         
         // Verificar se pode atualizar
-        if (data.ultima_atualizacao) {
+        if (data.ultima_atualizacao && data.total_registros_peso > 1) { // 🔥 ADICIONEI A CONDIÇÃO
           const ultimaData = new Date(data.ultima_atualizacao);
           const hoje = new Date();
           const diferencaDias = Math.floor((hoje - ultimaData) / (1000 * 60 * 60 * 24));
@@ -80,8 +80,11 @@ export default function ProgressoScreen() {
             setDiasRestantes(0);
           }
         } else {
-          setPodeAtualizar(true);
+          setPodeAtualizar(true); // Primeira vez OU sem histórico = pode atualizar
+          setDiasRestantes(0);
         }
+      } else {
+        setPodeAtualizar(true);
       }
     } catch (error) {
       console.error('Erro ao carregar progresso:', error);
@@ -182,12 +185,6 @@ export default function ProgressoScreen() {
       const token = await AsyncStorage.getItem('token');
       
       const bodyData = { peso: parseFloat(novoPeso) };
-      
-      // 🔍 DEBUG
-      console.log('=== ENVIANDO PESO ===');
-      console.log('Token:', token);
-      console.log('Body:', bodyData);
-      console.log('Peso parseado:', parseFloat(novoPeso));
 
       const response = await fetch(`${API_BASE}/progresso.php`, {
         method: 'PUT',
@@ -199,11 +196,6 @@ export default function ProgressoScreen() {
       });
 
       const data = await response.json();
-      
-      // 🔍 DEBUG
-      console.log('=== RESPOSTA ===');
-      console.log('Status:', response.status);
-      console.log('Data:', data);
 
       if (data.mensagem) {
         Alert.alert('Sucesso', 'Peso atualizado com sucesso!');
@@ -959,6 +951,7 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 14,
     color: '#666',
+    textAlign: 'center',  // 🔥 ADICIONE ESTA LINHA
   },
   weeksText: {
     fontSize: 48,

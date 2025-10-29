@@ -253,6 +253,7 @@ export default function Home() {
 
       if (data.mensagem) {
         setDadosInicio(data);
+        
       } else if (data.erro) {
         console.error('Erro da API:', data.erro);
       }

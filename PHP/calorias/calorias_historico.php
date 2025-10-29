@@ -1,3 +1,4 @@
+
 <?php
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
@@ -9,7 +10,8 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     exit();
 }
 
-require_once(__DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.php');
+// 👇 CORRIJA ESTA LINHA - deve ter '..' para subir uma pasta
+require_once(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.php');
 
 permitirMetodos(["GET"]);
 
