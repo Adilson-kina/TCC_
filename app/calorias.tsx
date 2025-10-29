@@ -12,6 +12,7 @@ import {
   View
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
+import PedometerComponent from '../components/Pedometer';
 
 const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
 
@@ -19,7 +20,7 @@ const CaloriasScreen = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [passos, setPassos] = useState(4200);
+  const [passos, setPassos] = useState(0); // Era 4200, agora é 0
   const [dadosCalorias, setDadosCalorias] = useState(null);
   const [historico, setHistorico] = useState([]);
 
@@ -58,6 +59,10 @@ const CaloriasScreen = () => {
     }
   };
 
+  const handleStepsUpdate = (steps: number) => {
+    setPassos(steps);
+  };
+
   const carregarHistorico = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
@@ -65,10 +70,25 @@ const CaloriasScreen = () => {
       
       const response = await fetch(`${API_BASE}/calorias/calorias_historico.php`, {
         method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
-      const data = await response.json();
+      // 🔍 Debug
+      const text = await response.text();
+      console.log('=== RESPOSTA HISTÓRICO ===');
+      console.log('Status:', response.status);
+      console.log('Texto:', text.substring(0, 500)); // Primeiros 500 caracteres
+      console.log('========================');
+      
+      if (!text) {
+        console.log('Resposta vazia');
+        return;
+      }
+      
+      const data = JSON.parse(text);
       if (data.dados) {
         setHistorico(data.dados);
       }
@@ -116,6 +136,9 @@ const CaloriasScreen = () => {
           <Text style={styles.headerTitle}>🔥 Calorias</Text>
           <View style={styles.placeholder} />
         </View>
+
+        {/* 👇 ADICIONE AQUI */}
+        <PedometerComponent onStepsChange={handleStepsUpdate} />
 
         <ScrollView 
           style={styles.scrollView}
