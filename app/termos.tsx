@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import api from '../components/api';
 import CheckBoxWithLabel from '../components/checkbox';
 
 export default function Termos() {
@@ -22,15 +23,21 @@ export default function Termos() {
     verificarToken();
   }, []);
 
-  function prosseguir() {
+  const prosseguir = async () => {
     if (isChecked1 && isChecked2) {
-      router.replace('/perguntasEssenciais');
+      try {
+        // 🆕 Chamar endpoint para salvar termos aceitos
+        await api.put('/termos.php', {});
+        router.replace('/perguntasEssenciais');
+      } catch (error: any) {
+        Alert.alert('Erro', error.message || 'Não foi possível aceitar os termos');
+      }
     } else if (isChecked1 || isChecked2) {
-      alert("É NECESSÁRIO ACEITAR TODOS ACIMA!");
+      Alert.alert("Atenção", "É NECESSÁRIO ACEITAR TODOS OS TERMOS ACIMA!");
     } else {
-      alert("PARA CONTINUARES, É NECESSÁRIO ACEITAR TODOS ACIMA!");
+      Alert.alert("Atenção", "PARA CONTINUAR, É NECESSÁRIO ACEITAR TODOS OS TERMOS ACIMA!");
     }
-  }
+  };
 
   return (
     <View style={estilo.container}>
@@ -73,7 +80,7 @@ export default function Termos() {
       <View style={estilo.btnContainer}>
         <TouchableOpacity
           style={estilo.button}
-          onPressIn={prosseguir}
+          onPress={prosseguir}
         >
           <Text style={estilo.buttonText}>Prosseguir</Text>
         </TouchableOpacity>

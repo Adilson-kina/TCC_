@@ -4,6 +4,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Modal,
   Pressable,
@@ -267,6 +268,32 @@ export default function Perfil() {
           >
             <Text style={styles.editButtonText}>Editar Perfil</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.logoutButton}
+            onPress={() => {
+              Alert.alert(
+                'Sair da Conta',
+                'Tem certeza que deseja sair da sua conta?',
+                [
+                  {
+                    text: 'Cancelar',
+                    style: 'cancel'
+                  },
+                  {
+                    text: 'Sair',
+                    style: 'destructive',
+                    onPress: async () => {
+                      await AsyncStorage.clear();
+                      router.replace('/');
+                    }
+                  }
+                ]
+              );
+            }}
+          >
+            <Text style={styles.logoutButtonText}>Sair da Conta</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.bottomPadding} />
@@ -383,6 +410,19 @@ export default function Perfil() {
 }
 
 const styles = StyleSheet.create({
+  logoutButton: {
+    width: '100%',
+    backgroundColor: '#FF5252',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  logoutButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   backButton: {
     position: 'absolute',
     top: 20,

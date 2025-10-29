@@ -51,7 +51,17 @@ export default function Login() {
       if (data?.token) {
         await AsyncStorage.setItem("token", data.token);
         await AsyncStorage.setItem("userId", data.id.toString());
-        router.navigate("/home"); 
+        
+        // 🆕 FLUXO COMPLETO: Termos → Essenciais → Perfil → Home
+        if (!data.termos_aceitos) {
+          router.replace("/termos");
+        } else if (!data.essenciais_completas) {
+          router.replace("/perguntasEssenciais");
+        } else if (!data.perguntas_completas) {
+          router.replace("/perguntasPerfil");
+        } else {
+          router.replace("/home");
+        }
       }
     } catch (error: any) {
       setErrorMessage(error.message || "Erro ao fazer login");

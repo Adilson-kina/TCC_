@@ -70,9 +70,16 @@ export default function PerguntasPerfil() {
       return;
     }
     
-    if (etapa === 3 && !contagemCalorica) {
-      setErrorMessage('Por favor, selecione uma opção.');
-      return;
+    if (etapa === 3) {
+      if (!contagemCalorica) {
+        setErrorMessage('Por favor, selecione uma opção.');
+        return;
+      }
+
+      if (contagemCalorica === 'nao_sei') {
+        setErrorMessage('Por favor, leia a explicação e selecione "Sim" ou "Não" para continuar.');
+        return;
+      }
     }
     
     if (etapa === 4 && !jejumIntermitente) {
@@ -162,7 +169,7 @@ export default function PerguntasPerfil() {
   return (
     <View style={styles.container}>
       <ScrollView 
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 150 }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.card}>
@@ -294,19 +301,20 @@ export default function PerguntasPerfil() {
                 </View>
                 <Text style={styles.opcaoTexto}>Não sei</Text>
               </Pressable>
-
-              {contagemCalorica === 'nao_sei' && (
-                <View style={styles.infoBox}>
-                  <Text style={styles.infoTitulo}>💡 O que é contagem calórica?</Text>
-                  <Text style={styles.infoTexto}>
-                    É o controle da quantidade de calorias que você consome por dia. Nosso app calcula automaticamente seu limite diário ideal baseado no seu objetivo!
-                  </Text>
-                  <Text style={styles.infoTexto}>
-                    ✨ Você poderá acompanhar suas calorias consumidas vs. gastas em tempo real.
-                  </Text>
-                </View>
-              )}
             </>
+          )}
+
+          {/* 🆕 FORA DO ETAPA 3 - SEMPRE VISÍVEL */}
+          {etapa === 3 && contagemCalorica === 'nao_sei' && (
+            <View style={[styles.infoBox, styles.infoBoxObrigatorio, styles.infoBoxFixo]}>
+              <Text style={styles.infoTitulo}>💡 O que é contagem calórica?</Text>
+              <Text style={styles.infoTexto}>
+                É o controle da quantidade de calorias que você consome por dia. Nosso app calcula automaticamente seu limite diário ideal baseado no seu objetivo!
+              </Text>
+              <Text style={styles.infoTexto}>
+                ✨ Você poderá acompanhar suas calorias consumidas vs. gastas em tempo real.
+              </Text>
+            </View>
           )}
 
           {/* ETAPA 4: JEJUM INTERMITENTE */}
@@ -653,6 +661,11 @@ export default function PerguntasPerfil() {
 }
 
 const styles = StyleSheet.create({
+  infoBoxObrigatorio: {
+    borderColor: '#F57C00',
+    borderWidth: 2,
+    backgroundColor: '#FFF3E0',
+  },
   infoTitulo: {
     fontSize: 16,
     fontWeight: 'bold',

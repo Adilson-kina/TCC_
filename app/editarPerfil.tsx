@@ -113,6 +113,15 @@ export default function EditarPerfil() {
       return;
     }
 
+    // Validar tipo de dieta
+    if (!tipoDieta || tipoDieta === '') {
+      Alert.alert('Erro', 'Selecione um tipo de dieta');
+      return;
+    }
+
+    const algumDisturbioSelecionado = Object.values(disturbios).some(d => d === true);
+    // (não precisa validar, pode ser vazio)
+
     // Se está mudando senha, validar
     if (novaSenha) {
       if (!senhaAtual) {
@@ -277,7 +286,9 @@ export default function EditarPerfil() {
                 {disturbios[key] && <Text style={styles.checkmark}>✓</Text>}
               </View>
               <Text style={styles.checkboxText}>
-                {key.charAt(0).toUpperCase() + key.slice(1)}
+                <Text style={styles.checkboxText}>
+                  {key === 'sii' ? 'SII' : key.charAt(0).toUpperCase() + key.slice(1)}
+                </Text>
               </Text>
             </TouchableOpacity>
           ))}
@@ -301,10 +312,11 @@ export default function EditarPerfil() {
             style={styles.input}
             value={novaSenha}
             onChangeText={setNovaSenha}
-            placeholder="Digite sua nova senha"
+            placeholder="Mínimo 6 caracteres"
             placeholderTextColor="#888"
             secureTextEntry
           />
+          <Text style={styles.passwordHint}>⚠️ A senha deve ter no mínimo 6 caracteres</Text>
 
           <Text style={styles.label}>Confirmar Nova Senha</Text>
           <TextInput
@@ -388,6 +400,13 @@ export default function EditarPerfil() {
 }
 
 const styles = StyleSheet.create({
+  passwordHint: {
+    fontSize: 11,
+    color: '#666',
+    fontStyle: 'italic',
+    marginTop: 5,
+    marginBottom: 5,
+  },
   backButton: {
     position: 'absolute',
     top: 20,

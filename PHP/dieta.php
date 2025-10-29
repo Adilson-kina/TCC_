@@ -117,19 +117,21 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $data = json_decode(file_get_contents("php://input"), true);
+    
+    if ($data === null) {
+        enviarErro(400, "JSON inválido ou vazio.");
+    }
 
-    if (!isset($data["alimentos_selecionados"]) || !is_array($data["alimentos_selecionados"])) {
-        enviarErro(400, "Campo 'alimentos_selecionados' ausente ou inválido.");
-        exit;
+    if (!isset($data["alimentos_selecionados"])) {
+        enviarErro(400, "Campo 'alimentos_selecionados' ausente.");
+    }
+
+    if (!is_array($data["alimentos_selecionados"])) {
+        enviarErro(400, "Campo 'alimentos_selecionados' deve ser um array.");
     }
 
     $alimentosSelecionados = $data["alimentos_selecionados"];
-
     $ordenacaoHome = $data["ordenacao_home"] ?? 'carboidrato_g';
-
-    if (!is_array($alimentosSelecionados)) {
-        enviarErro(400, "Formato inválido de alimentos.");
-    }
 
     // Validar campo de ordenação
     $camposValidos = ['carboidrato_g', 'proteina_g', 'energia_kcal', 'lipideos_g'];

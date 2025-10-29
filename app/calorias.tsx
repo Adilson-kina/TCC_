@@ -217,6 +217,9 @@ const CaloriasScreen = () => {
               <Text style={styles.avisoSubtexto}>
                 Nunca consuma menos que isso!
               </Text>
+            <Text style={styles.avisoSubtexto}>
+              📊 Estes limites são calculados com base no seu TMB (Taxa Metabólica Basal) de {Math.round(dadosCalorias.tmb)} kcal
+            </Text>
             </View>
           </View>
 

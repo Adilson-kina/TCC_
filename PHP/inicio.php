@@ -126,31 +126,44 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             ];
         }
 
-        // 3. Buscar dados de atividade (passos e calorias gastas de hoje)
-        $stmtAtividade = $pdo->prepare("
-            SELECT passos, calorias_gastas
+        // 3. Buscar dados do usuário para calcular calorias gastas
+        $stmtUsuario = $pdo->prepare("
+            SELECT u.peso, u.peso_inicial, u.altura, u.sexo_biologico, u.data_nascimento, p.pergunta4_nivel_atividade
+            FROM usuarios u
+            JOIN perguntas p ON u.perguntas_id = p.id
+            WHERE u.id = :usuario_id
+        ");
+        $stmtUsuario->execute([":usuario_id" => $usuario->id]);
+        $infoUsuario = $stmtUsuario->fetch(PDO::FETCH_ASSOC);
+
+        // Pegar passos e calorias ingeridas da tabela calorias
+        $stmtCalorias = $pdo->prepare("
+            SELECT passos, calorias_ingeridas
             FROM calorias
             WHERE usuario_id = :usuario_id AND data_registro = CURDATE()
         ");
-        $stmtAtividade->execute([":usuario_id" => $usuario->id]);
-        $atividade = $stmtAtividade->fetch(PDO::FETCH_ASSOC);
+        $stmtCalorias->execute([":usuario_id" => $usuario->id]);
+        $dadosCalorias = $stmtCalorias->fetch(PDO::FETCH_ASSOC);
 
-        // 4. Buscar calorias ingeridas de hoje
-        $stmt = $pdo->prepare("
-            SELECT 
-                COALESCE(SUM(CAST(a.energia_kcal AS DECIMAL(10,2))), 0) as calorias_ingeridas
-            FROM refeicoes r
-            JOIN refeicoes_alimentos ra ON r.id = ra.refeicao_id
-            JOIN alimentos a ON a.id = ra.alimento_id
-            WHERE r.usuario_id = :usuario_id 
-            AND DATE(r.data_registro) = CURDATE()
-        ");
-        $stmt->bindParam(":usuario_id", $usuario->id);
-        $stmt->execute();
-        $resultCalorias = $stmt->fetch(PDO::FETCH_ASSOC);
-        $caloriasIngeridas = floatval($resultCalorias["calorias_ingeridas"]);
+        $passos = $dadosCalorias ? intval($dadosCalorias["passos"]) : 0;
+        $caloriasIngeridas = $dadosCalorias ? floatval($dadosCalorias["calorias_ingeridas"]) : 0;
 
-        // 5. Buscar última refeição
+        // Calcular calorias gastas com base no perfil do usuário (igual no calorias.php)
+        $peso = floatval($infoUsuario["peso"] ?? $infoUsuario["peso_inicial"] ?? 0);
+        $nivel = $infoUsuario["pergunta4_nivel_atividade"];
+
+        $fatorPassos = match ($nivel) {
+            "sedentario" => 0.0003,
+            "baixo" => 0.0004,
+            "medio" => 0.0005,
+            "alto" => 0.0006,
+            default => 0.0005
+        };
+
+        $caloriasGastas = round($passos * $peso * $fatorPassos, 2);
+        $saldoCalorico = $caloriasIngeridas - $caloriasGastas;
+
+        // 4. Buscar última refeição
         $stmtUltimaRefeicao = $pdo->prepare("
             SELECT r.id, r.tipo_refeicao, r.data_registro, r.sintoma
             FROM refeicoes r
@@ -161,7 +174,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $stmtUltimaRefeicao->execute([":usuario_id" => $usuario->id]);
         $ultimaRefeicao = $stmtUltimaRefeicao->fetch(PDO::FETCH_ASSOC);
 
-        // 🆕 6. ADICIONAR ISTO AQUI - Buscar total de refeições de HOJE
+        // 🆕 5. ADICIONAR ISTO AQUI - Buscar total de refeições de HOJE
         $dataHoje = date("Y-m-d");
         $stmtHoje = $pdo->prepare("
             SELECT 
@@ -179,7 +192,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         ]);
         $refeicoesHoje = $stmtHoje->fetch(PDO::FETCH_ASSOC);
 
-        // 🆕 5. Sugerir próxima refeição (respeita sequência, mas ajusta se horário avançou demais)
+        // 🆕 6. Sugerir próxima refeição (respeita sequência, mas ajusta se horário avançou demais)
         $proximaRefeicao = 'Café da Manhã'; // padrão
         $horaAtual = (int)date('H');
 
@@ -282,10 +295,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                 "recomendados" => $resumo["recomendados"]
             ],
             "atividade" => [
-                "passos" => (int)($atividade["passos"] ?? 0),
-                "calorias_gastas" => (float)($atividade["calorias_gastas"] ?? 0),
-                "calorias_ingeridas" => $caloriasIngeridas,
-                "saldo_calorico" => $caloriasIngeridas - (float)($atividade["calorias_gastas"] ?? 0)
+                "passos" => $passos,  
+                "calorias_gastas" => $caloriasGastas,  
+                "calorias_ingeridas" => $caloriasIngeridas,  
+                "saldo_calorico" => $saldoCalorico  
             ],
             "refeicoes_hoje" => [
                 "total" => (int)($refeicoesHoje["total_refeicoes"] ?? 0),

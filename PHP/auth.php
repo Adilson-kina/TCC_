@@ -78,20 +78,30 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($usuario && password_verify($data["senha"], $usuario["senha"])) {
-                // 🔧 CORRIGIDO: Usa os dados do $usuario
+                $termosAceitos = (bool)$usuario["termos_aceitos"];
+
+                // Verificar se completou perguntas essenciais
+                $essenciaisCompletas = !is_null($usuario["sexo_biologico"]) 
+                    && !is_null($usuario["data_nascimento"]) 
+                    && !is_null($usuario["altura"]) 
+                    && !is_null($usuario["peso_inicial"]);
+
                 $payload = [
-                    "id" => $usuario["id"],           // ← AQUI
-                    "email" => $usuario["email"],     // ← AQUI
-                    "nome" => $usuario["nome"],       // ← AQUI
-                    "perguntas_completas" => !is_null($usuario["perguntas_id"]), // ← AQUI
+                    "id" => $usuario["id"],
+                    "email" => $usuario["email"],
+                    "nome" => $usuario["nome"],
+                    "termos_aceitos" => $termosAceitos,
+                    "essenciais_completas" => $essenciaisCompletas,
+                    "perguntas_completas" => !is_null($usuario["perguntas_id"]),
                     "exp" => time() + (60 * 60 * 24)
                 ];
-                $jwt = gerarToken($payload, $jwtSecretKey);
 
                 enviarSucesso(200, [
-                    "mensagem" => "Login bem-sucedido!",
+                "mensagem" => "Login bem-sucedido!",
                     "id" => $usuario["id"],
                     "token" => $jwt,
+                    "termos_aceitos" => $termosAceitos,
+                    "essenciais_completas" => $essenciaisCompletas,
                     "perguntas_completas" => !is_null($usuario["perguntas_id"])
                 ]);
             } else {
