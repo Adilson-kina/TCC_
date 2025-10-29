@@ -24,8 +24,7 @@
       "edgeToEdgeEnabled": true,
       "package": "com.adilsonkina.TCC",
       "permissions": [
-        "android.permission.ACTIVITY_RECOGNITION",
-        "android.permission.POST_NOTIFICATIONS"
+        "android.permission.ACTIVITY_RECOGNITION"
       ],
       "statusBar": {
         "backgroundColor": "#4CAF50",
@@ -54,14 +53,6 @@
         {
           "motionPermission": "Permitir que o Dieta-se acesse seus dados de atividade física para contar seus passos diários."
         }
-      ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/images/icon.png",
-          "color": "#4CAF50",
-          "defaultChannel": "default"
-        }
       ]
     ],
     "experiments": {
@@ -73,12 +64,6 @@
         "projectId": "18d40f16-a75e-4174-a053-2515e42e98d2"
       }
     },
-    "notification": {
-      "icon": "./assets/images/icon.png",
-      "color": "#4CAF50",
-      "androidMode": "default",
-      "androidCollapsedTitle": "Dieta-se"
-    },
-    "owner": "possatogabriel"
+    "owner": "possas"
   }
 }

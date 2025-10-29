@@ -1,12 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
-
-// ❌ REMOVIDO - NÃO USE setNotificationHandler
 
 interface JejumData {
   horaInicio: string;
@@ -45,71 +42,6 @@ export default function Jejum() {
       console.error('Erro ao buscar token:', error);
       return null;
     }
-  };
-
-  const requestNotificationPermission = async () => {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-    
-    if (finalStatus !== 'granted') {
-      Alert.alert('Atenção', 'Permissão de notificação negada. Você não receberá alertas quando o jejum acabar.');
-      return false;
-    }
-    
-    return true;
-  };
-
-  const agendarNotificacaoFimJejum = async (duracaoMs: number) => {
-    try {
-      const hasPermission = await requestNotificationPermission();
-      if (!hasPermission) {
-        console.log('❌ Sem permissão de notificação');
-        return;
-      }
-
-      const segundos = Math.floor(duracaoMs / 1000);
-      
-      console.log('⏰ Agendando notificação para', segundos, 'segundos (', Math.floor(segundos/60), 'minutos )');
-
-      if (segundos < 60) {
-        Alert.alert('Erro', 'O jejum deve ter no mínimo 1 minuto!');
-        return;
-      }
-
-      // Calcular data/hora exata do fim
-      const agora = new Date();
-      const fimJejum = new Date(agora.getTime() + duracaoMs);
-      
-      console.log('⏰ Notificação será disparada em:', fimJejum.toLocaleString('pt-BR'));
-
-      const notificationId = await Notifications.scheduleNotificationAsync({
-        content: {
-          title: '🎉 Jejum Concluído!',
-          body: 'Chegou a hora da sua próxima refeição! 🍽️',
-          sound: true,
-        },
-        trigger: fimJejum, // 🆕 Usar Date ao invés de seconds
-      });
-      
-      console.log('✅ Notificação agendada com ID:', notificationId);
-      
-      // Verificar SE FOI AGENDADA
-      setTimeout(async () => {
-        const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-        console.log('🔍 Verificação após 2s - Total agendadas:', scheduled.length);
-      }, 2000);
-    } catch (error) {
-      console.error('❌ Erro ao agendar notificação:', error);
-    }
-  };
-
-  const cancelarNotificacoesJejum = async () => {
-    await Notifications.cancelAllScheduledNotificationsAsync();
   };
 
   const carregarStatusJejum = async () => {
@@ -188,7 +120,6 @@ export default function Jejum() {
 
       if (diff <= 0) {
         await AsyncStorage.removeItem('jejumData');
-        await cancelarNotificacoesJejum();
         setJejumStarted(false);
         setTempoRestante('00:00:00');
         setHoraProximaRefeicao('--:--');
@@ -229,11 +160,11 @@ export default function Jejum() {
 
       await AsyncStorage.setItem('jejumData', JSON.stringify(jejumData));
 
-      const duracaoMs = (jejumTime.hours * 60 + jejumTime.minutes) * 60 * 1000;
-      await agendarNotificacaoFimJejum(duracaoMs);
-
       setJejumStarted(true);
-      Alert.alert('✅ Jejum Iniciado', `Sua próxima refeição será em ${jejumTime.hours}h${jejumTime.minutes > 0 ? jejumTime.minutes + 'min' : ''}\n\nVocê receberá uma notificação quando acabar!`);
+      Alert.alert(
+        '✅ Jejum Iniciado', 
+        `Sua próxima refeição será em ${jejumTime.hours}h${jejumTime.minutes > 0 ? jejumTime.minutes + 'min' : ''}`
+      );
     } catch (error) {
       console.error('Erro ao iniciar jejum:', error);
       Alert.alert('Erro', 'Não foi possível iniciar o jejum');
@@ -247,7 +178,6 @@ export default function Jejum() {
   const confirmarPararJejum = async () => {
     try {
       await AsyncStorage.removeItem('jejumData');
-      await cancelarNotificacoesJejum();
       setJejumStarted(false);
       setTempoRestante('00:00:00');
       setHoraProximaRefeicao('--:--');
@@ -675,19 +605,6 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  backButtonCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#4CAF50',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 4,
   },
   backButtonText: {
     fontSize: 25,
