@@ -44,12 +44,13 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
             if ($stmt->execute()) {
                 $userId = $pdo->lastInsertId();
                 
-                // 🔧 CORRIGIDO: Usa as variáveis corretas!
                 $payload = [
                     "id" => $userId,
-                    "email" => $data["email"],  // ← AQUI
-                    "nome" => $data["nome"],    // ← AQUI
-                    "perguntas_completas" => false, // ← SEMPRE false no cadastro
+                    "email" => $data["email"],
+                    "nome" => $data["nome"],
+                    "termos_aceitos" => false,
+                    "essenciais_completas" => false,
+                    "perguntas_completas" => false,
                     "exp" => time() + (60 * 60 * 24)
                 ];
                 $jwt = gerarToken($payload, $jwtSecretKey);
@@ -58,6 +59,8 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
                     "mensagem" => "Usuário criado com sucesso!",
                     "id" => $userId,
                     "token" => $jwt,
+                    "termos_aceitos" => false,
+                    "essenciais_completas" => false,
                     "perguntas_completas" => false
                 ]);
             } else {
@@ -72,37 +75,60 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
 // =======================
     } elseif ($endpoint === "login") {
         if (!empty($data["email"]) && !empty($data["senha"])) {
-            $stmt = $pdo->prepare("SELECT id, nome, email, senha, perguntas_id FROM usuarios WHERE email = :email AND ativo = 1");
+            $stmt = $pdo->prepare("
+                SELECT 
+                    id, 
+                    nome, 
+                    email, 
+                    senha, 
+                    perguntas_id, 
+                    COALESCE(termos_aceitos, 0) as termos_aceitos,
+                    sexo_biologico, 
+                    data_nascimento, 
+                    altura, 
+                    peso_inicial 
+                FROM usuarios 
+                WHERE email = :email AND ativo = 1
+            ");
             $stmt->bindParam(":email", $data["email"]);
             $stmt->execute();
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($usuario && password_verify($data["senha"], $usuario["senha"])) {
+                // Converter para boolean
                 $termosAceitos = (bool)$usuario["termos_aceitos"];
 
-                // Verificar se completou perguntas essenciais
+                // Verificar se completou essenciais
                 $essenciaisCompletas = !is_null($usuario["sexo_biologico"]) 
                     && !is_null($usuario["data_nascimento"]) 
                     && !is_null($usuario["altura"]) 
                     && !is_null($usuario["peso_inicial"]);
 
+                // Verificar se completou perguntas
+                $perguntasCompletas = !is_null($usuario["perguntas_id"]);
+
+                // Montar payload do JWT
                 $payload = [
                     "id" => $usuario["id"],
                     "email" => $usuario["email"],
                     "nome" => $usuario["nome"],
                     "termos_aceitos" => $termosAceitos,
                     "essenciais_completas" => $essenciaisCompletas,
-                    "perguntas_completas" => !is_null($usuario["perguntas_id"]),
+                    "perguntas_completas" => $perguntasCompletas,
                     "exp" => time() + (60 * 60 * 24)
                 ];
 
+                // Gerar JWT
+                $jwt = gerarToken($payload, $jwtSecretKey);
+
+                // Responder
                 enviarSucesso(200, [
-                "mensagem" => "Login bem-sucedido!",
+                    "mensagem" => "Login bem-sucedido!",
                     "id" => $usuario["id"],
                     "token" => $jwt,
                     "termos_aceitos" => $termosAceitos,
                     "essenciais_completas" => $essenciaisCompletas,
-                    "perguntas_completas" => !is_null($usuario["perguntas_id"])
+                    "perguntas_completas" => $perguntasCompletas
                 ]);
             } else {
                 enviarErro(401, "Email ou senha incorretos.");
@@ -114,3 +140,4 @@ if ($requestMethod === "POST" && isset($_GET["endpoint"])) {
 
     exit();
 }
+?>
