@@ -15,7 +15,7 @@ import {
   TouchableWithoutFeedback,
   View
 } from "react-native";
-import post from '../components/post';
+import api from '../components/api';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -32,29 +32,29 @@ export default function Login() {
 
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [isLogin, setIsLogin] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async () => {
     setErrorMessage("");
 
-    const data = { email, senha };
-    
-    try {
-      const response = await post(data, "login");
+    if (!email || !senha) {
+      setErrorMessage("Preencha todos os campos");
+      return;
+    }
 
-      if (response && response.erro) {
-        setErrorMessage(response.erro);
-        return;
-      }
+    try {
+      const data = await api.noAuth.post('/auth.php?endpoint=login', { 
+        email, 
+        senha 
+      });
       
-      if (response && response.token) { 
-        await AsyncStorage.setItem("token", response.token);
-        await AsyncStorage.setItem("userId", response.id.toString());
+      if (data?.token) {
+        await AsyncStorage.setItem("token", data.token);
+        await AsyncStorage.setItem("userId", data.id.toString());
         router.navigate("/home"); 
       }
-    } catch (error) {
-      setErrorMessage("Erro ao conectar com o servidor. Tente novamente.");
+    } catch (error: any) {
+      setErrorMessage(error.message || "Erro ao fazer login");
     }
   };
 

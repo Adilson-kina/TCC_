@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -14,8 +13,8 @@ import {
   TouchableWithoutFeedback,
   View
 } from 'react-native';
+import api from '../components/api';
 
-const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
 const screenWidth = Dimensions.get('window').width;
 
 export default function ProgressoScreen() {
@@ -51,23 +50,13 @@ export default function ProgressoScreen() {
   const carregarProgresso = async () => {
     try {
       setLoading(true);
-      const token = await AsyncStorage.getItem('token');
-
-      const response = await fetch(`${API_BASE}/progresso.php`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const data = await response.json();
+      const data = await api.get('/progresso.php');
 
       if (data.mensagem) {
         setDadosProgresso(data);
         
         // Verificar se pode atualizar
-        if (data.ultima_atualizacao && data.total_registros_peso > 1) { // 🔥 ADICIONEI A CONDIÇÃO
+        if (data.ultima_atualizacao && data.total_registros_peso > 1) {
           const ultimaData = new Date(data.ultima_atualizacao);
           const hoje = new Date();
           const diferencaDias = Math.floor((hoje - ultimaData) / (1000 * 60 * 60 * 24));
@@ -80,7 +69,7 @@ export default function ProgressoScreen() {
             setDiasRestantes(0);
           }
         } else {
-          setPodeAtualizar(true); // Primeira vez OU sem histórico = pode atualizar
+          setPodeAtualizar(true);
           setDiasRestantes(0);
         }
       } else {
@@ -106,23 +95,13 @@ export default function ProgressoScreen() {
 
     try {
       setAlterandoMeta(true);
-      const token = await AsyncStorage.getItem('token');
-
+      
       const body = {
         tipo_meta: novaMeta,
         valor_desejado: novaMeta === 'massa' ? null : parseFloat(novoValor)
       };
 
-      const response = await fetch(`${API_BASE}/progresso.php`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      });
-
-      const data = await response.json();
+      const data = await api.patch('/progresso.php', body);
 
       if (data.mensagem) {
         Alert.alert('Sucesso', 'Meta alterada com sucesso!');
@@ -130,8 +109,6 @@ export default function ProgressoScreen() {
         setNovaMeta('');
         setNovoValor('');
         carregarProgresso();
-      } else if (data.erro) {
-        Alert.alert('Erro', data.erro);
       }
     } catch (error) {
       console.error('Erro ao alterar meta:', error);
@@ -156,16 +133,6 @@ export default function ProgressoScreen() {
     }
   };
 
-  const formatarMetaBotao = (meta: string) => {
-    const metas = {
-      'perder': 'Perder Peso',
-      'ganhar': 'Ganhar Peso',
-      'manter': 'Manter Peso',
-      'massa': 'Ganhar Massa'
-    };
-    return metas[meta] || meta;
-  };
-
   const atualizarPeso = async () => {
     if (!podeAtualizar) {
       Alert.alert(
@@ -182,27 +149,12 @@ export default function ProgressoScreen() {
 
     try {
       setSalvando(true);
-      const token = await AsyncStorage.getItem('token');
-      
-      const bodyData = { peso: parseFloat(novoPeso) };
-
-      const response = await fetch(`${API_BASE}/progresso.php`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(bodyData)
-      });
-
-      const data = await response.json();
+      const data = await api.put('/progresso.php', { peso: parseFloat(novoPeso) });
 
       if (data.mensagem) {
         Alert.alert('Sucesso', 'Peso atualizado com sucesso!');
         setNovoPeso('');
         carregarProgresso();
-      } else if (data.erro) {
-        Alert.alert('Erro', data.erro);
       }
     } catch (error) {
       console.error('Erro ao atualizar peso:', error);
@@ -225,12 +177,6 @@ export default function ProgressoScreen() {
   const calcularDiferenca = () => {
     const diferenca = dadosProgresso.peso_atual - dadosProgresso.peso_inicial;
     return diferenca;
-  };
-
-  const formatarDiferenca = () => {
-    const diferenca = calcularDiferenca();
-    const sinal = diferenca > 0 ? '+' : '';
-    return `${sinal}${diferenca.toFixed(1)}Kg`;
   };
 
   const getStatusIMC = (imc: number) => {

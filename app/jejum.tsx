@@ -2,8 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
+import api from '../components/api';
 
 interface JejumData {
   horaInicio: string;
@@ -35,32 +34,9 @@ export default function Jejum() {
     return () => clearInterval(interval);
   }, [jejumStarted, jejumTime]);
 
-  const getToken = async (): Promise<string | null> => {
-    try {
-      return await AsyncStorage.getItem('token');
-    } catch (error) {
-      console.error('Erro ao buscar token:', error);
-      return null;
-    }
-  };
-
   const carregarStatusJejum = async () => {
     try {
-      const token = await getToken();
-      if (!token) {
-        Alert.alert('Erro', 'Token não encontrado. Faça login novamente.');
-        return;
-      }
-
-      const response = await fetch(`${API_BASE}/jejum.php`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await response.json();
+      const data = await api.get('/jejum.php');
 
       if (data.mensagem && !data.erro) {
         const jejumAtivo = data.jejum_ativo;
@@ -72,12 +48,10 @@ export default function Jejum() {
           setTermsAccepted(true);
           await verificarSessaoJejum();
         }
-      } else {
-        Alert.alert('Erro', data.erro || 'Erro ao carregar status do jejum');
       }
     } catch (error) {
       console.error('Erro ao carregar jejum:', error);
-      Alert.alert('Erro', 'Não foi possível conectar ao servidor');
+      // O Alert já é mostrado pelo api.tsx
     } finally {
       setLoading(false);
     }
@@ -190,33 +164,15 @@ export default function Jejum() {
 
   const handleAcceptTerms = async () => {
     try {
-      const token = await getToken();
-      if (!token) {
-        Alert.alert('Erro', 'Token não encontrado');
-        return;
-      }
-
-      const response = await fetch(`${API_BASE}/jejum.php`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ jejum_ativo: 1 }),
-      });
-
-      const data = await response.json();
+      const data = await api.put('/jejum.php', { jejum_ativo: 1 });
 
       if (data.mensagem && !data.erro) {
         setTermsAccepted(true);
         setShowTerms(false);
         handleStartJejum();
-      } else {
-        Alert.alert('Erro', data.erro || 'Erro ao ativar jejum');
       }
     } catch (error) {
       console.error('Erro ao aceitar termos:', error);
-      Alert.alert('Erro', 'Não foi possível ativar o jejum');
     }
   };
 
@@ -231,23 +187,7 @@ export default function Jejum() {
 
   const confirmarDesativarJejum = async () => {
     try {
-      const token = await getToken();
-      
-      if (!token) {
-        Alert.alert('Erro', 'Token não encontrado');
-        return;
-      }
-
-      const response = await fetch(`${API_BASE}/jejum.php`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ jejum_ativo: 0 }),
-      });
-
-      const data = await response.json();
+      const data = await api.put('/jejum.php', { jejum_ativo: 0 });
 
       if (data.mensagem && !data.erro) {
         await AsyncStorage.removeItem('jejumData');
@@ -255,14 +195,10 @@ export default function Jejum() {
         setJejumStarted(false);
         setShowDeactivateModal(false);
         router.push('/home');
-      } else {
-        setShowDeactivateModal(false);
-        Alert.alert('Erro', data.erro || 'Não foi possível desativar o jejum');
       }
     } catch (error) {
       console.error('Erro ao desativar jejum:', error);
       setShowDeactivateModal(false);
-      Alert.alert('Erro', 'Não foi possível desativar o jejum');
     }
   };
 

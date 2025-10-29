@@ -1,8 +1,8 @@
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import api from '../components/api';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -14,8 +14,6 @@ function heightPercent(percentage: number) {
 function widthPercent(percentage: number) {
   return windowWidth * (percentage / 100);
 }
-
-const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
 
 export default function PerguntasEssenciais() {
   const router = useRouter();
@@ -72,38 +70,19 @@ export default function PerguntasEssenciais() {
 
   const enviarDados = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      
-      if (!token) {
-        setErrorMessage('Token não encontrado. Faça login novamente.');
-        return;
-      }
-
-      const response = await fetch(`${API_BASE}/perguntas/perguntas_essenciais.php`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          sexo_biologico: sexo,
-          data_nascimento: formatarDataParaBanco(dataNascimento),
-          altura: altura,
-          peso: peso
-        })
+      const data = await api.post('/perguntas/perguntas_essenciais.php', {
+        sexo_biologico: sexo,
+        data_nascimento: formatarDataParaBanco(dataNascimento),
+        altura: altura,
+        peso: peso
       });
 
-      const data = await response.json();
-
-      if (data.erro) {
-        setErrorMessage(data.erro);
-      } else if (data.mensagem) {
+      if (data?.mensagem) {
         // Sucesso! Redireciona para as perguntas de perfil
-        router.push('/perguntasPerfil'); // Ajuste o caminho conforme necessário
+        router.push('/perguntasPerfil');
       }
-    } catch (error) {
-      console.error('Erro ao enviar dados:', error);
-      setErrorMessage('Erro ao enviar dados. Tente novamente.');
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Erro ao enviar dados. Tente novamente.');
     }
   };
 
@@ -197,10 +176,6 @@ export default function PerguntasEssenciais() {
                 />
                 <Text style={styles.unidade}>cm</Text>
               </View>
-              
-              <Text style={styles.dica}>
-                📏 Exemplo: 170 cm
-              </Text>
             </>
           )}
 
@@ -212,19 +187,18 @@ export default function PerguntasEssenciais() {
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.inputNumero}
-                  placeholder="70.5"
+                  placeholder="70,5"
                   placeholderTextColor="#747474"
                   value={peso}
-                  onChangeText={setPeso}
+                  onChangeText={(text) => {
+                    const pesoFormatado = text.replace(',', '.');
+                    setPeso(pesoFormatado);
+                  }}
                   keyboardType="decimal-pad"
-                  maxLength={5}
+                  maxLength={6}  
                 />
                 <Text style={styles.unidade}>kg</Text>
               </View>
-              
-              <Text style={styles.dica}>
-                ⚖️ Exemplo: 70.5 kg
-              </Text>
             </>
           )}
 

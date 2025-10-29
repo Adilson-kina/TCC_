@@ -13,8 +13,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-
-const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
+import api from '../components/api';
 
 export default function EditarPerfil() {
   const router = useRouter();
@@ -58,23 +57,14 @@ export default function EditarPerfil() {
 
   const carregarDados = async () => {
     const formatarDataParaExibicao = (dataBanco) => {
-        const [ano, mes, dia] = dataBanco.split('-');
-        return `${dia}/${mes}/${ano}`;
+      const [ano, mes, dia] = dataBanco.split('-');
+      return `${dia}/${mes}/${ano}`;
     };
 
     try {
       setLoading(true);
-      const token = await AsyncStorage.getItem('token');
-
-      const response = await fetch(`${API_BASE}/perfil.php`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const data = await response.json();
+      
+      const data = await api.get('/perfil.php');
 
       if (data.nome) {
         setNome(data.nome);
@@ -96,7 +86,7 @@ export default function EditarPerfil() {
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
-      Alert.alert('Erro', 'Não foi possível carregar os dados');
+      // O Alert já é mostrado pelo api.tsx
     } finally {
       setLoading(false);
     }
@@ -141,7 +131,6 @@ export default function EditarPerfil() {
 
     try {
       setSalvando(true);
-      const token = await AsyncStorage.getItem('token');
 
       // Montar array de distúrbios selecionados
       const disturbiosSelecionados = Object.keys(disturbios)
@@ -157,27 +146,16 @@ export default function EditarPerfil() {
         ...(novaSenha && { senha_atual: senhaAtual, nova_senha: novaSenha })
       };
 
-      const response = await fetch(`${API_BASE}/perfil.php`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      });
-
-      const data = await response.json();
+      const data = await api.put('/perfil.php', body);
 
       if (data.mensagem) {
         Alert.alert('Sucesso', 'Perfil atualizado com sucesso!', [
           { text: 'OK', onPress: () => router.back() }
         ]);
-      } else if (data.erro) {
-        Alert.alert('Erro', data.erro);
       }
     } catch (error) {
       console.error('Erro ao salvar:', error);
-      Alert.alert('Erro', 'Não foi possível salvar as alterações');
+      // O Alert já é mostrado pelo api.tsx
     } finally {
       setSalvando(false);
     }
@@ -191,30 +169,15 @@ export default function EditarPerfil() {
 
     try {
       setDeletando(true);
-      const token = await AsyncStorage.getItem('token');
 
-      const response = await fetch(`${API_BASE}/perfil.php`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ senha: senhaConfirmarDelete })
-      });
+      await api.delete('/perfil.php', { senha: senhaConfirmarDelete });
 
-      const data = await response.json();
-
-      if (response.status === 204 || data.mensagem) {
-        await AsyncStorage.clear();
-        Alert.alert('Conta Deletada', 'Sua conta foi removida com sucesso', [
-          { text: 'OK', onPress: () => router.replace('/') }
-        ]);
-      } else if (data.erro) {
-        Alert.alert('Erro', data.erro);
-      }
+      await AsyncStorage.clear();
+      Alert.alert('Conta Deletada', 'Sua conta foi removida com sucesso', [
+        { text: 'OK', onPress: () => router.replace('/') }
+      ]);
     } catch (error) {
       console.error('Erro ao deletar conta:', error);
-      Alert.alert('Erro', 'Não foi possível deletar a conta');
     } finally {
       setDeletando(false);
       setMostrarModalDeletar(false);
@@ -280,37 +243,6 @@ export default function EditarPerfil() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Alterar Senha</Text>
-          
-          <Text style={styles.label}>Senha Atual</Text>
-          <TextInput
-            style={styles.input}
-            value={senhaAtual}
-            onChangeText={setSenhaAtual}
-            placeholder="Digite sua senha atual"
-            secureTextEntry
-          />
-
-          <Text style={styles.label}>Nova Senha</Text>
-          <TextInput
-            style={styles.input}
-            value={novaSenha}
-            onChangeText={setNovaSenha}
-            placeholder="Mínimo 6 caracteres"
-            secureTextEntry
-          />
-
-          <Text style={styles.label}>Confirmar Nova Senha</Text>
-          <TextInput
-            style={styles.input}
-            value={confirmarSenha}
-            onChangeText={setConfirmarSenha}
-            placeholder="Digite novamente"
-            secureTextEntry
-          />
-        </View>
-
-        <View style={styles.card}>
           <Text style={styles.sectionTitle}>Tipo de Dieta</Text>
           {tiposDieta.map((tipo) => (
             <TouchableOpacity
@@ -349,6 +281,40 @@ export default function EditarPerfil() {
               </Text>
             </TouchableOpacity>
           ))}
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Alterar Senha</Text>
+          
+          <Text style={styles.label}>Senha Atual</Text>
+          <TextInput
+            style={styles.input}
+            value={senhaAtual}
+            onChangeText={setSenhaAtual}
+            placeholder="Digite sua senha atual"
+            placeholderTextColor="#888"
+            secureTextEntry
+          />
+
+          <Text style={styles.label}>Nova Senha</Text>
+          <TextInput
+            style={styles.input}
+            value={novaSenha}
+            onChangeText={setNovaSenha}
+            placeholder="Digite sua nova senha"
+            placeholderTextColor="#888"
+            secureTextEntry
+          />
+
+          <Text style={styles.label}>Confirmar Nova Senha</Text>
+          <TextInput
+            style={styles.input}
+            value={confirmarSenha}
+            onChangeText={setConfirmarSenha}
+            placeholder="Digite novamente"
+            placeholderTextColor="#888"
+            secureTextEntry
+          />
         </View>
 
         <TouchableOpacity

@@ -2,14 +2,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Pedometer } from 'expo-sensors';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 interface PedometerComponentProps {
@@ -29,7 +29,6 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
 
   // 🔍 DEBUG: Log quando o modal muda
   useEffect(() => {
-    console.log('🎭 Estado do modal:', showTermsModal);
   }, [showTermsModal]);
 
   useEffect(() => {
@@ -39,10 +38,8 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
       if (!isActive) return;
 
       try {
-        console.log('🔍 Iniciando pedômetro...');
         
         const isAvailable = await Pedometer.isAvailableAsync();
-        console.log('Pedômetro disponível?', isAvailable);
         
         setIsPedometerAvailable(String(isAvailable));
 
@@ -51,7 +48,6 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
           if (Platform.OS === 'android') {
             try {
               const { status } = await Pedometer.requestPermissionsAsync();
-              console.log('Permissão status:', status);
               
               if (status !== 'granted') {
                 Alert.alert(
@@ -77,11 +73,8 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
           const start = new Date();
           start.setHours(0, 0, 0, 0);
 
-          console.log('Buscando passos de hoje...');
-
           try {
             const pastStepCount = await Pedometer.getStepCountAsync(start, end);
-            console.log('Passos do dia:', pastStepCount);
             
             if (pastStepCount) {
               setCurrentStepCount(pastStepCount.steps);
@@ -94,9 +87,7 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
           }
 
           // Monitorar em tempo real
-          console.log('Iniciando monitoramento...');
           subscription = Pedometer.watchStepCount((result) => {
-            console.log('Novos passos:', result.steps);
             setCurrentStepCount(prev => {
               const newTotal = prev + result.steps;
               // 🔧 CORREÇÃO: Usar setTimeout para não interferir no render
@@ -105,7 +96,6 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
             });
           });
         } else {
-          console.log('❌ Pedômetro não disponível');
           setError('Dispositivo não suporta');
           Alert.alert(
             'Pedômetro indisponível',
@@ -128,7 +118,6 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
 
     return () => {
       if (subscription) {
-        console.log('🔴 Parando pedômetro');
         subscription.remove();
       }
     };
@@ -136,27 +125,16 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
 
   const checkPedometerStatus = async () => {
     try {
-      console.log('🔍 Verificando status do pedômetro...');
       
       const saved = await AsyncStorage.getItem('pedometroAtivo');
       const firstTime = await AsyncStorage.getItem('pedometroFirstTime');
       
-      console.log('📱 pedometroAtivo:', saved);
-      console.log('📱 pedometroFirstTime:', firstTime);
-      
       if (saved === 'true') {
-        // Já ativado antes - ativar automaticamente
-        console.log('✅ Pedômetro já estava ativo, ativando...');
         setIsActive(true);
       } else if (firstTime === null) {
-        // 🆕 PRIMEIRA VEZ - Mostrar modal automaticamente
-        console.log('🎉 PRIMEIRA VEZ! Mostrando modal...');
         setShowTermsModal(true);
         await AsyncStorage.setItem('pedometroFirstTime', 'shown'); // Marca que já mostrou
-        console.log('✅ Modal deveria estar aparecendo agora!');
       } else {
-        // Já recusou antes - mostrar como desativado
-        console.log('❌ Usuário já viu o modal antes, mostrando como desativado');
         setIsPedometerAvailable('false');
       }
     } catch (error) {

@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -12,8 +11,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-
-const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
+import api from '../components/api';
 
 interface Alimento {
   id: number;
@@ -60,17 +58,7 @@ export default function RefeicoesScreen() {
   const carregarAlimentosPermitidos = async () => {
     try {
       setLoading(true);
-      const token = await AsyncStorage.getItem('token');
-      
-      const response = await fetch(`${API_BASE}/refeicoes.php`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      const data = await response.json();
+      const data = await api.get('/refeicoes.php');
       
       if (data.alimentos) {
         setAlimentosPermitidos(data.alimentos);
@@ -109,32 +97,20 @@ export default function RefeicoesScreen() {
 
     try {
       setSalvando(true);
-      const token = await AsyncStorage.getItem('token');
       
       const alimentosFormatados = alimentosSelecionados.map(id => ({ id }));
       
-      const response = await fetch(`${API_BASE}/refeicoes.php`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          tipo_refeicao: tipoRefeicaoSelecionado,
-          sintoma: sintomaSelecionado,
-          alimentos: alimentosFormatados
-        })
+      const data = await api.post('/refeicoes.php', {
+        tipo_refeicao: tipoRefeicaoSelecionado,
+        sintoma: sintomaSelecionado,
+        alimentos: alimentosFormatados
       });
-
-      const data = await response.json();
 
       if (data.mensagem) {
         Alert.alert('Sucesso', 'Refeição registrada com sucesso!');
         setModalVisivel(false);
         setAlimentosSelecionados([]);
         setTermoBusca('');
-      } else if (data.erro) {
-        Alert.alert('Erro', data.erro);
       }
     } catch (error) {
       console.error('Erro ao registrar refeição:', error);

@@ -15,7 +15,7 @@ import {
   TouchableWithoutFeedback,
   View
 } from "react-native";
-import post from '../components/post';
+import api from '../components/api';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -39,30 +39,31 @@ export default function SignUp() {
   const handleSubmit = async () => {
     setErrorMessage("");
 
-    const data = { nome, email, senha };
-    
+    if (!nome || !email || !senha) {
+      setErrorMessage("Preencha todos os campos");
+      return;
+    }
+
     try {
-      const response = await post(data, "cadastro");
+      const response = await api.noAuth.post('/auth.php?endpoint=cadastro', { 
+        nome, 
+        email, 
+        senha 
+      });
 
-      if (response && response.erro) {
-        setErrorMessage(response.erro);
-        return;
-      }
-
-      if (response && response.id && response.token) {
-        await AsyncStorage.setItem("userId", response.id.toString());
+      if (response?.token) {
         await AsyncStorage.setItem("token", response.token);
+        await AsyncStorage.setItem("userId", response.id.toString());
         router.navigate("/termos");
         return;
       }
 
-      // fallback caso não tenha token mas tenha id
-      if (response && response.id) {
+      if (response?.id) {
         await AsyncStorage.setItem("userId", response.id.toString());
         router.navigate("/termos");
       }
-    } catch (error) {
-      setErrorMessage("Erro ao conectar com o servidor. Tente novamente.");
+    } catch (error: any) {
+      setErrorMessage(error.message || "Erro ao fazer cadastro");
     }
   };
 

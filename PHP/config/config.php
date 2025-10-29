@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Chave secreta JWT
-$jwtSecretKey = "dietasecreta";
+$jwtSecretKey = getenv('JWT_SECRET_KEY') ?: 'dietasecreta';
 
 function enviarErro($codigo, $mensagem) {
     http_response_code($codigo);

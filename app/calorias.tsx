@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -13,8 +12,7 @@ import {
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import PedometerComponent from '../components/Pedometer';
-
-const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
+import api from '../components/api';
 
 const CaloriasScreen = () => {
   const router = useRouter();
@@ -36,20 +34,7 @@ const CaloriasScreen = () => {
 
   const enviarDados = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) return;
-      
-      const response = await fetch(`${API_BASE}/calorias/calorias.php`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ passos })
-      });
-
-      const text = await response.text();
-      const data = JSON.parse(text);
+      const data = await api.post('/calorias/calorias.php', { passos }, false);
       
       if (data.mensagem && data.tmb !== undefined) {
         setDadosCalorias(data);
@@ -65,20 +50,7 @@ const CaloriasScreen = () => {
 
   const carregarHistorico = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) return;
-      
-      const response = await fetch(`${API_BASE}/calorias/calorias_historico.php`, {
-        method: 'GET',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      // 🔧 CORREÇÃO: Adicionar a linha que estava faltando
-      const text = await response.text();
-      const data = JSON.parse(text);
+      const data = await api.get('/calorias/calorias_historico.php', false);
       
       if (data.dados) {
         setHistorico(data.dados);

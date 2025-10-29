@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -9,8 +8,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-
-const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
+import api from '../components/api';
 
 interface Alimento {
   id: number;
@@ -40,17 +38,7 @@ export default function HistoricoScreen() {
   const carregarHistorico = async () => {
     try {
       setLoading(true);
-      const token = await AsyncStorage.getItem('token');
-
-      const response = await fetch(`${API_BASE}/historico.php`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const data = await response.json();
+      const data = await api.get('/historico.php');
 
       if (data.refeicoes) {
         setRefeicoes(data.refeicoes);

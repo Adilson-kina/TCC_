@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -10,8 +9,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-
-const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
+import api from '../components/api';
 
 export default function DietaScreen() {
   const router = useRouter();
@@ -57,17 +55,7 @@ export default function DietaScreen() {
   const carregarDieta = async () => {
     try {
       setLoading(true);
-      const token = await AsyncStorage.getItem('token');
-      
-      const response = await fetch(`${API_BASE}/dieta.php`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const data = await response.json();
+      const data = await api.get('/dieta.php');
 
       if (data.restricoes) {
         setRestricoes(data.restricoes);
@@ -121,27 +109,16 @@ export default function DietaScreen() {
   const salvarDieta = async () => {
     try {
       setSalvando(true);
-      setAvisoOrdenacao(''); // Limpa aviso anterior
-      const token = await AsyncStorage.getItem('token');
+      setAvisoOrdenacao('');
       
-      const response = await fetch(`${API_BASE}/dieta.php`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          alimentos: alimentosSelecionados,
-          ordenacao_home: ordenacaoHome
-        })
+      const data = await api.post('/dieta.php', {
+        alimentos_selecionados: alimentosSelecionados,
+        ordenacao_home: ordenacaoHome
       });
-
-      const data = await response.json();
 
       if (data.dieta_atualizada) {
         setDietaSalva(data.dieta_atualizada);
         
-        // Verifica se tem aviso de ordenação
         if (data.aviso_ordenacao) {
           setAvisoOrdenacao(data.aviso_ordenacao);
         }

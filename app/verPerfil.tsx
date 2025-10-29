@@ -13,8 +13,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-
-const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
+import api from '../components/api';
 
 export default function Perfil() {
   const router = useRouter();
@@ -92,17 +91,8 @@ export default function Perfil() {
   const carregarPerfil = async () => {
     try {
       setLoading(true);
-      const token = await AsyncStorage.getItem('token');
-
-      const response = await fetch(`${API_BASE}/perfil.php`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const data = await response.json();
+      
+      const data = await api.get('/perfil.php');
 
       if (data.nome) {
         setPerfil({
@@ -112,11 +102,12 @@ export default function Perfil() {
           imc: parseFloat(data.imc),
           idade: data.idade,
           tipo_dieta: formatarTipoDieta(data.tipo_dieta),
-          restricoes_alimentares: formatarRestricoes(data.restricoes_alimentares) // ADICIONA ESTA FUNÇÃO
+          restricoes_alimentares: formatarRestricoes(data.restricoes_alimentares)
         });
       }
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);
+      // O erro já é tratado pelo api.tsx com Alert
     } finally {
       setLoading(false);
     }

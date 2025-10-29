@@ -117,7 +117,14 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $data = json_decode(file_get_contents("php://input"), true);
-    $alimentosSelecionados = $data["alimentos"];
+
+    if (!isset($data["alimentos_selecionados"]) || !is_array($data["alimentos_selecionados"])) {
+        enviarErro(400, "Campo 'alimentos_selecionados' ausente ou inválido.");
+        exit;
+    }
+
+    $alimentosSelecionados = $data["alimentos_selecionados"];
+
     $ordenacaoHome = $data["ordenacao_home"] ?? 'carboidrato_g';
 
     if (!is_array($alimentosSelecionados)) {

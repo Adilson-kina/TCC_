@@ -2,8 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
+import api from '../components/api';
 
 export default function Home() {
   const router = useRouter();
@@ -99,28 +98,10 @@ export default function Home() {
 
   const verificarStatusJejum = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
+      const data = await api.get('/jejum.php', false); // false = não mostra alert de erro
       
-      if (!token) {
-        console.error('Token não encontrado');
-        return;
-      }
-
-      const response = await fetch(`${API_BASE}/jejum.php`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const data = await response.json();
-
-      // CORRETO: acessar data.jejum_ativo diretamente
-      if (data.mensagem) {
+      if (data?.mensagem) {
         setJejumAtivo(data.jejum_ativo);
-      } else if (data.erro) {
-        console.error('Erro ao verificar jejum:', data.erro);
       }
     } catch (error) {
       console.error('Erro ao verificar status do jejum:', error);
@@ -176,37 +157,15 @@ export default function Home() {
 
   const handleAcceptTermsHome = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      
-      if (!token) {
-        console.error('❌ Token não encontrado');
-        Alert.alert('Erro', 'Token não encontrado. Faça login novamente.');
-        return;
-      }
-      
-      const response = await fetch(`${API_BASE}/jejum.php`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ jejum_ativo: 1 })
-      });
-      
-      const data = await response.json();
+      const data = await api.put('/jejum.php', { jejum_ativo: 1 });
 
-      // CORRETO: verificar data.mensagem ao invés de data.sucesso
-      if (data.mensagem && !data.erro) {
+      if (data?.mensagem && !data.erro) {
         setJejumAtivo(true);
         setShowTermsModal(false);
         router.push('/jejum');
-      } else {
-        console.error('❌ Erro da API:', data.erro || data.mensagem);
-        Alert.alert('Erro', data.erro || 'Não foi possível ativar o jejum');
       }
-    } catch (error) {
-      console.error('❌ Erro ao aceitar termos:', error);
-      Alert.alert('Erro', 'Não foi possível conectar ao servidor: ' + error.message);
+    } catch (error: any) {
+      Alert.alert('Erro', error.message || 'Não foi possível ativar o jejum');
     }
   };
 
@@ -234,28 +193,10 @@ export default function Home() {
   const carregarDados = async () => {
     try {
       setLoading(true);
-      const token = await AsyncStorage.getItem('token');
-      
-      if (!token) {
-        console.error('Token não encontrado');
-        return;
-      }
+      const data = await api.get('/inicio.php', false);
 
-      const response = await fetch(`${API_BASE}/inicio.php`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const data = await response.json();
-
-      if (data.mensagem) {
+      if (data?.mensagem) {
         setDadosInicio(data);
-        
-      } else if (data.erro) {
-        console.error('Erro da API:', data.erro);
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);

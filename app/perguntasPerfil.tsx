@@ -1,7 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import api from '../components/api';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -13,8 +13,6 @@ function heightPercent(percentage) {
 function widthPercent(percentage) {
   return windowWidth * (percentage / 100);
 }
-
-const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
 
 export default function PerguntasPerfil() {
   const router = useRouter();
@@ -40,31 +38,13 @@ export default function PerguntasPerfil() {
 
   const buscarDadosCalculados = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
+      const data = await api.get('/perguntas/perguntas_perfil.php');
       
-      if (!token) {
-        setErrorMessage('Token não encontrado. Faça login novamente.');
-        return;
-      }
-      
-      const response = await fetch(`${API_BASE}/perguntas/perguntas_perfil.php`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      const data = await response.json();
-
-      if (data.peso_recomendado_min && data.peso_recomendado_max) {
+      if (data?.peso_recomendado_min && data?.peso_recomendado_max) {
         setDadosCalculados(data);
-        console.log('Dados calculados recebidos:', data);
-      } else {
-        console.log('Resposta da API:', data);
       }
-    } catch (error) {
-      console.error('Erro ao buscar dados:', error);
-      setErrorMessage('Erro ao buscar dados calculados. Tente novamente.');
+    } catch (error: any) {
+      setErrorMessage('Erro ao buscar dados calculados.');
     }
   };
 
@@ -134,13 +114,6 @@ export default function PerguntasPerfil() {
     setEnviando(true);
     
     try {
-      const token = await AsyncStorage.getItem('token');
-      
-      if (!token) {
-        setErrorMessage('Token não encontrado. Faça login novamente.');
-        return;
-      }
-      
       const disturbiosParaEnviar = disturbios.length === 0 ? ['nenhuma'] : disturbios;
       
       const payload = {
@@ -152,7 +125,9 @@ export default function PerguntasPerfil() {
         comer_fds: comerFds,
         disturbios: disturbiosParaEnviar,
         possui_dieta: possuiDieta,
-        faixa_recomendada: dadosCalculados ? `${dadosCalculados.peso_recomendado_min}-${dadosCalculados.peso_recomendado_max}` : ''
+        faixa_recomendada: dadosCalculados 
+          ? `${dadosCalculados.peso_recomendado_min}-${dadosCalculados.peso_recomendado_max}` 
+          : ''
       };
 
       if (objetivo === 'perder' || objetivo === 'ganhar') {
@@ -163,35 +138,16 @@ export default function PerguntasPerfil() {
         payload.valor_desejado = null;
       }
 
-      const response = await fetch(`${API_BASE}/perguntas/perguntas_perfil.php`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
+      const data = await api.post('/perguntas/perguntas_perfil.php', payload);
 
-      const data = await response.json();
-
-      if (data.erro) {
-        setErrorMessage(data.erro);
-        setEnviando(false);
-      } else if (data.mensagem) {
-        await fetch(`${API_BASE}/alimentos/alimentos.php`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
+      if (data?.mensagem) {
+        // Buscar alimentos antes de redirecionar
+        await api.get('/alimentos/alimentos.php');
         router.push('/home');
-        console.log('Navegando para home...');
-        setEnviando(false);
       }
-    } catch (error) {
-      console.error('Erro ao enviar dados:', error);
-      setErrorMessage('Erro ao enviar dados. Tente novamente.');
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Erro ao enviar dados. Tente novamente.');
+    } finally {
       setEnviando(false);
     }
   };
@@ -265,15 +221,16 @@ export default function PerguntasPerfil() {
                   <Text style={styles.pergunta}>Qual peso você{'\n'}deseja alcançar?</Text>
                   
                   {dadosCalculados && (
-                    <View style={styles.infoBox}>
-                      <Text style={styles.infoTexto}>
-                        💡 Seu peso atual: {dadosCalculados.peso_atual || 'N/A'} kg
-                      </Text>
-                      <Text style={styles.infoTexto}>
-                        ✅ Faixa recomendada: {dadosCalculados.peso_recomendado_min} - {dadosCalculados.peso_recomendado_max} kg
-                      </Text>
-                    </View>
-                  )}
+                  <View style={styles.infoBox}>
+                    <Text style={styles.infoTexto}>
+                      💡 Seu peso atual: <Text style={styles.pesoDestaque}>{dadosCalculados.peso_atual} kg</Text>
+                    </Text>
+                    <Text style={styles.infoTexto}>
+                      ✅ Faixa recomendada (por IMC): {'\n'}
+                      <Text style={styles.pesoDestaque}>{dadosCalculados.peso_recomendado_min} - {dadosCalculados.peso_recomendado_max} kg</Text>
+                    </Text>
+                  </View>
+                )}
                   
                   <View style={styles.inputContainer}>
                     <TextInput
@@ -281,16 +238,16 @@ export default function PerguntasPerfil() {
                       placeholder="65.5"
                       placeholderTextColor="#747474"
                       value={valorDesejado}
-                      onChangeText={setValorDesejado}
+                      onChangeText={(text) => {
+                        // ✅ Substitui vírgula por ponto automaticamente
+                        const pesoFormatado = text.replace(',', '.');
+                        setValorDesejado(pesoFormatado);
+                      }}
                       keyboardType="decimal-pad"
-                      maxLength={5}
+                      maxLength={6}
                     />
                     <Text style={styles.unidade}>kg</Text>
                   </View>
-                  
-                  <Text style={styles.dica}>
-                    ⚖️ Exemplo: 70.5 kg
-                  </Text>
                 </>
               ) : (
                 <>
@@ -355,7 +312,7 @@ export default function PerguntasPerfil() {
           {/* ETAPA 4: JEJUM INTERMITENTE */}
           {etapa === 4 && (
             <>
-              <Text style={styles.pergunta}>Você pratica ou{'\n'}deseja praticar{'\n'}jejum intermitente?</Text>
+              <Text style={styles.pergunta}>Você deseja praticar{'\n'}jejum intermitente?</Text>
               
               <Pressable 
                 style={[styles.opcao, jejumIntermitente === 'sim' && styles.opcaoSelecionada]}
@@ -380,10 +337,10 @@ export default function PerguntasPerfil() {
               <View style={[styles.infoBox, styles.alertBox]}>
                 <Text style={styles.alertTitulo}>⚠️ Importante sobre o jejum</Text>
                 <Text style={styles.infoTexto}>
-                  O jejum intermitente pode trazer riscos se não for feito com acompanhamento adequado. Por isso, esse recurso vem <Text style={styles.destaque}>desativado por padrão</Text> no app.
+                  O jejum intermitente pode trazer riscos se não for feito com acompanhamento adequado. Por isso, esse recurso vem <Text style={styles.destaque}>desativado por padrão</Text> no app, exceto se você selecionar "Sim" nesta pergunta.
                 </Text>
                 <Text style={styles.infoTexto}>
-                  💡 Você poderá ativá-lo manualmente nas configurações quando desejar, mas recomendamos consultar um profissional de saúde primeiro.
+                  💡 Você poderá ativá-lo manualmente depois, mas recomendamos consultar um profissional de saúde primeiro.
                 </Text>
               </View>
             </>
@@ -475,7 +432,7 @@ export default function PerguntasPerfil() {
                 <View style={styles.radio}>
                   {possuiDieta === 'sim' && <View style={styles.radioSelecionado} />}
                 </View>
-                <Text style={styles.opcaoTexto}>Sim, tenho</Text>
+                <Text style={styles.opcaoTexto}>Sim</Text>
               </Pressable>
 
               <Pressable 
@@ -485,17 +442,7 @@ export default function PerguntasPerfil() {
                 <View style={styles.radio}>
                   {possuiDieta === 'nao' && <View style={styles.radioSelecionado} />}
                 </View>
-                <Text style={styles.opcaoTexto}>Não, não tenho</Text>
-              </Pressable>
-
-              <Pressable 
-                style={[styles.opcao, possuiDieta === 'nao_sei' && styles.opcaoSelecionada]}
-                onPress={() => setPossuiDieta('nao_sei')}
-              >
-                <View style={styles.radio}>
-                  {possuiDieta === 'nao_sei' && <View style={styles.radioSelecionado} />}
-                </View>
-                <Text style={styles.opcaoTexto}>Não sei</Text>
+                <Text style={styles.opcaoTexto}>Não</Text>
               </Pressable>
             </>
           )}
@@ -503,7 +450,7 @@ export default function PerguntasPerfil() {
           {/* ETAPA 8: TIPO DE DIETA */}
           {etapa === 8 && (
             <>
-              <Text style={styles.pergunta}>Você segue alguma{'\n'}dieta específica?</Text>
+              <Text style={styles.pergunta}>Você gostaria de seguir{'\n'}alguma dieta específica?</Text>
               
               <ScrollView 
               style={styles.scrollOpcoes}
@@ -516,7 +463,7 @@ export default function PerguntasPerfil() {
                 <View style={styles.radio}>
                   {(tipoDieta === '' || tipoDieta === 'nenhuma') && <View style={styles.radioSelecionado} />}
                 </View>
-                <Text style={styles.opcaoTexto}>Nenhuma dieta específica</Text>
+                <Text style={styles.opcaoTexto}>Prefiro não seguir</Text>
               </Pressable>
 
                 <Pressable 
@@ -763,6 +710,10 @@ const styles = StyleSheet.create({
     color: '#000000',
     marginBottom: 25,  // era 30
     lineHeight: 28,  // era 32
+  },
+  pesoDestaque: {
+    fontWeight: 'bold',
+    color: '#007912',  // verde do app
   },
   scrollOpcoes: {
     maxHeight: heightPercent(40),
