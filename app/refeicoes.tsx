@@ -159,13 +159,19 @@ export default function RefeicoesScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Header Verde */}
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Text style={styles.backButtonText}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>🍴 Refeições</Text>
+        <View style={styles.placeholder} />
+      </View>
+
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>📋 Registrar Refeição</Text>
-          <Text style={styles.headerSubtitle}>
-            Selecione o tipo de refeição para registrar
-          </Text>
-        </View>
 
         {tiposRefeicao.map((tipo) => (
           <TouchableOpacity
@@ -312,25 +318,46 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
   },
+  placeholder: {
+    width: 40,
+  },
   scrollView: {
     flex: 1,
+    paddingTop: 15,
   },
   header: {
-    padding: 20,
-    paddingTop: 30,
-    backgroundColor: '#FFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 35, // aumentei para empurrar o conteúdo para baixo
+    paddingBottom: 15, // mantém o espaço embaixo
+    backgroundColor: '#4CAF50',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 25,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 5,
+    color: '#FFF',
+  },
+  headerSpacer: {
+    width: 40, // mesmo tamanho do botão para centralizar o título
   },
   headerSubtitle: {
     fontSize: 14,
     color: '#666',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    fontSize: 25,
+    color: '#FFF',
+    fontWeight: 'bold',
   },
   refeicaoCard: {
     flexDirection: 'row',

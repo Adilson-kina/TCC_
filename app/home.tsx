@@ -115,12 +115,10 @@ export default function Home() {
       });
 
       const data = await response.json();
-      console.log('📊 Dados do jejum:', data);
 
       // CORRETO: acessar data.jejum_ativo diretamente
       if (data.mensagem) {
         setJejumAtivo(data.jejum_ativo);
-        console.log('✅ Jejum ativo:', data.jejum_ativo);
       } else if (data.erro) {
         console.error('Erro ao verificar jejum:', data.erro);
       }
@@ -177,18 +175,14 @@ export default function Home() {
     };
 
   const handleAcceptTermsHome = async () => {
-    console.log('🔵 Iniciando handleAcceptTermsHome');
     try {
       const token = await AsyncStorage.getItem('token');
-      console.log('🔵 Token obtido:', token ? 'existe' : 'não existe');
       
       if (!token) {
         console.error('❌ Token não encontrado');
         Alert.alert('Erro', 'Token não encontrado. Faça login novamente.');
         return;
       }
-
-      console.log('🔵 Fazendo requisição PUT para:', `${API_BASE}/jejum.php`);
       
       const response = await fetch(`${API_BASE}/jejum.php`, {
         method: 'PUT',
@@ -198,15 +192,11 @@ export default function Home() {
         },
         body: JSON.stringify({ jejum_ativo: 1 })
       });
-
-      console.log('🔵 Response status:', response.status);
       
       const data = await response.json();
-      console.log('🔵 Response data:', JSON.stringify(data, null, 2));
 
       // CORRETO: verificar data.mensagem ao invés de data.sucesso
       if (data.mensagem && !data.erro) {
-        console.log('✅ Jejum ativado com sucesso');
         setJejumAtivo(true);
         setShowTermsModal(false);
         router.push('/jejum');
@@ -550,7 +540,10 @@ export default function Home() {
         >
           <View style={styles.dietHeader}>
             <Text style={styles.dietIcon}>🍽️</Text>
-            <Text style={styles.dietTitle}>Minha Dieta</Text>
+            <Text style={styles.dietTitle}>
+              <Text style={styles.headerTitleBlack}>Minha </Text>
+              <Text style={styles.headerTitleGreen}>Dieta</Text>
+            </Text>
             <View style={styles.editIcon}>
               <Text style={styles.editIconText}>✏️</Text>
             </View>
@@ -735,7 +728,9 @@ export default function Home() {
                 <Text style={styles.historicoItem}>
                   🍽️ <Text style={styles.historicoLabel}>Alimentos:</Text>{' '}
                   <Text style={styles.historicoGood}>
-                    {dadosInicio.ultima_refeicao.alimentos.length} itens
+                    {dadosInicio.ultima_refeicao.alimentos.length === 1 
+                      ? '1 item' 
+                      : `${dadosInicio.ultima_refeicao.alimentos.length} itens`}
                   </Text>
                 </Text>
               </View>
@@ -1166,8 +1161,13 @@ const styles = StyleSheet.create({
   dietTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#00BFA5',
     flex: 1,
+  },
+    headerTitleBlack: {
+    color: '#00813B',
+  },
+  headerTitleGreen: {
+    color: '#00D365',
   },
   editIcon: {
     width: 30,

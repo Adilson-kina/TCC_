@@ -183,41 +183,52 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $proximaRefeicao = 'Café da Manhã'; // padrão
         $horaAtual = (int)date('H');
 
-        // Definir qual refeição corresponde a cada horário
-        function refeicaoPorHorario($hora) {
-            return match(true) {
-                $hora >= 6 && $hora < 11 => 'Café da Manhã',
-                $hora >= 11 && $hora < 15 => 'Almoço',
-                $hora >= 15 && $hora < 19 => 'Lanche',
-                default => 'Jantar' // 19h em diante ou madrugada
-            };
+        // Mapear tipo de refeição para nome legível
+        $nomeRefeicoes = [
+            'cafe' => 'Café da Manhã',
+            'almoco' => 'Almoço',
+            'lanche' => 'Lanche',
+            'janta' => 'Jantar'
+        ];
+
+        // Ordem das refeições
+        $sequenciaRefeicoes = ['cafe', 'almoco', 'lanche', 'janta'];
+
+        // Determinar refeição apropriada pelo horário atual
+        $refeicaoAtualPorHorario = 'janta'; // padrão
+        if ($horaAtual >= 6 && $horaAtual < 11) {
+            $refeicaoAtualPorHorario = 'cafe';
+        } elseif ($horaAtual >= 11 && $horaAtual < 15) {
+            $refeicaoAtualPorHorario = 'almoco';
+        } elseif ($horaAtual >= 15 && $horaAtual < 19) {
+            $refeicaoAtualPorHorario = 'lanche';
         }
 
-        // Ordem das refeições para comparação
-        $ordemRefeicoes = ['Café da Manhã' => 1, 'Almoço' => 2, 'Lanche' => 3, 'Jantar' => 4];
-
         if ($ultimaRefeicao) {
-            // Próxima refeição lógica baseada na última
-            $proximaLogica = match($ultimaRefeicao['tipo_refeicao']) {
-                'cafe' => 'Almoço',
-                'almoco' => 'Lanche',
-                'lanche' => 'Jantar',
-                'janta' => 'Café da Manhã',
-                default => 'Café da Manhã'
-            };
+            $ultimoTipo = $ultimaRefeicao['tipo_refeicao'];
             
-            // Refeição que deveria estar acontecendo agora baseado no horário
-            $refeicaoDoHorario = refeicaoPorHorario($horaAtual);
+            // Determinar próxima refeição na sequência
+            $indiceAtual = array_search($ultimoTipo, $sequenciaRefeicoes);
+            $proximoIndice = ($indiceAtual + 1) % 4; // cicla de volta ao café
+            $proximaLogica = $sequenciaRefeicoes[$proximoIndice];
             
-            // Se a refeição do horário está "mais à frente" na sequência que a próxima lógica, usa ela
-            if ($ordemRefeicoes[$refeicaoDoHorario] > $ordemRefeicoes[$proximaLogica]) {
-                $proximaRefeicao = $refeicaoDoHorario;
+            // Calcular quantas refeições de "distância" estão uma da outra
+            $indiceProximaLogica = array_search($proximaLogica, $sequenciaRefeicoes);
+            $indiceRefeicaoHorario = array_search($refeicaoAtualPorHorario, $sequenciaRefeicoes);
+            
+            // Se o horário "pulou" 2 ou mais refeições à frente, usar a refeição do horário
+            $diferencaRefeicoes = ($indiceRefeicaoHorario - $indiceProximaLogica + 4) % 4;
+            
+            if ($diferencaRefeicoes >= 2) {
+                // Pulou 2 ou mais refeições, usar horário atual
+                $proximaRefeicao = $nomeRefeicoes[$refeicaoAtualPorHorario];
             } else {
-                $proximaRefeicao = $proximaLogica;
+                // Seguir sequência normal
+                $proximaRefeicao = $nomeRefeicoes[$proximaLogica];
             }
         } else {
-            // Se não há refeição registrada, sugere baseado no horário
-            $proximaRefeicao = refeicaoPorHorario($horaAtual);
+            // Sem refeição registrada, usar horário
+            $proximaRefeicao = $nomeRefeicoes[$refeicaoAtualPorHorario];
         }
 
         $ultimaRefeicaoData = null;

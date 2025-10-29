@@ -5,11 +5,13 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  Keyboard,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View
 } from 'react-native';
 
@@ -178,6 +180,14 @@ export default function ProgressoScreen() {
     try {
       setSalvando(true);
       const token = await AsyncStorage.getItem('token');
+      
+      const bodyData = { peso: parseFloat(novoPeso) };
+      
+      // 🔍 DEBUG
+      console.log('=== ENVIANDO PESO ===');
+      console.log('Token:', token);
+      console.log('Body:', bodyData);
+      console.log('Peso parseado:', parseFloat(novoPeso));
 
       const response = await fetch(`${API_BASE}/progresso.php`, {
         method: 'PUT',
@@ -185,12 +195,15 @@ export default function ProgressoScreen() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          peso: parseFloat(novoPeso)
-        })
+        body: JSON.stringify(bodyData)
       });
 
       const data = await response.json();
+      
+      // 🔍 DEBUG
+      console.log('=== RESPOSTA ===');
+      console.log('Status:', response.status);
+      console.log('Data:', data);
 
       if (data.mensagem) {
         Alert.alert('Sucesso', 'Peso atualizado com sucesso!');
@@ -327,6 +340,61 @@ export default function ProgressoScreen() {
 
   if (!temDadosPeso) {
     return (
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <Text style={styles.backButtonText}>←</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>📊 Progresso</Text>
+            <View style={styles.placeholder} />
+          </View>
+
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>⚖️</Text>
+            <Text style={styles.emptyTitle}>Nenhum peso registrado ainda</Text>
+            <Text style={styles.emptySubtitle}>
+              Registre seu peso atual para começar a acompanhar seu progresso!
+            </Text>
+
+            <View style={styles.firstWeightCard}>
+              <Text style={styles.inputLabel}>Registrar seu primeiro peso:</Text>
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Insira seu peso em Kg"
+                  placeholderTextColor="#888"
+                  keyboardType="numeric"
+                  value={novoPeso}
+                  onChangeText={setNovoPeso}
+                />
+                <TouchableOpacity
+                  style={[styles.submitButton, salvando && styles.submitButtonDisabled]}
+                  onPress={atualizarPeso}
+                  disabled={salvando}
+                >
+                  {salvando ? (
+                    <ActivityIndicator size="small" color="#FFF" />
+                  ) : (
+                    <Text style={styles.submitButtonText}>▶</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
+    );
+  }
+
+  const statusImcInicial = getStatusIMC(dadosProgresso.imc_inicial);
+  const statusImcAtual = getStatusIMC(dadosProgresso.imc_atual);
+
+  return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity 
@@ -339,301 +407,251 @@ export default function ProgressoScreen() {
           <View style={styles.placeholder} />
         </View>
 
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>⚖️</Text>
-          <Text style={styles.emptyTitle}>Nenhum peso registrado ainda</Text>
-          <Text style={styles.emptySubtitle}>
-            Registre seu peso atual para começar a acompanhar seu progresso!
-          </Text>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>{formatarMeta(dadosProgresso.meta)}</Text>
 
-          <View style={styles.firstWeightCard}>
-            <Text style={styles.inputLabel}>Registrar seu primeiro peso:</Text>
-            <View style={styles.inputRow}>
-              <TextInput
-                style={styles.input}
-                placeholder="Insira seu peso em Kg"
-                keyboardType="numeric"
-                value={novoPeso}
-                onChangeText={setNovoPeso}
-              />
-              <TouchableOpacity
-                style={[styles.submitButton, salvando && styles.submitButtonDisabled]}
-                onPress={atualizarPeso}
-                disabled={salvando}
-              >
-                {salvando ? (
-                  <ActivityIndicator size="small" color="#FFF" />
-                ) : (
-                  <Text style={styles.submitButtonText}>▶</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </View>
-    );
-  }
+            {renderGrafico()}
 
-  const statusImcInicial = getStatusIMC(dadosProgresso.imc_inicial);
-  const statusImcAtual = getStatusIMC(dadosProgresso.imc_atual);
+            <View style={styles.statsContainer}>
+              <View style={styles.statColumn}>
+                <Text style={styles.statEmoji}>🎯</Text>
+                <Text style={styles.statLabel}>INICIAL:</Text>
+                <Text style={styles.statWeight}>{dadosProgresso.peso_inicial}Kg</Text>
+                <Text style={[styles.statIMC, { color: statusImcInicial.cor }]}>
+                  IMC: {statusImcInicial.texto}
+                </Text>
+              </View>
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.backButtonText}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>📊 Progresso</Text>
-        <View style={styles.placeholder} />
-      </View>
-
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>{formatarMeta(dadosProgresso.meta)}</Text>
-
-          {renderGrafico()}
-
-          <View style={styles.statsContainer}>
-            <View style={styles.statColumn}>
-              <Text style={styles.statEmoji}>🎯</Text>
-              <Text style={styles.statLabel}>INICIAL:</Text>
-              <Text style={styles.statWeight}>{dadosProgresso.peso_inicial}Kg</Text>
-              <Text style={[styles.statIMC, { color: statusImcInicial.cor }]}>
-                IMC: {statusImcInicial.texto}
-              </Text>
+              <View style={styles.statColumn}>
+                <Text style={styles.statEmoji}>⏳</Text>
+                <Text style={styles.statLabel}>ATUAL:</Text>
+                <Text style={styles.statWeight}>{dadosProgresso.peso_atual}Kg</Text>
+                <Text style={[styles.statIMC, { color: statusImcAtual.cor }]}>
+                  IMC: {statusImcAtual.texto}
+                </Text>
+              </View>
             </View>
 
-            <View style={styles.statColumn}>
-              <Text style={styles.statEmoji}>⏳</Text>
-              <Text style={styles.statLabel}>ATUAL:</Text>
-              <Text style={styles.statWeight}>{dadosProgresso.peso_atual}Kg</Text>
-              <Text style={[styles.statIMC, { color: statusImcAtual.cor }]}>
-                IMC: {statusImcAtual.texto}
-              </Text>
-            </View>
-          </View>
-
-        <View style={styles.progressInfo}>
-          {dadosProgresso.total_registros_peso === 1 ? (
-            <>
-              <Text style={styles.progressText}>🎉 Parabéns!</Text>
-              <Text style={styles.progressText}>Você registrou seu peso pela primeira vez!</Text>
-              <Text style={styles.progressText}>Continue acompanhando sua evolução! 💪</Text>
-            </>
-          ) : dadosProgresso.meta === 'massa' ? (
-            <>
-              <Text style={styles.progressText}>Você já registrou seu peso</Text>
-              <Text style={styles.weeksText}>{dadosProgresso.total_registros_peso}</Text>
-              <Text style={styles.progressText}>vezes! Continue assim! 💪</Text>
-            </>
-          ) : (() => {
-            const diferenca = calcularDiferenca();
-            const semanas = calcularSemanas();
-            const atingiuValor = dadosProgresso.bateu_meta;
-            
-            // Verifica se está SEGUINDO a meta (perdendo/ganhando na direção certa)
-            const seguindoMeta = 
-              (dadosProgresso.meta === 'perder' && diferenca < -0.3) || // Perdeu pelo menos 300g
-              (dadosProgresso.meta === 'ganhar' && diferenca > 0.3) ||  // Ganhou pelo menos 300g
-              (dadosProgresso.meta === 'manter' && Math.abs(diferenca) <= 1); // Manteve ±1kg
-            
-            if (atingiuValor) {
+          <View style={styles.progressInfo}>
+            {dadosProgresso.total_registros_peso === 1 ? (
+              <>
+                <Text style={styles.progressText}>🎉 Parabéns!</Text>
+                <Text style={styles.progressText}>Você registrou seu peso pela primeira vez!</Text>
+                <Text style={styles.progressText}>Continue acompanhando sua evolução! 💪</Text>
+              </>
+            ) : dadosProgresso.meta === 'massa' ? (
+              <>
+                <Text style={styles.progressText}>Você já registrou seu peso</Text>
+                <Text style={styles.weeksText}>{dadosProgresso.total_registros_peso}</Text>
+                <Text style={styles.progressText}>vezes! Continue assim! 💪</Text>
+              </>
+            ) : (() => {
+              const diferenca = calcularDiferenca();
+              const semanas = calcularSemanas();
+              const atingiuValor = dadosProgresso.bateu_meta;
+              
+              // Verifica se está SEGUINDO a meta (perdendo/ganhando na direção certa)
+              const seguindoMeta = 
+                (dadosProgresso.meta === 'perder' && diferenca < -0.3) || // Perdeu pelo menos 300g
+                (dadosProgresso.meta === 'ganhar' && diferenca > 0.3) ||  // Ganhou pelo menos 300g
+                (dadosProgresso.meta === 'manter' && Math.abs(diferenca) <= 1); // Manteve ±1kg
+              
+              if (atingiuValor) {
+                return (
+                  <>
+                    <Text style={styles.progressText}>
+                      🎉 Parabéns! Você atingiu sua meta de {dadosProgresso.valor_desejado}kg em
+                    </Text>
+                    <Text style={styles.weeksText}>{semanas}</Text>
+                    <Text style={styles.progressText}>Semanas! 🎯</Text>
+                  </>
+                );
+              }
+              
+              if (seguindoMeta) {
+                return (
+                  <>
+                    <Text style={styles.progressText}>
+                      💪 Você {
+                        dadosProgresso.meta === 'perder' ? 'perdeu' :
+                        dadosProgresso.meta === 'ganhar' ? 'ganhou' : 'manteve'
+                      }
+                    </Text>
+                    <Text style={styles.weeksText}>{Math.abs(diferenca).toFixed(1)}kg</Text>
+                    <Text style={styles.progressText}>
+                      em {semanas} {semanas === 1 ? 'semana' : 'semanas'}! 
+                      {dadosProgresso.meta === 'perder' && ` Faltam ${(dadosProgresso.peso_atual - dadosProgresso.valor_desejado).toFixed(1)}kg!` }
+                      {dadosProgresso.meta === 'ganhar' && ` Faltam ${(dadosProgresso.valor_desejado - dadosProgresso.peso_atual).toFixed(1)}kg!` }
+                      {dadosProgresso.meta === 'manter' && ' Continue assim! 🎯' }
+                    </Text>
+                  </>
+                );
+              }
+              
+              // Não está seguindo a meta
               return (
                 <>
                   <Text style={styles.progressText}>
-                    🎉 Parabéns! Você atingiu sua meta de {dadosProgresso.valor_desejado}kg em
-                  </Text>
-                  <Text style={styles.weeksText}>{semanas}</Text>
-                  <Text style={styles.progressText}>Semanas! 🎯</Text>
-                </>
-              );
-            }
-            
-            if (seguindoMeta) {
-              return (
-                <>
-                  <Text style={styles.progressText}>
-                    💪 Você {
-                      dadosProgresso.meta === 'perder' ? 'perdeu' :
-                      dadosProgresso.meta === 'ganhar' ? 'ganhou' : 'manteve'
-                    }
+                    ⚠️ Você {diferenca > 0 ? 'ganhou' : 'perdeu'}
                   </Text>
                   <Text style={styles.weeksText}>{Math.abs(diferenca).toFixed(1)}kg</Text>
                   <Text style={styles.progressText}>
-                    em {semanas} {semanas === 1 ? 'semana' : 'semanas'}! 
-                    {dadosProgresso.meta === 'perder' && ` Faltam ${(dadosProgresso.peso_atual - dadosProgresso.valor_desejado).toFixed(1)}kg!` }
-                    {dadosProgresso.meta === 'ganhar' && ` Faltam ${(dadosProgresso.valor_desejado - dadosProgresso.peso_atual).toFixed(1)}kg!` }
-                    {dadosProgresso.meta === 'manter' && ' Continue assim! 🎯' }
+                    {dadosProgresso.meta === 'perder' && diferenca > 0 ? 
+                      'Você está ganhando peso. Revise sua dieta!' :
+                    dadosProgresso.meta === 'ganhar' && diferenca < 0 ?
+                      'Você está perdendo peso. Aumente as calorias!' :
+                    dadosProgresso.meta === 'manter' ?
+                      'Muita variação! Tente manter mais estável.' :
+                      'Ajuste sua estratégia!'
+                    }
                   </Text>
                 </>
               );
-            }
-            
-            // Não está seguindo a meta
-            return (
-              <>
-                <Text style={styles.progressText}>
-                  ⚠️ Você {diferenca > 0 ? 'ganhou' : 'perdeu'}
-                </Text>
-                <Text style={styles.weeksText}>{Math.abs(diferenca).toFixed(1)}kg</Text>
-                <Text style={styles.progressText}>
-                  {dadosProgresso.meta === 'perder' && diferenca > 0 ? 
-                    'Você está ganhando peso. Revise sua dieta!' :
-                  dadosProgresso.meta === 'ganhar' && diferenca < 0 ?
-                    'Você está perdendo peso. Aumente as calorias!' :
-                  dadosProgresso.meta === 'manter' ?
-                    'Muita variação! Tente manter mais estável.' :
-                    'Ajuste sua estratégia!'
-                  }
-                </Text>
-              </>
-            );
-          })()}
-        </View>
-
-          {/* ⚠️ AVISO SE NÃO PODE ATUALIZAR */}
-          {!podeAtualizar && (
-            <View style={styles.warningBox}>
-              <Text style={styles.warningIcon}>⏰</Text>
-              <Text style={styles.warningText}>
-                Você só pode atualizar seu peso uma vez por semana.
-              </Text>
-              <Text style={styles.warningDays}>
-                Faltam {diasRestantes} dia{diasRestantes !== 1 ? 's' : ''} para a próxima atualização
-              </Text>
-            </View>
-          )}
-
-          <View style={styles.inputSection}>
-            <Text style={styles.inputLabel}>Registrar novo peso:</Text>
-            <View style={styles.inputRow}>
-              <TextInput
-                style={[styles.input, !podeAtualizar && styles.inputDisabled]}
-                placeholder={podeAtualizar ? "Insira seu peso em Kg" : "Aguarde para atualizar"}
-                keyboardType="numeric"
-                value={novoPeso}
-                onChangeText={setNovoPeso}
-                editable={podeAtualizar}
-              />
-              <TouchableOpacity
-                style={[
-                  styles.submitButton, 
-                  (salvando || !podeAtualizar) && styles.submitButtonDisabled
-                ]}
-                onPress={atualizarPeso}
-                disabled={salvando || !podeAtualizar}
-              >
-                {salvando ? (
-                  <ActivityIndicator size="small" color="#FFF" />
-                ) : (
-                  <Text style={styles.submitButtonText}>▶</Text>
-                )}
-              </TouchableOpacity>
-            </View>
+            })()}
           </View>
-        </View>
 
-        {/* Botão de Alterar Meta */}
-        <View style={styles.card}>
-          <TouchableOpacity
-            style={styles.alterarMetaButton}
-            onPress={confirmarAlteracaoMeta}
-          >
-            <Text style={styles.alterarMetaIcon}>🎯</Text>
-            <Text style={styles.alterarMetaText}>Alterar Meta</Text>
-          </TouchableOpacity>
-          
-          {dadosProgresso.bateu_meta && (
-            <Text style={styles.alterarMetaHint}>
-              ✅ Parabéns! Você pode definir uma nova meta agora!
-            </Text>
-          )}
-        </View>
-
-        {/* Modal de Alterar Meta */}
-        {mostrarModalMeta && (
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>🎯 Nova Meta</Text>
-              
-              <Text style={styles.modalLabel}>Escolha sua meta:</Text>
-              <View style={styles.metaOptions}>
-                <TouchableOpacity
-                  style={[styles.metaOption, novaMeta === 'perder' && styles.metaOptionSelected]}
-                  onPress={() => setNovaMeta('perder')}
-                >
-                  <Text style={styles.metaOptionText}>🔥 Perder</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  style={[styles.metaOption, novaMeta === 'ganhar' && styles.metaOptionSelected]}
-                  onPress={() => setNovaMeta('ganhar')}
-                >
-                  <Text style={styles.metaOptionText}>📈 Ganhar</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  style={[styles.metaOption, novaMeta === 'manter' && styles.metaOptionSelected]}
-                  onPress={() => setNovaMeta('manter')}
-                >
-                  <Text style={styles.metaOptionText}>⚖️ Manter</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  style={[styles.metaOption, novaMeta === 'massa' && styles.metaOptionSelected]}
-                  onPress={() => setNovaMeta('massa')}
-                >
-                  <Text style={styles.metaOptionText}>💪 Massa</Text>
-                </TouchableOpacity>
+            {/* ⚠️ AVISO SE NÃO PODE ATUALIZAR */}
+            {!podeAtualizar && (
+              <View style={styles.warningBox}>
+                <Text style={styles.warningIcon}>⏰</Text>
+                <Text style={styles.warningText}>
+                  Você só pode atualizar seu peso uma vez por semana.
+                </Text>
+                <Text style={styles.warningDays}>
+                  Faltam {diasRestantes} dia{diasRestantes !== 1 ? 's' : ''} para a próxima atualização
+                </Text>
               </View>
-              
-              {novaMeta && novaMeta !== 'massa' && (
-                <>
-                  <Text style={styles.modalLabel}>Peso desejado (kg):</Text>
-                  <TextInput
-                    style={styles.modalInput}
-                    placeholder="Ex: 65.5"
-                    keyboardType="numeric"
-                    value={novoValor}
-                    onChangeText={setNovoValor}
-                  />
-                </>
-              )}
-              
-              <View style={styles.modalButtons}>
+            )}
+
+            <View style={styles.inputSection}>
+              <Text style={styles.inputLabel}>Registrar novo peso:</Text>
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={[styles.input, !podeAtualizar && styles.inputDisabled]}
+                  placeholder={podeAtualizar ? "Insira seu peso em Kg" : "Aguarde para atualizar"}
+                  keyboardType="numeric"
+                  value={novoPeso}
+                  onChangeText={setNovoPeso}
+                  editable={podeAtualizar}
+                />
                 <TouchableOpacity
-                  style={[styles.modalButton, styles.modalButtonCancel]}
-                  onPress={() => {
-                    setMostrarModalMeta(false);
-                    setNovaMeta('');
-                    setNovoValor('');
-                  }}
+                  style={[
+                    styles.submitButton, 
+                    (salvando || !podeAtualizar) && styles.submitButtonDisabled
+                  ]}
+                  onPress={atualizarPeso}
+                  disabled={salvando || !podeAtualizar}
                 >
-                  <Text style={styles.modalButtonText}>Cancelar</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.modalButtonConfirm, alterandoMeta && styles.modalButtonDisabled]}
-                  onPress={alterarMeta}
-                  disabled={alterandoMeta}
-                >
-                  {alterandoMeta ? (
+                  {salvando ? (
                     <ActivityIndicator size="small" color="#FFF" />
                   ) : (
-                    <Text style={[styles.modalButtonText, { color: '#FFF' }]}>Confirmar</Text>
+                    <Text style={styles.submitButtonText}>▶</Text>
                   )}
                 </TouchableOpacity>
               </View>
             </View>
           </View>
-        )}
 
-        <View style={styles.bottomPadding} />
-      </ScrollView>
-    </View>
+          {/* Botão de Alterar Meta */}
+          <View style={styles.card}>
+            <TouchableOpacity
+              style={styles.alterarMetaButton}
+              onPress={confirmarAlteracaoMeta}
+            >
+              <Text style={styles.alterarMetaIcon}>🎯</Text>
+              <Text style={styles.alterarMetaText}>Alterar Meta</Text>
+            </TouchableOpacity>
+            
+            {dadosProgresso.bateu_meta && (
+              <Text style={styles.alterarMetaHint}>
+                ✅ Parabéns! Você pode definir uma nova meta agora!
+              </Text>
+            )}
+          </View>
+
+          {/* Modal de Alterar Meta */}
+          {mostrarModalMeta && (
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>🎯 Nova Meta</Text>
+                
+                <Text style={styles.modalLabel}>Escolha sua meta:</Text>
+                <View style={styles.metaOptions}>
+                  <TouchableOpacity
+                    style={[styles.metaOption, novaMeta === 'perder' && styles.metaOptionSelected]}
+                    onPress={() => setNovaMeta('perder')}
+                  >
+                    <Text style={styles.metaOptionText}>🔥 Perder</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={[styles.metaOption, novaMeta === 'ganhar' && styles.metaOptionSelected]}
+                    onPress={() => setNovaMeta('ganhar')}
+                  >
+                    <Text style={styles.metaOptionText}>📈 Ganhar</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={[styles.metaOption, novaMeta === 'manter' && styles.metaOptionSelected]}
+                    onPress={() => setNovaMeta('manter')}
+                  >
+                    <Text style={styles.metaOptionText}>⚖️ Manter</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={[styles.metaOption, novaMeta === 'massa' && styles.metaOptionSelected]}
+                    onPress={() => setNovaMeta('massa')}
+                  >
+                    <Text style={styles.metaOptionText}>💪 Massa</Text>
+                  </TouchableOpacity>
+                </View>
+                
+                {novaMeta && novaMeta !== 'massa' && (
+                  <>
+                    <Text style={styles.modalLabel}>Peso desejado (kg):</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      placeholder="Ex: 65.5"
+                      keyboardType="numeric"
+                      value={novoValor}
+                      onChangeText={setNovoValor}
+                    />
+                  </>
+                )}
+                
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.modalButtonCancel]}
+                    onPress={() => {
+                      setMostrarModalMeta(false);
+                      setNovaMeta('');
+                      setNovoValor('');
+                    }}
+                  >
+                    <Text style={styles.modalButtonText}>Cancelar</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.modalButtonConfirm, alterandoMeta && styles.modalButtonDisabled]}
+                    onPress={alterarMeta}
+                    disabled={alterandoMeta}
+                  >
+                    {alterandoMeta ? (
+                      <ActivityIndicator size="small" color="#FFF" />
+                    ) : (
+                      <Text style={[styles.modalButtonText, { color: '#FFF' }]}>Confirmar</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
+
+          <View style={styles.bottomPadding} />
+        </ScrollView>
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -806,7 +824,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingTop: 35,
+    paddingBottom: 15,
     backgroundColor: '#4CAF50',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
@@ -818,12 +837,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backButtonText: {
-    fontSize: 28,
+    fontSize: 25,
     color: '#FFF',
     fontWeight: 'bold',
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 25,
     fontWeight: 'bold',
     color: '#FFF',
   },
@@ -837,6 +856,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFF',
     marginHorizontal: 15,
+    marginBottom: 15,
     padding: 20,
     borderRadius: 15,
     shadowColor: '#000',

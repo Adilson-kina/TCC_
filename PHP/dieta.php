@@ -103,9 +103,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         enviarSucesso(200, [
             "mensagem" => "Valores retornados com sucesso!",
             "disturbios" => $dados["pergunta8_disturbios"],
-            "meta" => [
-                "tipo" => $dados["tipo_meta"],
-            ],
+            "meta" => $dados["tipo_meta"],  // 🔧 mudei aqui, era um objeto, agora é string direta
             "restricoes" => $resumo["restricoes"],
             "recomendados" => $resumo["recomendados"],
             "alimentos_permitidos" => $alimentosPermitidos,

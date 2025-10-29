@@ -24,6 +24,7 @@ export default function DietaScreen() {
   const [alimentosPermitidos, setAlimentosPermitidos] = useState([]);
   const [dietaSalva, setDietaSalva] = useState([]);
   const [avisoOrdenacao, setAvisoOrdenacao] = useState('');
+  const [meta, setMeta] = useState('');
   
   const [termoBusca, setTermoBusca] = useState('');
   const [resultadosBusca, setResultadosBusca] = useState([]);
@@ -71,6 +72,7 @@ export default function DietaScreen() {
       if (data.restricoes) {
         setRestricoes(data.restricoes);
         setRecomendados(data.recomendados);
+        setMeta(data.meta?.tipo || data.meta || '');
         setAlimentosPermitidos(data.alimentos_permitidos || []);
         setDietaSalva(data.dieta_salva || []);
         setAlimentosSelecionados((data.dieta_salva || []).map(a => a.id));
@@ -180,8 +182,30 @@ export default function DietaScreen() {
     "Verduras e derivados": "🥬",
   };
 
+  const formatarMeta = (meta) => {
+    const metas = {
+      'perder': 'Quero perder peso! ',
+      'ganhar': 'Quero ganhar peso! ',
+      'manter': 'Quero manter meu peso! ',
+      'massa': 'Quero ganhar massa muscular!'
+    };
+    return metas[meta] || 'Meta não definida';
+  };
+
   return (
     <View style={styles.container}>
+      {/* Header Verde */}
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Text style={styles.backButtonText}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>🍽️ Minha Dieta</Text>
+        <View style={styles.placeholder} />
+      </View>
+
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Widget Editar Dieta */}
         <View style={styles.editarDietaWidget}>
@@ -200,6 +224,7 @@ export default function DietaScreen() {
             <TextInput
               style={styles.buscaInput}
               placeholder="Digite o nome do alimento..."
+              placeholderTextColor="#888"
               value={termoBusca}
               onChangeText={setTermoBusca}
             />
@@ -293,7 +318,7 @@ export default function DietaScreen() {
         <View style={styles.recomendacoesCard}>
           <View style={styles.metaSection}>
             <Text style={styles.metaIcon}>🎯</Text>
-            <Text style={styles.metaText}>META: Quero manter peso</Text>
+            <Text style={styles.metaText}>META: {formatarMeta(meta)}</Text>
           </View>
           
           <View style={styles.restricaoSection}>
@@ -389,6 +414,45 @@ export default function DietaScreen() {
 }
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 35, // aumentei para empurrar o conteúdo para baixo
+    paddingBottom: 15, // mantém o espaço embaixo
+    backgroundColor: '#4CAF50',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  headerTitle: {
+    fontSize: 25,
+    fontWeight: 'bold',
+    color: '#FFF',
+  },
+  headerSpacer: {
+    width: 40, // mesmo tamanho do botão para centralizar o título
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    fontSize: 25,
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
+  backButtonBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: "#ecfcec",
+    zIndex: 9,
+  },
   container: {
     flex: 1,
     backgroundColor: '#ecfcec',
@@ -402,8 +466,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
   },
+  placeholder: {
+    width: 40,
+  },
   scrollView: {
     flex: 1,
+    paddingTop: 15,
   },
   editarDietaWidget: {
     backgroundColor: '#FFF',

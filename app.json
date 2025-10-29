@@ -11,7 +11,9 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSMotionUsageDescription": "Este aplicativo precisa acessar seus dados de movimento para contar passos e calcular calorias gastas."
+        "NSMotionUsageDescription": "Este aplicativo precisa acessar seus dados de movimento para contar passos e calcular calorias gastas.",
+        "UIViewControllerBasedStatusBarAppearance": false,
+        "UIStatusBarStyle": "UIStatusBarStyleLightContent"
       }
     },
     "android": {
@@ -23,7 +25,12 @@
       "package": "com.adilsonkina.TCC",
       "permissions": [
         "android.permission.ACTIVITY_RECOGNITION"
-      ]
+      ],
+      "statusBar": {
+        "backgroundColor": "#4CAF50",
+        "barStyle": "light-content",
+        "translucent": false
+      }
     },
     "web": {
       "bundler": "metro",

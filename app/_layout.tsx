@@ -66,9 +66,28 @@ export default function RootLayout() {
         name="dieta"
         options={{ 
           title: "",
-          headerStyle: {
-            backgroundColor: "#ecfcec"
-          }
+          headerShown: false  // ← MUDE PARA FALSE
+        }} 
+      />
+      <Stack.Screen 
+        name="refeicoes"
+        options={{ 
+          title: "",
+          headerShown: false  // ← MUDE PARA FALSE
+        }} 
+      />
+      <Stack.Screen 
+        name="progresso"
+        options={{ 
+          title: "",
+          headerShown: false  // ← MUDE PARA FALSE
+        }} 
+      />
+      <Stack.Screen 
+        name="calorias"
+        options={{ 
+          title: "",
+          headerShown: false  // ← MUDE PARA FALSE
         }} 
       />
     </Stack>

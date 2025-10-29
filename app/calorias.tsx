@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -14,7 +13,7 @@ import {
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 
-const API_BASE = 'http://localhost/TCC/PHP';
+const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
 
 const CaloriasScreen = () => {
   const router = useRouter();
@@ -106,15 +105,26 @@ const CaloriasScreen = () => {
   if (!dadosCalorias) {
     return (
       <View style={styles.container}>
+        {/* Header Verde */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#FFF" />
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.backButtonText}>←</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Calorias</Text>
+          <Text style={styles.headerTitle}>🔥 Calorias</Text>
+          <View style={styles.placeholder} />
         </View>
-        <View style={styles.errorCard}>
-          <Text style={styles.errorText}>⚠️ Complete o questionário para ver seus dados</Text>
-        </View>
+
+        <ScrollView 
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.errorCard}>
+            <Text style={styles.errorText}>⚠️ Complete o questionário para ver seus dados</Text>
+          </View>
+        </ScrollView>
       </View>
     );
   }
@@ -124,115 +134,122 @@ const CaloriasScreen = () => {
   const saldoCalorico = caloriasIngeridas - caloriasGastas;
 
   return (
-    <ScrollView 
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
+    <View style={styles.container}>
       {/* Header Verde */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#FFF" />
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Calorias</Text>
+        <Text style={styles.headerTitle}>🔥 Calorias</Text>
+        <View style={styles.placeholder} />
       </View>
 
-      {/* Card Principal */}
-      <View style={styles.mainCard}>
-        {/* Gráfico Circular - Consumidas vs Gastas */}
-        <View style={styles.graficoSection}>
-          <GraficoCircularBalanco 
-            consumidas={caloriasIngeridas} 
-            gastas={caloriasGastas}
-          />
-          
-          <View style={styles.infoSection}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoIcon}>🍽️</Text>
-              <View>
-                <Text style={styles.infoLabel}>Alimentos</Text>
-                <Text style={styles.infoValue}>
-                  {Math.round(caloriasIngeridas)} Kcal
-                </Text>
-              </View>
-            </View>
+      <ScrollView 
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Card Principal */}
+        <View style={styles.mainCard}>
+          {/* Gráfico Circular - Consumidas vs Gastas */}
+          <View style={styles.graficoSection}>
+            <GraficoCircularBalanco 
+              consumidas={caloriasIngeridas} 
+              gastas={caloriasGastas}
+            />
             
-            <View style={styles.infoRow}>
-              <Text style={styles.infoIcon}>🚶</Text>
-              <View>
-                <Text style={styles.infoLabel}>Andando</Text>
-                <Text style={styles.infoValue}>
-                  {passos} passos ({Math.round(caloriasGastas)} Kcal)
-                </Text>
+            <View style={styles.infoSection}>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoIcon}>🍽️</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.infoLabel}>Alimentos</Text>
+                  <Text style={styles.infoValue} numberOfLines={1}>
+                    {Math.round(caloriasIngeridas)} Kcal
+                  </Text>
+                </View>
               </View>
-            </View>
-            
-            <View style={[styles.infoRow, styles.finaisRow]}>
-              <Text style={styles.infoIcon}>▶️</Text>
-              <View>
-                <Text style={styles.infoLabel}>Calorias finais</Text>
-                <Text style={[
-                  styles.infoValueFinais,
-                  { color: saldoCalorico > 0 ? '#ef4444' : '#10b981' }
-                ]}>
-                  {saldoCalorico > 0 ? '+' : ''}{Math.round(saldoCalorico)} Kcal
-                </Text>
-                <Text style={styles.infoSubtext}>
-                  {saldoCalorico > 0 ? 'Superávit (ganho)' : 'Déficit (perda)'}
-                </Text>
+              
+              <View style={styles.infoRow}>
+                <Text style={styles.infoIcon}>🚶</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.infoLabel}>Andando</Text>
+                  <Text style={styles.infoValue} numberOfLines={1} adjustsFontSizeToFit>
+                    {passos.toLocaleString('pt-BR')} passos ({Math.round(caloriasGastas)} Kcal)
+                  </Text>
+                </View>
+              </View>
+              
+              <View style={[styles.infoRow, styles.finaisRow]}>
+                <Text style={styles.infoIcon}>▶️</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.infoLabel}>Calorias finais</Text>
+                  <Text style={[
+                    styles.infoValueFinais,
+                    { color: saldoCalorico > 0 ? '#ef4444' : '#10b981' }
+                  ]} numberOfLines={1}>
+                    {saldoCalorico > 0 ? '+' : ''}{Math.round(saldoCalorico)} Kcal
+                  </Text>
+                  <Text style={styles.infoSubtext}>
+                    {saldoCalorico > 0 ? 'Superávit (ganho)' : 'Déficit (perda)'}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
-        </View>
 
-        {/* Contagem Calórica */}
-        <View style={styles.contagemSection}>
-          <Text style={styles.contagemTitle}>🔥 Contagem Calórica</Text>
-          <Text style={styles.contagemSubtitle}>Seu limite diário ideal:</Text>
-          
-          <View style={styles.contagemValores}>
-            <View style={styles.contagemItem}>
-              <Text style={styles.contagemLabel}>Meta</Text>
-              <Text style={styles.contagemValor}>
-                {Math.round(dadosCalorias.objetivo_minimo)} - {Math.round(dadosCalorias.objetivo_maximo)}
+          {/* Contagem Calórica */}
+          <View style={styles.contagemSection}>
+            <Text style={styles.contagemTitle}>🔥 Contagem Calórica</Text>
+            <Text style={styles.contagemSubtitle}>Seu limite diário ideal:</Text>
+            
+            <View style={styles.contagemValores}>
+              <View style={styles.contagemItem}>
+                <Text style={styles.contagemLabel}>Meta</Text>
+                <Text style={styles.contagemValor}>
+                  {Math.round(dadosCalorias.objetivo_minimo)} - {Math.round(dadosCalorias.objetivo_maximo)}
+                </Text>
+                <Text style={styles.contagemUnidade}>kcal/dia</Text>
+              </View>
+              
+              <View style={styles.contagemDivisor} />
+              
+              <View style={styles.contagemItem}>
+                <Text style={styles.contagemLabel}>Gasto Estimado</Text>
+                <Text style={[styles.contagemValor, { color: '#f97316' }]}>
+                  {Math.round(dadosCalorias.estimativa_gasto_diario)}
+                </Text>
+                <Text style={styles.contagemUnidade}>kcal/dia</Text>
+              </View>
+            </View>
+
+            <View style={styles.avisoMinimo}>
+              <Text style={styles.avisoTexto}>
+                ⚠️ Limite mínimo seguro: <Text style={styles.avisoValor}>{Math.round(dadosCalorias.limite_minimo_seguro)} kcal</Text>
               </Text>
-              <Text style={styles.contagemUnidade}>kcal/dia</Text>
-            </View>
-            
-            <View style={styles.contagemDivisor} />
-            
-            <View style={styles.contagemItem}>
-              <Text style={styles.contagemLabel}>Gasto Estimado</Text>
-              <Text style={[styles.contagemValor, { color: '#f97316' }]}>
-                {Math.round(dadosCalorias.estimativa_gasto_diario)}
+              <Text style={styles.avisoSubtexto}>
+                Nunca consuma menos que isso!
               </Text>
-              <Text style={styles.contagemUnidade}>kcal/dia</Text>
             </View>
           </View>
 
-          <View style={styles.avisoMinimo}>
-            <Text style={styles.avisoTexto}>
-              ⚠️ Limite mínimo seguro: <Text style={styles.avisoValor}>{Math.round(dadosCalorias.limite_minimo_seguro)} kcal</Text>
-            </Text>
-            <Text style={styles.avisoSubtexto}>
-              Nunca consuma menos que isso!
-            </Text>
-          </View>
+          {/* Gráfico de Histórico - Calorias Finais */}
+          {historico.length > 0 && (
+            <View style={styles.graficoHistoricoWrapper}>
+              <Text style={styles.graficoHistoricoTitulo}>📈 Histórico Semanal</Text>
+              <Text style={styles.graficoHistoricoSubtitulo}>
+                Calorias finais por dia (consumidas - gastas)
+              </Text>
+              <GraficoHistoricoSaldo historico={historico} />
+            </View>
+          )}
         </View>
-
-        {/* Gráfico de Histórico - Calorias Finais */}
-        {historico.length > 0 && (
-          <View style={styles.graficoHistoricoWrapper}>
-            <Text style={styles.graficoHistoricoTitulo}>📈 Histórico Semanal</Text>
-            <Text style={styles.graficoHistoricoSubtitulo}>
-              Calorias finais por dia (consumidas - gastas)
-            </Text>
-            <GraficoHistoricoSaldo historico={historico} />
-          </View>
-        )}
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -277,10 +294,7 @@ const GraficoHistoricoSaldo = ({ historico }) => {
     return data.toLocaleDateString('pt-BR', { weekday: 'short' }).substring(0, 3);
   });
 
-  // Saldo calórico = calorias_ingeridas - calorias_gastas
   const dataSaldo = historico.map(h => Math.round(h.saldo_calorico));
-  
-  // Linha do zero para referência
   const linhaZero = Array(historico.length).fill(0);
 
   const chartData = {
@@ -355,20 +369,38 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   header: {
-    backgroundColor: '#4CAF50',
-    paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 35,
+    paddingBottom: 15,
+    backgroundColor: '#4CAF50',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   backButton: {
-    marginRight: 15,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    fontSize: 25,
+    color: '#FFF',
+    fontWeight: 'bold',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 25,
     fontWeight: 'bold',
     color: '#FFF',
+  },
+  placeholder: {
+    width: 40,
+  },
+  scrollView: {
+    flex: 1,
+    paddingTop: 15,
   },
   mainCard: {
     backgroundColor: '#FFF',
