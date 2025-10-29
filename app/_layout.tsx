@@ -90,6 +90,20 @@ export default function RootLayout() {
           headerShown: false  // ← MUDE PARA FALSE
         }} 
       />
+      <Stack.Screen 
+        name="historico"
+        options={{ 
+          title: "",
+          headerShown: false  // ← MUDE PARA FALSE
+        }} 
+      />
+      <Stack.Screen 
+        name="jejum"
+        options={{ 
+          title: "",
+          headerShown: false  // ← MUDE PARA FALSE
+        }} 
+      />
     </Stack>
   )
 }

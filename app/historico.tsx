@@ -254,11 +254,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingTop: 35,        // ✅ ADICIONAR
+    paddingBottom: 15,     // ✅ ADICIONAR
     backgroundColor: '#4CAF50',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-  },
+},
   backButton: {
     width: 40,
     height: 40,
@@ -266,12 +267,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backButtonText: {
-    fontSize: 28,
+    fontSize: 25,  // era 28, mude para 25
     color: '#FFF',
     fontWeight: 'bold',
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 25,  // era 20, mude para 25
     fontWeight: 'bold',
     color: '#FFF',
   },

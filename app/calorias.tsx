@@ -20,7 +20,7 @@ const CaloriasScreen = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [passos, setPassos] = useState(0); // Era 4200, agora é 0
+  const [passos, setPassos] = useState(0);
   const [dadosCalorias, setDadosCalorias] = useState(null);
   const [historico, setHistorico] = useState([]);
 
@@ -76,19 +76,10 @@ const CaloriasScreen = () => {
         }
       });
 
-      // 🔍 Debug
+      // 🔧 CORREÇÃO: Adicionar a linha que estava faltando
       const text = await response.text();
-      console.log('=== RESPOSTA HISTÓRICO ===');
-      console.log('Status:', response.status);
-      console.log('Texto:', text.substring(0, 500)); // Primeiros 500 caracteres
-      console.log('========================');
-      
-      if (!text) {
-        console.log('Resposta vazia');
-        return;
-      }
-      
       const data = JSON.parse(text);
+      
       if (data.dados) {
         setHistorico(data.dados);
       }
@@ -136,9 +127,6 @@ const CaloriasScreen = () => {
           <Text style={styles.headerTitle}>🔥 Calorias</Text>
           <View style={styles.placeholder} />
         </View>
-
-        {/* 👇 ADICIONE AQUI */}
-        <PedometerComponent onStepsChange={handleStepsUpdate} />
 
         <ScrollView 
           style={styles.scrollView}
@@ -270,6 +258,12 @@ const CaloriasScreen = () => {
               <GraficoHistoricoSaldo historico={historico} />
             </View>
           )}
+
+          {/* 👇 ADICIONAR AQUI - Pedômetro */}
+          <View style={{ marginTop: 20, paddingTop: 20, borderTopWidth: 1, borderTopColor: '#E0E0E0' }}>
+            <PedometerComponent onStepsChange={handleStepsUpdate} />
+          </View>
+
         </View>
       </ScrollView>
     </View>

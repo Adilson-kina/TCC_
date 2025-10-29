@@ -27,6 +27,11 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
     checkPedometerStatus();
   }, []);
 
+  // 🔍 DEBUG: Log quando o modal muda
+  useEffect(() => {
+    console.log('🎭 Estado do modal:', showTermsModal);
+  }, [showTermsModal]);
+
   useEffect(() => {
     let subscription: any = null;
 
@@ -80,7 +85,8 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
             
             if (pastStepCount) {
               setCurrentStepCount(pastStepCount.steps);
-              onStepsChange(pastStepCount.steps);
+              // 🔧 CORREÇÃO: Usar setTimeout para não interferir no render
+              setTimeout(() => onStepsChange(pastStepCount.steps), 0);
             }
           } catch (stepError) {
             console.error('Erro ao buscar passos:', stepError);
@@ -93,7 +99,8 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
             console.log('Novos passos:', result.steps);
             setCurrentStepCount(prev => {
               const newTotal = prev + result.steps;
-              onStepsChange(newTotal);
+              // 🔧 CORREÇÃO: Usar setTimeout para não interferir no render
+              setTimeout(() => onStepsChange(newTotal), 0);
               return newTotal;
             });
           });
@@ -129,14 +136,31 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
 
   const checkPedometerStatus = async () => {
     try {
+      console.log('🔍 Verificando status do pedômetro...');
+      
       const saved = await AsyncStorage.getItem('pedometroAtivo');
+      const firstTime = await AsyncStorage.getItem('pedometroFirstTime');
+      
+      console.log('📱 pedometroAtivo:', saved);
+      console.log('📱 pedometroFirstTime:', firstTime);
+      
       if (saved === 'true') {
+        // Já ativado antes - ativar automaticamente
+        console.log('✅ Pedômetro já estava ativo, ativando...');
         setIsActive(true);
+      } else if (firstTime === null) {
+        // 🆕 PRIMEIRA VEZ - Mostrar modal automaticamente
+        console.log('🎉 PRIMEIRA VEZ! Mostrando modal...');
+        setShowTermsModal(true);
+        await AsyncStorage.setItem('pedometroFirstTime', 'shown'); // Marca que já mostrou
+        console.log('✅ Modal deveria estar aparecendo agora!');
       } else {
+        // Já recusou antes - mostrar como desativado
+        console.log('❌ Usuário já viu o modal antes, mostrando como desativado');
         setIsPedometerAvailable('false');
       }
     } catch (error) {
-      console.error('Erro ao verificar status:', error);
+      console.error('❌ Erro ao verificar status:', error);
     }
   };
 
@@ -147,16 +171,23 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
   const handleAcceptTerms = async () => {
     try {
       await AsyncStorage.setItem('pedometroAtivo', 'true');
-      setIsActive(true);
       setShowTermsModal(false);
+      // 🔧 CORREÇÃO: Ativar depois de fechar o modal
+      setTimeout(() => setIsActive(true), 300);
     } catch (error) {
       console.error('Erro ao salvar preferência:', error);
       Alert.alert('Erro', 'Não foi possível ativar o pedômetro');
     }
   };
 
-  const handleDeclineTerms = () => {
-    setShowTermsModal(false);
+  const handleDeclineTerms = async () => {
+    try {
+      await AsyncStorage.setItem('pedometroAtivo', 'false');
+      setShowTermsModal(false);
+      setIsPedometerAvailable('false');
+    } catch (error) {
+      console.error('Erro ao salvar preferência:', error);
+    }
   };
 
   const handleDeactivate = async () => {
@@ -227,10 +258,10 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
 
       {/* Modal de Termos */}
       <Modal
-        animationType="fade"
+        animationType="slide"
         transparent={true}
         visible={showTermsModal}
-        onRequestClose={() => setShowTermsModal(false)}
+        onRequestClose={() => {}} // 🆕 Previne fechar com botão voltar do Android
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -238,14 +269,15 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
               <Text style={styles.modalIconText}>🚶</Text>
             </View>
             
-            <Text style={styles.modalTitle}>Ativar Pedômetro Automático</Text>
+            <Text style={styles.modalTitle}>Ativar Pedômetro Automático?</Text>
             
             <ScrollView style={styles.termsScroll} showsVerticalScrollIndicator={true}>
               <Text style={styles.termsText}>
                 O pedômetro automático utiliza o sensor de movimento do seu celular para contar seus passos durante o dia.
               </Text>
-              <Text style={styles.termsText}>
-                <Text style={styles.termsBold}>Como funciona:</Text>
+              
+              <Text style={[styles.termsText, styles.termsBold]}>
+                ✅ Como funciona:
               </Text>
               <Text style={styles.termsText}>
                 • Conta seus passos automaticamente enquanto você anda{'\n'}
@@ -253,8 +285,9 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
                 • Calcula as calorias gastas baseado nos seus passos{'\n'}
                 • Respeita sua privacidade - os dados ficam apenas no seu celular
               </Text>
-              <Text style={styles.termsText}>
-                <Text style={styles.termsBold}>Importante:</Text>
+              
+              <Text style={[styles.termsText, styles.termsBold]}>
+                ⚠️ Importante:
               </Text>
               <Text style={styles.termsText}>
                 • Requer permissão de acesso aos sensores de movimento{'\n'}
@@ -262,6 +295,12 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
                 • Funciona apenas em dispositivos físicos (não em emuladores){'\n'}
                 • Você pode desativar a qualquer momento
               </Text>
+              
+              <View style={styles.recommendationBox}>
+                <Text style={styles.recommendationText}>
+                  💡 <Text style={styles.termsBold}>Recomendado:</Text> Ative o pedômetro para ter cálculos de calorias mais precisos!
+                </Text>
+              </View>
             </ScrollView>
 
             <View style={styles.modalButtons}>
@@ -269,14 +308,14 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
                 style={styles.acceptButton}
                 onPress={handleAcceptTerms}
               >
-                <Text style={styles.acceptButtonText}>✓ Ativar</Text>
+                <Text style={styles.acceptButtonText}>✓ Ativar Agora</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
                 style={styles.declineButton}
                 onPress={handleDeclineTerms}
               >
-                <Text style={styles.declineButtonText}>✕ Cancelar</Text>
+                <Text style={styles.declineButtonText}>Agora Não</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -374,7 +413,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -385,7 +424,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 20,
     padding: 25,
-    maxHeight: '80%',
+    maxHeight: '85%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -407,7 +446,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   termsScroll: {
-    maxHeight: 300,
+    maxHeight: 350,
     marginBottom: 20,
   },
   termsText: {
@@ -415,11 +454,23 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 22,
     marginBottom: 12,
-    textAlign: 'justify',
   },
   termsBold: {
     fontWeight: 'bold',
     color: '#333',
+  },
+  recommendationBox: {
+    backgroundColor: '#E3F2FD',
+    padding: 12,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#2196F3',
+    marginTop: 10,
+  },
+  recommendationText: {
+    fontSize: 13,
+    color: '#1976D2',
+    lineHeight: 20,
   },
   modalButtons: {
     gap: 12,
