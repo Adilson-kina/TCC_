@@ -13,7 +13,7 @@ async function detectApiBase(): Promise<string> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 segundos timeout
 
-    await fetch(`${RAILWAY_API}/health.php`, { 
+    await fetch(`https://tcc-production-b4f7.up.railway.app/test_api.php`, { 
       signal: controller.signal,
       method: 'GET'
     });
