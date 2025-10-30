@@ -40,25 +40,6 @@ export default function Jejum() {
       };
   }, [jejumStarted]);
 
-  // 🆕 ADICIONAR ESTE USEEFFECT AQUI
-  useEffect(() => {
-      if (tempoRestante === '00:00:00' && jejumStarted) {
-          Alert.alert(
-              '🎉 Jejum Concluído!', 
-              'Você pode fazer sua próxima refeição agora!',
-              [
-                  { 
-                      text: 'OK', 
-                      onPress: async () => {
-                          await AsyncStorage.removeItem('jejumData');
-                          setJejumStarted(false);
-                      }
-                  }
-              ]
-          );
-      }
-  }, [tempoRestante, jejumStarted]);
-
 const carregarStatusJejum = async () => {
     try {
       const data = await api.get('/jejum.php');

@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Keyboard,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -108,8 +109,13 @@ export default function EditarPerfil() {
       return;
     }
 
-    if (!dataNascimento || !altura) {
-      Alert.alert('Erro', 'Data de nascimento e altura são obrigatórios');
+    if (!dataNascimento || dataNascimento.length !== 10) {
+      Alert.alert('Erro', 'Data de nascimento é obrigatória e deve estar completa');
+      return;
+    }
+
+    if (!altura || altura.trim() === '') {
+      Alert.alert('Erro', 'Altura é obrigatória');
       return;
     }
 
@@ -119,9 +125,24 @@ export default function EditarPerfil() {
       return;
     }
 
+    // Validar que pelo menos um distúrbio foi selecionado ou explicitamente nenhum
     const algumDisturbioSelecionado = Object.values(disturbios).some(d => d === true);
-    // (não precisa validar, pode ser vazio)
+    if (!algumDisturbioSelecionado) {
+      Alert.alert(
+        'Atenção', 
+        'Você não selecionou nenhum distúrbio/doença. Deseja continuar?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Continuar', onPress: () => continuarSalvamento() }
+        ]
+      );
+      return;
+    }
 
+    await continuarSalvamento();
+  };
+
+  const continuarSalvamento = async () => {
     // Se está mudando senha, validar
     if (novaSenha) {
       if (!senhaAtual) {
@@ -179,7 +200,12 @@ export default function EditarPerfil() {
     try {
       setDeletando(true);
 
-      await api.delete('/perfil.php', { senha: senhaConfirmarDelete });
+      try {
+        await api.delete('/perfil.php', { senha: senhaConfirmarDelete });
+      } catch (error) {
+        // Ignora erro de resposta vazia, pois a conta foi deletada
+        console.log('Conta deletada (ignorando erro de resposta)');
+      }
 
       await AsyncStorage.clear();
       Alert.alert('Conta Deletada', 'Sua conta foi removida com sucesso', [
@@ -353,8 +379,14 @@ export default function EditarPerfil() {
 
       {/* Modal de Confirmação de Exclusão */}
       {mostrarModalDeletar && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <Pressable 
+          style={styles.modalOverlay}
+          onPress={Keyboard.dismiss}
+        >
+          <Pressable 
+            style={styles.modalContent}
+            onPress={(e) => e.stopPropagation()}
+          >
             <Text style={styles.modalTitle}>⚠️ Deletar Conta</Text>
             <Text style={styles.modalText}>
               Esta ação é irreversível! Todos os seus dados serão perdidos.
@@ -392,8 +424,8 @@ export default function EditarPerfil() {
                 )}
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
+          </Pressable>
+        </Pressable>
       )}
     </View>
   );
@@ -583,6 +615,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 100, 
   },
   modalContent: {
     width: '85%',

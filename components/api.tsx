@@ -1,7 +1,44 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 
-const API_BASE = 'https://tcc-production-b4f7.up.railway.app/PHP';
+const RAILWAY_API = 'https://tcc-production-b4f7.up.railway.app/PHP';
+const LOCAL_API = 'http://localhost/DietaseAPP/PHP';
+
+let API_BASE = RAILWAY_API;
+
+// ✅ Função para testar conexão e alternar automaticamente
+async function detectApiBase(): Promise<string> {
+  try {
+    // Tenta Railway primeiro
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 segundos timeout
+
+    await fetch(`${RAILWAY_API}/health.php`, { 
+      signal: controller.signal,
+      method: 'GET'
+    });
+    
+    clearTimeout(timeoutId);
+    console.log('✅ Usando Railway API!');
+    return RAILWAY_API;
+    
+  } catch (error) {
+    // Se falhar, usa local
+    console.log('⚠️ Railway offline, usando API local...');
+    return LOCAL_API;
+  }
+}
+
+// ✅ Inicializa API base na primeira chamada
+let apiBaseInitialized = false;
+
+async function getApiBase(): Promise<string> {
+  if (!apiBaseInitialized) {
+    API_BASE = await detectApiBase();
+    apiBaseInitialized = true;
+  }
+  return API_BASE;
+}
 
 // ✅ Tipos para melhor type safety
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS';
@@ -19,7 +56,6 @@ async function getToken(): Promise<string | null> {
   try {
     return await AsyncStorage.getItem('token');
   } catch (error) {
-    console.error('❌ Erro ao buscar token:', error);
     return null;
   }
 }
@@ -62,8 +98,8 @@ export async function apiRequest({
     }
 
     // 5. Fazer requisição
-    console.log(`🌐 ${method} ${endpoint}`);
-    const response = await fetch(`${API_BASE}${endpoint}`, options);
+    const apiBase = await getApiBase(); // ← Adicione isso
+    const response = await fetch(`${apiBase}${endpoint}`, options);
 
     // 6. Ler resposta como texto primeiro
     const text = await response.text();
@@ -77,7 +113,6 @@ export async function apiRequest({
     try {
       data = JSON.parse(text);
     } catch (parseError) {
-      console.error('❌ Erro ao parsear JSON:', text);
       throw new Error('Resposta inválida do servidor');
     }
 
@@ -92,11 +127,9 @@ export async function apiRequest({
     }
 
     // 9. Sucesso!
-    console.log(`✅ ${method} ${endpoint} - Sucesso`);
     return data;
 
   } catch (error: any) {
-    console.error(`❌ Erro em ${endpoint}:`, error);
 
     // Mostrar alert se configurado
     if (showErrorAlert) {

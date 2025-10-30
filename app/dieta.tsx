@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -123,7 +124,7 @@ export default function DietaScreen() {
           setAvisoOrdenacao(data.aviso_ordenacao);
         }
         
-        alert('✅ Dieta salva com sucesso!');
+        Alert.alert('Sucesso', '✅ Dieta salva com sucesso!');
       }
     } catch (error) {
       console.error('Erro ao salvar dieta:', error);
