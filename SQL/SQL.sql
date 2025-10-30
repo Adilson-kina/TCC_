@@ -1,203 +1,152 @@
-CREATE DATABASE IF NOT EXISTS dietase_db;
-USE dietase_db;
+DROP TABLE IF EXISTS `alimentos`;
+CREATE TABLE `alimentos` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `nome` varchar(255) DEFAULT NULL,
+  `categoria` varchar(255) DEFAULT NULL,
+  `umidade_porcentagem` varchar(255) DEFAULT NULL,
+  `energia_kcal` varchar(255) DEFAULT NULL,
+  `proteina_g` varchar(255) DEFAULT NULL,
+  `lipideos_g` varchar(255) DEFAULT NULL,
+  `colesterol_g` varchar(255) DEFAULT NULL,
+  `carboidrato_g` varchar(255) DEFAULT NULL,
+  `fibra_g` varchar(255) DEFAULT NULL,
+  `cinzas_g` varchar(255) DEFAULT NULL,
+  `calcio_g` varchar(255) DEFAULT NULL,
+  `magnesio_g` varchar(255) DEFAULT NULL,
+  `manganes_mg` varchar(255) DEFAULT NULL,
+  `fosforo_mg` varchar(255) DEFAULT NULL,
+  `ferro_mg` varchar(255) DEFAULT NULL,
+  `sodio_mg` varchar(255) DEFAULT NULL,
+  `potassio_mg` varchar(255) DEFAULT NULL,
+  `cobre_mg` varchar(255) DEFAULT NULL,
+  `zinco_mg` varchar(255) DEFAULT NULL,
+  `retinol_mcg` varchar(255) DEFAULT NULL,
+  `re_mcg` varchar(255) DEFAULT NULL,
+  `rae_mcg` varchar(255) DEFAULT NULL,
+  `tiamina_mg` varchar(255) DEFAULT NULL,
+  `riboflavina_mg` varchar(255) DEFAULT NULL,
+  `piridoxina_mg` varchar(255) DEFAULT NULL,
+  `niacina_mg` varchar(255) DEFAULT NULL,
+  `vitamina_c_mg` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=235 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE perguntas (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    pergunta1_objetivo ENUM('perder', 'ganhar', 'manter', 'massa') NOT NULL,
-    pergunta2_contagem_calorica ENUM('sim', 'nao') NOT NULL,
-    pergunta3_jejum_intermitente ENUM('sim', 'nao') NOT NULL,
-    pergunta4_nivel_atividade ENUM('sedentario', 'baixo', 'medio', 'alto') NOT NULL,
-    pergunta6_tipo_dieta ENUM('low_carb', 'cetogenica', 'mediterranea', 'vegana', 'vegetariana', 'paleolitica', 'dieta_das_zonas') NOT NULL,
-    pergunta7_comer_fds ENUM('sim', 'nao') NOT NULL,
-    pergunta8_disturbios VARCHAR(400) NOT NULL,
-    pergunta9_possui_dieta ENUM('sim', 'nao') NOT NULL,
-    PRIMARY KEY (id)
-); 
+DROP TABLE IF EXISTS `alimentos_permitidos`;
+CREATE TABLE `alimentos_permitidos` (
+  `usuario_id` bigint NOT NULL,
+  `alimento_id` bigint NOT NULL,
+  PRIMARY KEY (`usuario_id`,`alimento_id`),
+  KEY `alimento_id` (`alimento_id`),
+  CONSTRAINT `alimentos_permitidos_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `alimentos_permitidos_ibfk_2` FOREIGN KEY (`alimento_id`) REFERENCES `alimentos` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE pergunta5_meta (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    perguntas_id BIGINT NOT NULL,
-    tipo_meta ENUM('perder', 'ganhar', 'manter', 'massa') NOT NULL,
-    valor_desejado DECIMAL(4,1) DEFAULT NULL,
-    faixa_recomendada VARCHAR(20) DEFAULT NULL,
-    PRIMARY KEY (id),
-    FOREIGN KEY (perguntas_id) REFERENCES perguntas(id)
-); 
+DROP TABLE IF EXISTS `calorias`;
+CREATE TABLE `calorias` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `usuario_id` bigint NOT NULL,
+  `data_registro` date NOT NULL,
+  `passos` int DEFAULT '0',
+  `calorias_gastas` decimal(6,2) DEFAULT '0.00',
+  `calorias_ingeridas` decimal(6,2) DEFAULT '0.00',
+  `saldo_calorico` decimal(6,2) DEFAULT '0.00',
+  PRIMARY KEY (`id`),
+  KEY `idx_calorias_usuario_data` (`usuario_id`,`data_registro`),
+  KEY `idx_calorias_data` (`data_registro`),
+  CONSTRAINT `calorias_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE usuarios (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    nome VARCHAR(40) NOT NULL,
-    email VARCHAR(40) NOT NULL UNIQUE,
-    senha VARCHAR(255) NOT NULL,
-    sexo_biologico ENUM('m', 'f') DEFAULT NULL,
-    data_nascimento DATE DEFAULT NULL,
-    altura TINYINT UNSIGNED DEFAULT NULL,
-    peso_inicial DECIMAL(4, 1) DEFAULT NULL,
-    imc_inicial DECIMAL(4, 1) DEFAULT NULL,
-    peso DECIMAL(4, 1) DEFAULT NULL,
-    imc DECIMAL(4, 1) DEFAULT NULL,
-	ordenacao_home VARCHAR(50) DEFAULT 'carboidrato_g',
-    total_registros_peso INT DEFAULT 0,
-    jejum_ativo TINYINT(1) DEFAULT NULL,
-    perguntas_id BIGINT DEFAULT NULL,
-    ativo TINYINT(1) NOT NULL DEFAULT 1,
-    PRIMARY KEY (id),
-    FOREIGN KEY (perguntas_id) REFERENCES perguntas(id)
-); 
+DROP TABLE IF EXISTS `dieta`;
+CREATE TABLE `dieta` (
+  `usuario_id` bigint NOT NULL,
+  `alimento_id` bigint NOT NULL,
+  PRIMARY KEY (`usuario_id`,`alimento_id`),
+  KEY `alimento_id` (`alimento_id`),
+  CONSTRAINT `dieta_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `dieta_ibfk_2` FOREIGN KEY (`alimento_id`) REFERENCES `alimentos` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE calorias (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    usuario_id BIGINT NOT NULL,
-    data_registro DATE NOT NULL,
-    passos INT DEFAULT 0,
-    calorias_gastas DECIMAL(6,2) DEFAULT 0,
-    calorias_ingeridas DECIMAL(6,2) DEFAULT 0,
-    saldo_calorico DECIMAL(6,2) DEFAULT 0,
-    PRIMARY KEY (id),
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-); 
+DROP TABLE IF EXISTS `historico_peso`;
+CREATE TABLE `historico_peso` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `usuario_id` bigint NOT NULL,
+  `peso` decimal(4,1) NOT NULL,
+  `imc` decimal(4,1) NOT NULL,
+  `data_registro` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `usuario_id` (`usuario_id`),
+  CONSTRAINT `historico_peso_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE alimentos (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    nome VARCHAR(255),
-    categoria VARCHAR(255),
-    umidade_porcentagem VARCHAR(255),
-    energia_kcal VARCHAR(255),
-    proteina_g VARCHAR(255),
-    lipideos_g VARCHAR(255),
-    colesterol_g VARCHAR(255),
-    carboidrato_g VARCHAR(255),
-    fibra_g VARCHAR(255),
-    cinzas_g VARCHAR(255),
-    calcio_g VARCHAR(255),
-    magnesio_g VARCHAR(255),
-    manganes_mg VARCHAR(255),
-    fosforo_mg VARCHAR(255),
-    ferro_mg VARCHAR(255),
-    sodio_mg VARCHAR(255),
-    potassio_mg VARCHAR(255),
-    cobre_mg VARCHAR(255),
-    zinco_mg VARCHAR(255),
-    retinol_mcg VARCHAR(255),
-    re_mcg VARCHAR(255),
-    rae_mcg VARCHAR(255),
-    tiamina_mg VARCHAR(255),
-    riboflavina_mg VARCHAR(255),
-    piridoxina_mg VARCHAR(255),
-    niacina_mg VARCHAR(255),
-    vitamina_c_mg VARCHAR(255),
-    PRIMARY KEY (id)
-); 
+DROP TABLE IF EXISTS `pergunta5_meta`;
+CREATE TABLE `pergunta5_meta` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `perguntas_id` bigint NOT NULL,
+  `tipo_meta` enum('perder','ganhar','manter','massa') NOT NULL,
+  `valor_desejado` decimal(4,1) DEFAULT NULL,
+  `faixa_recomendada` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `perguntas_id` (`perguntas_id`),
+  CONSTRAINT `pergunta5_meta_ibfk_1` FOREIGN KEY (`perguntas_id`) REFERENCES `perguntas` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE alimentos_permitidos (
-    usuario_id BIGINT NOT NULL,
-    alimento_id BIGINT NOT NULL,
-    PRIMARY KEY (usuario_id, alimento_id),
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
-    FOREIGN KEY (alimento_id) REFERENCES alimentos(id) ON DELETE CASCADE
-); 
+DROP TABLE IF EXISTS `perguntas`;
+CREATE TABLE `perguntas` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `pergunta1_objetivo` enum('perder','ganhar','manter','massa') NOT NULL,
+  `pergunta2_contagem_calorica` enum('sim','nao') NOT NULL,
+  `pergunta3_jejum_intermitente` enum('sim','nao') NOT NULL,
+  `pergunta4_nivel_atividade` enum('sedentario','baixo','medio','alto') NOT NULL,
+  `pergunta6_tipo_dieta` enum('low_carb','cetogenica','mediterranea','vegana','vegetariana','paleolitica','dieta_das_zonas','nenhuma') DEFAULT NULL,
+  `pergunta7_comer_fds` enum('sim','nao') NOT NULL,
+  `pergunta8_disturbios` varchar(400) NOT NULL,
+  `pergunta9_possui_dieta` enum('sim','nao') NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE dieta (
-    usuario_id BIGINT NOT NULL,
-    alimento_id BIGINT NOT NULL,
-    PRIMARY KEY (usuario_id, alimento_id),
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
-    FOREIGN KEY (alimento_id) REFERENCES alimentos(id) ON DELETE CASCADE
-); 
+DROP TABLE IF EXISTS `refeicoes`;
+CREATE TABLE `refeicoes` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `usuario_id` bigint NOT NULL,
+  `data_registro` date NOT NULL,
+  `tipo_refeicao` enum('cafe','almoco','janta','lanche') NOT NULL,
+  `sintoma` enum('nenhum','azia','enjoo','diarreia','dor_estomago') NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `usuario_id` (`usuario_id`),
+  CONSTRAINT `refeicoes_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE refeicoes (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    usuario_id BIGINT NOT NULL,
-    data_registro DATE NOT NULL,
-    tipo_refeicao ENUM('cafe', 'almoco', 'janta', 'lanche') NOT NULL,
-    sintoma ENUM('nenhum', 'azia', 'enjoo', 'diarreia', 'dor_estomago') NOT NULL,
-    PRIMARY KEY (id),
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-); 
+DROP TABLE IF EXISTS `refeicoes_alimentos`;
+CREATE TABLE `refeicoes_alimentos` (
+  `refeicao_id` bigint NOT NULL,
+  `alimento_id` bigint NOT NULL,
+  PRIMARY KEY (`refeicao_id`,`alimento_id`),
+  KEY `alimento_id` (`alimento_id`),
+  CONSTRAINT `refeicoes_alimentos_ibfk_1` FOREIGN KEY (`refeicao_id`) REFERENCES `refeicoes` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `refeicoes_alimentos_ibfk_2` FOREIGN KEY (`alimento_id`) REFERENCES `alimentos` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE refeicoes_alimentos (
-    refeicao_id BIGINT NOT NULL,
-    alimento_id BIGINT NOT NULL,
-    PRIMARY KEY (refeicao_id, alimento_id),
-    FOREIGN KEY (refeicao_id) REFERENCES refeicoes(id) ON DELETE CASCADE,
-    FOREIGN KEY (alimento_id) REFERENCES alimentos(id)
-); 
-
-CREATE TABLE historico_peso (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    usuario_id BIGINT NOT NULL,
-    peso DECIMAL(4,1) NOT NULL,
-    imc DECIMAL(4,1) NOT NULL,
-    data_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
-);
-
--- Primeiro, insere uma entrada na tabela perguntas
-INSERT INTO perguntas (
-    pergunta1_objetivo,
-    pergunta2_contagem_calorica,
-    pergunta3_jejum_intermitente,
-    pergunta4_nivel_atividade,
-    pergunta6_tipo_dieta,
-    pergunta7_comer_fds,
-    pergunta8_disturbios,
-    pergunta9_possui_dieta
-) VALUES (
-    'perder',
-    'sim',
-    'nao',
-    'medio',
-    'mediterranea',
-    'sim',
-    'nenhum',
-    'nao'
-);
-
--- Em seguida, insere o usuário referenciando o ID da pergunta recém-criada
--- Supondo que o ID gerado para a pergunta foi 1 (ajuste conforme necessário)
-INSERT INTO usuarios (
-    nome,
-    email,
-    senha,
-    sexo_biologico,
-    data_nascimento,
-    altura,
-    peso_inicial,
-    imc_inicial,
-    peso,
-    imc,
-    ordenacao_home,
-    total_registros_peso,
-    jejum_ativo,
-    perguntas_id,
-    ativo
-) VALUES (
-    'João Silva',
-    'joao@example.com',
-    'senha_segura_123',
-    'm',
-    '1990-05-15',
-    175,
-    85.0,
-    27.8,
-    85.0,
-    27.8,
-    'carboidrato_g',
-    0,
-    0,
-    1,
-    1
-);
-
--- SELECT * FROM perguntas;
--- SELECT * FROM pergunta5_meta;
--- SELECT * FROM usuarios;
--- SELECT * FROM calorias;
--- SELECT * FROM alimentos;
--- SELECT * FROM alimentos_permitidos;
--- SELECT * FROM dieta;
--- SELECT * FROM refeicoes;
--- SELECT * FROM refeicao_alimento;
-
--- DROP DATABASE dietase_db;
+DROP TABLE IF EXISTS `usuarios`;
+CREATE TABLE `usuarios` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `nome` varchar(40) NOT NULL,
+  `email` varchar(40) NOT NULL,
+  `senha` varchar(255) NOT NULL,
+  `sexo_biologico` enum('m','f') DEFAULT NULL,
+  `data_nascimento` date DEFAULT NULL,
+  `altura` tinyint unsigned DEFAULT NULL,
+  `peso_inicial` decimal(4,1) DEFAULT NULL,
+  `imc_inicial` decimal(4,1) DEFAULT NULL,
+  `peso` decimal(4,1) DEFAULT NULL,
+  `imc` decimal(4,1) DEFAULT NULL,
+  `ordenacao_home` varchar(50) DEFAULT 'carboidrato_g',
+  `total_registros_peso` int DEFAULT '0',
+  `jejum_ativo` tinyint(1) DEFAULT NULL,
+  `perguntas_id` bigint DEFAULT NULL,
+  `ativo` tinyint(1) NOT NULL DEFAULT '1',
+  `termos_aceitos` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`),
+  KEY `perguntas_id` (`perguntas_id`),
+  CONSTRAINT `usuarios_ibfk_1` FOREIGN KEY (`perguntas_id`) REFERENCES `perguntas` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

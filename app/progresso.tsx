@@ -198,64 +198,111 @@ export default function ProgressoScreen() {
     if (historico.length === 0) return null;
     
     const pesos = historico.map(h => parseFloat(h.peso));
-    const maxPeso = Math.max(...pesos) + 2;
-    const minPeso = Math.min(...pesos) - 2;
-    const range = maxPeso - minPeso;
+    const maxPeso = Math.max(...pesos);
+    const minPeso = Math.min(...pesos);
+    const range = maxPeso - minPeso || 1;
 
     const graphHeight = 200;
     const graphWidth = screenWidth - 80;
-    const pointSpacing = graphWidth / (historico.length - 1);
+    const pointSpacing = historico.length > 1 ? (graphWidth - 20) / (historico.length - 1) : 0;
 
     return (
       <View style={styles.graphContainer}>
+        {/* Grid lines */}
         {[0, 1, 2, 3, 4].map((i) => (
-          <View key={i} style={[styles.gridLine, { top: (graphHeight / 4) * i }]} />
+          <View key={`grid-${i}`} style={[styles.gridLine, { top: (graphHeight / 4) * i }]} />
         ))}
 
-        <View style={styles.lineContainer}>
-          {historico.map((item, index) => {
-            if (index === 0) return null;
-            
-            const prevPeso = parseFloat(historico[index - 1].peso);
-            const currPeso = parseFloat(item.peso);
-            
-            const prevY = graphHeight - ((prevPeso - minPeso) / range) * graphHeight;
-            const currY = graphHeight - ((currPeso - minPeso) / range) * graphHeight;
-            
-            const prevX = (index - 1) * pointSpacing;
-            const currX = index * pointSpacing;
-            
-            const angle = Math.atan2(currY - prevY, currX - prevX) * (180 / Math.PI);
-            const length = Math.sqrt(Math.pow(currX - prevX, 2) + Math.pow(currY - prevY, 2));
-            
-            return (
-              <View
-                key={index}
-                style={[
-                  styles.line,
-                  { width: length, left: prevX, top: prevY, transform: [{ rotate: `${angle}deg` }] }
-                ]}
-              />
-            );
-          })}
-        </View>
-
+        {/* Linhas do gráfico */}
         {historico.map((item, index) => {
-          const peso = parseFloat(item.peso);
-          const y = graphHeight - ((peso - minPeso) / range) * graphHeight;
-          const x = index * pointSpacing;
+          if (index === 0) return null;
+          
+          const prevPeso = parseFloat(historico[index - 1].peso);
+          const currPeso = parseFloat(item.peso);
+          
+          // Calcular posições Y (invertido porque canvas começa do topo)
+          const prevY = 10 + (graphHeight - 30) - (((prevPeso - minPeso) / range) * (graphHeight - 30));
+          const currY = 10 + (graphHeight - 30) - (((currPeso - minPeso) / range) * (graphHeight - 30));
+          
+          const prevX = 10 + ((index - 1) * pointSpacing);
+          const currX = 10 + (index * pointSpacing);
+          
+          const dx = currX - prevX;
+          const dy = currY - prevY;
+          const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+          const length = Math.sqrt(dx * dx + dy * dy);
           
           return (
-            <View key={index} style={[styles.graphPoint, { left: x - 6, top: y - 6 }]} />
+            <View
+              key={`line-${index}`}
+              style={{
+                position: 'absolute',
+                width: length,
+                height: 3,
+                backgroundColor: '#4CAF50',
+                left: prevX,
+                top: prevY,
+                transform: [{ rotate: `${angle}deg` }],
+                transformOrigin: '0% 50%'
+              }}
+            />
           );
         })}
 
+        {/* Pontos do gráfico */}
+        {historico.map((item, index) => {
+          const peso = parseFloat(item.peso);
+          const y = 10 + (graphHeight - 30) - (((peso - minPeso) / range) * (graphHeight - 30));
+          const x = 10 + (index * pointSpacing);
+          
+          return (
+            <View 
+              key={`point-${index}`} 
+              style={{
+                position: 'absolute',
+                width: 12,
+                height: 12,
+                borderRadius: 6,
+                backgroundColor: '#4CAF50',
+                borderWidth: 2,
+                borderColor: '#FFF',
+                left: x - 6,
+                top: y - 6
+              }}
+            />
+          );
+        })}
+
+        {/* Labels do eixo X */}
         <View style={styles.xAxisLabels}>
           {historico.map((item, index) => {
-            if (index % Math.ceil(historico.length / 3) !== 0 && index !== historico.length - 1) return null;
-            const x = index * pointSpacing;
+            // Mostrar primeira, uma do meio e última
+            if (index !== 0 && index !== Math.floor(historico.length / 2) && index !== historico.length - 1) return null;
+            
+            const x = 10 + (index * pointSpacing);
+            
+            // 🆕 ADICIONE ESTAS LINHAS
+            let textAlign = 'center';
+            let leftOffset = -20;
+            
+            if (index === 0) {
+              textAlign = 'left';
+              leftOffset = 0;
+            } else if (index === historico.length - 1) {
+              textAlign = 'right';
+              leftOffset = -40;
+            }
+            // 🆕 ATÉ AQUI
+            
             return (
-              <Text key={index} style={[styles.axisLabel, { position: 'absolute', left: x - 20 }]}>
+              <Text key={`label-${index}`} style={{ 
+                position: 'absolute', 
+                left: x + leftOffset,  // 🔧 MUDOU: era x - 20
+                fontSize: 11,
+                color: '#666',
+                width: 40,
+                textAlign: textAlign  // 🔧 MUDOU: era 'center'
+              }}>
                 {item.data_formatada}
               </Text>
             );

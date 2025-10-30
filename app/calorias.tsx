@@ -27,7 +27,7 @@ const CaloriasScreen = () => {
   }, []);
 
   useEffect(() => {
-    if (passos > 0 && !loading) {
+    if (!loading) {
       enviarDados();
     }
   }, [passos]);
@@ -38,6 +38,7 @@ const CaloriasScreen = () => {
       
       if (data.mensagem && data.tmb !== undefined) {
         setDadosCalorias(data);
+        setPassos(data.passos || 0); // 🆕 Atualizar passos com o valor do banco
       }
     } catch (error) {
       console.error('Erro ao enviar dados:', error);

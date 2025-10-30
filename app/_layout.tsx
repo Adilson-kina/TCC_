@@ -25,6 +25,34 @@ export default function RootLayout() {
         }} 
       />
       <Stack.Screen 
+        name="termosDeUso"
+        options={{ 
+          title: "Termos de Uso",
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: "#4CAF50"
+          },
+          headerTintColor: "#fff",
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          }
+        }} 
+      />
+      <Stack.Screen 
+        name="politicaPrivacidade"
+        options={{ 
+          title: "Política de Privacidade",
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: "#4CAF50"
+          },
+          headerTintColor: "#fff",
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          }
+        }} 
+      />
+      <Stack.Screen 
         name="perguntasEssenciais"
         options={{ 
           title: "",

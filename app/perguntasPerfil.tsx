@@ -465,9 +465,9 @@ export default function PerguntasPerfil() {
               showsVerticalScrollIndicator={true}
               >
                 <Pressable 
-                style={[styles.opcao, (tipoDieta === '' || tipoDieta === 'nenhuma') && styles.opcaoSelecionada]}
-                onPress={() => setTipoDieta('')}
-              >
+                  style={[styles.opcao, (tipoDieta === 'nenhuma' || tipoDieta === '') && styles.opcaoSelecionada]}
+                  onPress={() => setTipoDieta('nenhuma')}  // ← sempre enviar 'nenhuma'
+                >
                 <View style={styles.radio}>
                   {(tipoDieta === '' || tipoDieta === 'nenhuma') && <View style={styles.radioSelecionado} />}
                 </View>

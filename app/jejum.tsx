@@ -26,15 +26,40 @@ export default function Jejum() {
   }, []);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (jejumStarted) {
-      calcularTempoRestante();
-      interval = setInterval(calcularTempoRestante, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [jejumStarted, jejumTime]);
+      let interval: NodeJS.Timeout;
+      
+      if (jejumStarted) {
+          calcularTempoRestante();
+          interval = setInterval(() => {
+              calcularTempoRestante();
+          }, 1000);
+      }
+      
+      return () => {
+          if (interval) clearInterval(interval);
+      };
+  }, [jejumStarted]);
 
-  const carregarStatusJejum = async () => {
+  // 🆕 ADICIONAR ESTE USEEFFECT AQUI
+  useEffect(() => {
+      if (tempoRestante === '00:00:00' && jejumStarted) {
+          Alert.alert(
+              '🎉 Jejum Concluído!', 
+              'Você pode fazer sua próxima refeição agora!',
+              [
+                  { 
+                      text: 'OK', 
+                      onPress: async () => {
+                          await AsyncStorage.removeItem('jejumData');
+                          setJejumStarted(false);
+                      }
+                  }
+              ]
+          );
+      }
+  }, [tempoRestante, jejumStarted]);
+
+const carregarStatusJejum = async () => {
     try {
       const data = await api.get('/jejum.php');
 

@@ -61,7 +61,7 @@ export default function Termos() {
           rowStyle={estilo.checkboxRow}
         />
         <Text style={estilo.checkboxText}>
-          Estou de acordo com a <Link href={".."} style={estilo.link}>Política de Privacidade</Link> e os <Link href={".."} style={estilo.link}>Termos de Uso</Link>.
+          Estou de acordo com a <Link href="/politicaPrivacidade" style={estilo.link}>Política de Privacidade</Link> e os <Link href="/termosDeUso" style={estilo.link}>Termos de Uso</Link>.
         </Text>
       </View>
 
@@ -73,7 +73,7 @@ export default function Termos() {
           rowStyle={estilo.checkboxRow}
         />
         <Text style={estilo.checkboxText}>
-          Autorizo o processamento dos meus dados pessoais de saúde para acessar os recursos da aplicação Dieta-se. Saiba mais na <Link href={".."} style={estilo.link}>Política de Privacidade</Link>.
+          Autorizo o processamento dos meus dados pessoais de saúde para acessar os recursos da aplicação Dieta-se. Saiba mais na <Link href="/politicaPrivacidade" style={estilo.link}>Política de Privacidade</Link>.
         </Text>
       </View>
 
