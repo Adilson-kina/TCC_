@@ -33,7 +33,6 @@ Antes de começar, certifique-se de ter instalado:
   - Caminho padrão: `C:\xampp\htdocs\`
 
 * **Passo 3:** **Abra a pasta do projeto com o Terminal** *(clique com o botão direito)* e execute o script de inicialização rápida **(setup-rapido.bat)**
-<img src = "img/Passo3.jpg">
 
 ```
 ./setup-rapido.bat
@@ -69,7 +68,6 @@ Antes de começar, certifique-se de ter instalado:
 > - Iniciar o servidor automaticamente
 
 * **Passo 5:** Aguarde a conclusão da instalação e **o projeto será iniciado automaticamente** *(aperte W ou insira o link no navegador)*
-<img src = "img/Passo3.jpg">
 
 ```
 http://localhost:8081
