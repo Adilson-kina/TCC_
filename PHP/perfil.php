@@ -291,7 +291,8 @@ if ($_SERVER["REQUEST_METHOD"] === "DELETE") {
         }
 
         $stmtVerifica = $pdo->prepare("SELECT senha FROM usuarios WHERE id = :id");
-        $stmtVerifica->execute([":id" => $usuario->id]);
+        $stmtVerifica->bindParam(":id", $usuario->id);
+        $stmtVerifica->execute();
         $senhaHash = $stmtVerifica->fetchColumn();
 
         if (!password_verify($data["senha"], $senhaHash)) {
@@ -300,11 +301,11 @@ if ($_SERVER["REQUEST_METHOD"] === "DELETE") {
 
         // Desativar conta
         $stmt = $pdo->prepare("UPDATE usuarios SET ativo = 0 WHERE id = :id");
-        $stmt->execute([":id" => $usuario->id]);
+        $stmt->bindParam(":id", $usuario->id);
+        $stmt->execute();
 
-        enviarSucesso(200, [
-            "mensagem" => "Conta desativada com sucesso!"
-        ]);
+        http_response_code(204);
+        exit();
     } catch (PDOException $e) {
         enviarErro(500, "Erro ao desativar conta: " . $e->getMessage());
     }
