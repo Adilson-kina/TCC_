@@ -1,6 +1,14 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Dimensions,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import api from '../components/api';
 
 const windowWidth = Dimensions.get('window').width;
@@ -20,8 +28,7 @@ export default function PerguntasPerfil() {
   const [errorMessage, setErrorMessage] = useState('');
   const [dadosCalculados, setDadosCalculados] = useState(null);
   const [enviando, setEnviando] = useState(false);
-  
-  // Estados das respostas
+
   const [objetivo, setObjetivo] = useState('');
   const [valorDesejado, setValorDesejado] = useState('');
   const [contagemCalorica, setContagemCalorica] = useState('');
@@ -39,7 +46,7 @@ export default function PerguntasPerfil() {
   const buscarDadosCalculados = async () => {
     try {
       const data = await api.get('/perguntas/perguntas_perfil.php');
-      
+
       if (data?.peso_recomendado_min && data?.peso_recomendado_max) {
         setDadosCalculados(data);
       }
@@ -48,7 +55,7 @@ export default function PerguntasPerfil() {
     }
   };
 
-  const toggleDisturbio = (valor) => {
+  const toggleDisturbio = valor => {
     if (disturbios.includes(valor)) {
       setDisturbios(disturbios.filter(d => d !== valor));
     } else {
@@ -58,18 +65,21 @@ export default function PerguntasPerfil() {
 
   const handleAvancar = () => {
     setErrorMessage('');
-    
-    // Validações por etapa
+
     if (etapa === 1 && !objetivo) {
       setErrorMessage('Por favor, selecione seu objetivo.');
       return;
     }
-    
-    if (etapa === 2 && (objetivo === 'perder' || objetivo === 'ganhar') && !valorDesejado) {
+
+    if (
+      etapa === 2 &&
+      (objetivo === 'perder' || objetivo === 'ganhar') &&
+      !valorDesejado
+    ) {
       setErrorMessage('Por favor, informe o peso desejado.');
       return;
     }
-    
+
     if (etapa === 3) {
       if (!contagemCalorica) {
         setErrorMessage('Por favor, selecione uma opção.');
@@ -77,21 +87,23 @@ export default function PerguntasPerfil() {
       }
 
       if (contagemCalorica === 'nao_sei') {
-        setErrorMessage('Por favor, leia a explicação e selecione "Sim" ou "Não" para continuar.');
+        setErrorMessage(
+          'Por favor, leia a explicação e selecione "Sim" ou "Não" para continuar.'
+        );
         return;
       }
     }
-    
+
     if (etapa === 4 && !jejumIntermitente) {
       setErrorMessage('Por favor, selecione uma opção.');
       return;
     }
-    
+
     if (etapa === 5 && !nivelAtividade) {
       setErrorMessage('Por favor, selecione seu nível de atividade.');
       return;
     }
-    
+
     if (etapa === 6 && !comerFds) {
       setErrorMessage('Por favor, selecione uma opção.');
       return;
@@ -101,10 +113,6 @@ export default function PerguntasPerfil() {
       setErrorMessage('Por favor, selecione uma opção.');
       return;
     }
-    
-    // Etapa 8 (tipo de dieta) não é obrigatória
-    
-    // Etapa 9 (distúrbios) não é obrigatória
 
     if (etapa === 9) {
       if (!enviando) {
@@ -117,12 +125,13 @@ export default function PerguntasPerfil() {
 
   const enviarDados = async () => {
     if (enviando) return;
-    
+
     setEnviando(true);
-    
+
     try {
-      const disturbiosParaEnviar = disturbios.length === 0 ? ['nenhuma'] : disturbios;
-      
+      const disturbiosParaEnviar =
+        disturbios.length === 0 ? ['nenhuma'] : disturbios;
+
       const payload = {
         objetivo: objetivo,
         contagem_calorica: contagemCalorica,
@@ -132,15 +141,16 @@ export default function PerguntasPerfil() {
         comer_fds: comerFds,
         disturbios: disturbiosParaEnviar,
         possui_dieta: possuiDieta,
-        faixa_recomendada: dadosCalculados 
-          ? `${dadosCalculados.peso_recomendado_min}-${dadosCalculados.peso_recomendado_max}` 
-          : ''
+        faixa_recomendada: dadosCalculados
+          ? `${dadosCalculados.peso_recomendado_min}-${dadosCalculados.peso_recomendado_max}`
+          : '',
       };
 
       if (objetivo === 'perder' || objetivo === 'ganhar') {
         payload.valor_desejado = parseFloat(valorDesejado);
       } else if (objetivo === 'manter' && dadosCalculados) {
-        payload.valor_desejado = dadosCalculados.peso_atual || dadosCalculados.peso_recomendado_min;
+        payload.valor_desejado =
+          dadosCalculados.peso_atual || dadosCalculados.peso_recomendado_min;
       } else {
         payload.valor_desejado = null;
       }
@@ -148,12 +158,13 @@ export default function PerguntasPerfil() {
       const data = await api.post('/perguntas/perguntas_perfil.php', payload);
 
       if (data?.mensagem) {
-        // Buscar alimentos antes de redirecionar
         await api.get('/alimentos/alimentos.php');
         router.push('/home');
       }
     } catch (error: any) {
-      setErrorMessage(error.message || 'Erro ao enviar dados. Tente novamente.');
+      setErrorMessage(
+        error.message || 'Erro ao enviar dados. Tente novamente.'
+      );
     } finally {
       setEnviando(false);
     }
@@ -168,7 +179,7 @@ export default function PerguntasPerfil() {
 
   return (
     <View style={styles.container}>
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={[styles.scrollContent]}
         showsVerticalScrollIndicator={false}
       >
@@ -176,77 +187,108 @@ export default function PerguntasPerfil() {
           {/* ETAPA 1: OBJETIVO */}
           {etapa === 1 && (
             <>
-              <Text style={styles.pergunta}>Qual meta você{'\n'}deseja alcançar com{'\n'}sua dieta?</Text>
-              
-              <Pressable 
-                style={[styles.opcao, objetivo === 'perder' && styles.opcaoSelecionada]}
+              <Text style={styles.pergunta}>
+                Qual meta você{'\n'}deseja alcançar com{'\n'}sua dieta?
+              </Text>
+
+              <Pressable
+                style={[
+                  styles.opcao,
+                  objetivo === 'perder' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setObjetivo('perder')}
               >
                 <View style={styles.radio}>
-                  {objetivo === 'perder' && <View style={styles.radioSelecionado} />}
+                  {objetivo === 'perder' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
                 <Text style={styles.opcaoTexto}>Quero perder peso! 🏃‍♂️🔥</Text>
               </Pressable>
 
-              <Pressable 
-                style={[styles.opcao, objetivo === 'ganhar' && styles.opcaoSelecionada]}
+              <Pressable
+                style={[
+                  styles.opcao,
+                  objetivo === 'ganhar' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setObjetivo('ganhar')}
               >
                 <View style={styles.radio}>
-                  {objetivo === 'ganhar' && <View style={styles.radioSelecionado} />}
+                  {objetivo === 'ganhar' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
                 <Text style={styles.opcaoTexto}>Quero ganhar peso! 🍽️🍔</Text>
               </Pressable>
 
-              <Pressable 
-                style={[styles.opcao, objetivo === 'manter' && styles.opcaoSelecionada]}
+              <Pressable
+                style={[
+                  styles.opcao,
+                  objetivo === 'manter' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setObjetivo('manter')}
               >
                 <View style={styles.radio}>
-                  {objetivo === 'manter' && <View style={styles.radioSelecionado} />}
+                  {objetivo === 'manter' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
                 <Text style={styles.opcaoTexto}>Manter meu peso! ✨👌</Text>
               </Pressable>
 
-              <Pressable 
-                style={[styles.opcao, objetivo === 'massa' && styles.opcaoSelecionada]}
+              <Pressable
+                style={[
+                  styles.opcao,
+                  objetivo === 'massa' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setObjetivo('massa')}
               >
                 <View style={styles.radio}>
-                  {objetivo === 'massa' && <View style={styles.radioSelecionado} />}
+                  {objetivo === 'massa' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
-                <Text style={styles.opcaoTexto}>Ganhar massa muscular! 🏋️‍♂️💥</Text>
+                <Text style={styles.opcaoTexto}>
+                  Ganhar massa muscular! 🏋️‍♂️💥
+                </Text>
               </Pressable>
             </>
           )}
 
-          {/* ETAPA 2: PESO DESEJADO */}
+          {}
           {etapa === 2 && (
             <>
-              {(objetivo === 'perder' || objetivo === 'ganhar') ? (
+              {objetivo === 'perder' || objetivo === 'ganhar' ? (
                 <>
-                  <Text style={styles.pergunta}>Qual peso você{'\n'}deseja alcançar?</Text>
-                  
+                  <Text style={styles.pergunta}>
+                    Qual peso você{'\n'}deseja alcançar?
+                  </Text>
+
                   {dadosCalculados && (
-                  <View style={styles.infoBox}>
-                    <Text style={styles.infoTexto}>
-                      💡 Seu peso atual: <Text style={styles.pesoDestaque}>{dadosCalculados.peso_atual} kg</Text>
-                    </Text>
-                    <Text style={styles.infoTexto}>
-                      ✅ Faixa recomendada (por IMC): {'\n'}
-                      <Text style={styles.pesoDestaque}>{dadosCalculados.peso_recomendado_min} - {dadosCalculados.peso_recomendado_max} kg</Text>
-                    </Text>
-                  </View>
-                )}
-                  
+                    <View style={styles.infoBox}>
+                      <Text style={styles.infoTexto}>
+                        💡 Seu peso atual:{' '}
+                        <Text style={styles.pesoDestaque}>
+                          {dadosCalculados.peso_atual} kg
+                        </Text>
+                      </Text>
+                      <Text style={styles.infoTexto}>
+                        ✅ Faixa recomendada (por IMC): {'\n'}
+                        <Text style={styles.pesoDestaque}>
+                          {dadosCalculados.peso_recomendado_min} -{' '}
+                          {dadosCalculados.peso_recomendado_max} kg
+                        </Text>
+                      </Text>
+                    </View>
+                  )}
+
                   <View style={styles.inputContainer}>
                     <TextInput
                       style={styles.inputNumero}
                       placeholder="65.5"
                       placeholderTextColor="#747474"
                       value={valorDesejado}
-                      onChangeText={(text) => {
-                        // ✅ Substitui vírgula por ponto automaticamente
+                      onChangeText={text => {
                         const pesoFormatado = text.replace(',', '.');
                         setValorDesejado(pesoFormatado);
                       }}
@@ -258,7 +300,9 @@ export default function PerguntasPerfil() {
                 </>
               ) : (
                 <>
-                  <Text style={styles.pergunta}>Ótima escolha!{'\n'}Vamos continuar...</Text>
+                  <Text style={styles.pergunta}>
+                    Ótima escolha!{'\n'}Vamos continuar...
+                  </Text>
                   <Text style={styles.dica}>
                     👉 Toque em "Avançar" para continuar
                   </Text>
@@ -267,279 +311,414 @@ export default function PerguntasPerfil() {
             </>
           )}
 
-          {/* ETAPA 3: CONTAGEM CALÓRICA */}
+          {}
           {etapa === 3 && (
             <>
-              <Text style={styles.pergunta}>Você já fez{'\n'}contagem calórica?</Text>
-              
-              <Pressable 
-                style={[styles.opcao, contagemCalorica === 'sim' && styles.opcaoSelecionada]}
+              <Text style={styles.pergunta}>
+                Você já fez{'\n'}contagem calórica?
+              </Text>
+
+              <Pressable
+                style={[
+                  styles.opcao,
+                  contagemCalorica === 'sim' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setContagemCalorica('sim')}
               >
                 <View style={styles.radio}>
-                  {contagemCalorica === 'sim' && <View style={styles.radioSelecionado} />}
+                  {contagemCalorica === 'sim' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
                 <Text style={styles.opcaoTexto}>Sim</Text>
               </Pressable>
 
-              <Pressable 
-                style={[styles.opcao, contagemCalorica === 'nao' && styles.opcaoSelecionada]}
+              <Pressable
+                style={[
+                  styles.opcao,
+                  contagemCalorica === 'nao' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setContagemCalorica('nao')}
               >
                 <View style={styles.radio}>
-                  {contagemCalorica === 'nao' && <View style={styles.radioSelecionado} />}
+                  {contagemCalorica === 'nao' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
                 <Text style={styles.opcaoTexto}>Não</Text>
               </Pressable>
 
-              <Pressable 
-                style={[styles.opcao, contagemCalorica === 'nao_sei' && styles.opcaoSelecionada]}
+              <Pressable
+                style={[
+                  styles.opcao,
+                  contagemCalorica === 'nao_sei' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setContagemCalorica('nao_sei')}
               >
                 <View style={styles.radio}>
-                  {contagemCalorica === 'nao_sei' && <View style={styles.radioSelecionado} />}
+                  {contagemCalorica === 'nao_sei' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
                 <Text style={styles.opcaoTexto}>Não sei</Text>
               </Pressable>
             </>
           )}
 
-          {/* 🆕 FORA DO ETAPA 3 - SEMPRE VISÍVEL */}
+          {}
           {etapa === 3 && contagemCalorica === 'nao_sei' && (
-            <View style={[styles.infoBox, styles.infoBoxObrigatorio, styles.infoBoxFixo]}>
-              <Text style={styles.infoTitulo}>💡 O que é contagem calórica?</Text>
-              <Text style={styles.infoTexto}>
-                É o controle da quantidade de calorias que você consome por dia. Nosso app calcula automaticamente seu limite diário ideal baseado no seu objetivo!
+            <View
+              style={[
+                styles.infoBox,
+                styles.infoBoxObrigatorio,
+                styles.infoBoxFixo,
+              ]}
+            >
+              <Text style={styles.infoTitulo}>
+                💡 O que é contagem calórica?
               </Text>
               <Text style={styles.infoTexto}>
-                ✨ Você poderá acompanhar suas calorias consumidas vs. gastas em tempo real.
+                É o controle da quantidade de calorias que você consome por dia.
+                Nosso app calcula automaticamente seu limite diário ideal
+                baseado no seu objetivo!
+              </Text>
+              <Text style={styles.infoTexto}>
+                ✨ Você poderá acompanhar suas calorias consumidas vs. gastas em
+                tempo real.
               </Text>
             </View>
           )}
 
-          {/* ETAPA 4: JEJUM INTERMITENTE */}
+          {}
           {etapa === 4 && (
             <>
-              <Text style={styles.pergunta}>Você deseja praticar{'\n'}jejum intermitente?</Text>
-              
-              <Pressable 
-                style={[styles.opcao, jejumIntermitente === 'sim' && styles.opcaoSelecionada]}
+              <Text style={styles.pergunta}>
+                Você deseja praticar{'\n'}jejum intermitente?
+              </Text>
+
+              <Pressable
+                style={[
+                  styles.opcao,
+                  jejumIntermitente === 'sim' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setJejumIntermitente('sim')}
               >
                 <View style={styles.radio}>
-                  {jejumIntermitente === 'sim' && <View style={styles.radioSelecionado} />}
+                  {jejumIntermitente === 'sim' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
                 <Text style={styles.opcaoTexto}>Sim</Text>
               </Pressable>
 
-              <Pressable 
-                style={[styles.opcao, jejumIntermitente === 'nao' && styles.opcaoSelecionada]}
+              <Pressable
+                style={[
+                  styles.opcao,
+                  jejumIntermitente === 'nao' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setJejumIntermitente('nao')}
               >
                 <View style={styles.radio}>
-                  {jejumIntermitente === 'nao' && <View style={styles.radioSelecionado} />}
+                  {jejumIntermitente === 'nao' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
                 <Text style={styles.opcaoTexto}>Não</Text>
               </Pressable>
 
               <View style={[styles.infoBox, styles.alertBox]}>
-                <Text style={styles.alertTitulo}>⚠️ Importante sobre o jejum</Text>
-                <Text style={styles.infoTexto}>
-                  O jejum intermitente pode trazer riscos se não for feito com acompanhamento adequado. Por isso, esse recurso vem <Text style={styles.destaque}>desativado por padrão</Text> no app, exceto se você selecionar "Sim" nesta pergunta.
+                <Text style={styles.alertTitulo}>
+                  ⚠️ Importante sobre o jejum
                 </Text>
                 <Text style={styles.infoTexto}>
-                  💡 Você poderá ativá-lo manualmente depois, mas recomendamos consultar um profissional de saúde primeiro.
+                  O jejum intermitente pode trazer riscos se não for feito com
+                  acompanhamento adequado. Por isso, esse recurso vem{' '}
+                  <Text style={styles.destaque}>desativado por padrão</Text> no
+                  app, exceto se você selecionar "Sim" nesta pergunta.
+                </Text>
+                <Text style={styles.infoTexto}>
+                  💡 Você poderá ativá-lo manualmente depois, mas recomendamos
+                  consultar um profissional de saúde primeiro.
                 </Text>
               </View>
             </>
           )}
 
-          {/* ETAPA 5: NÍVEL DE ATIVIDADE */}
+          {}
           {etapa === 5 && (
             <>
-              <Text style={styles.pergunta}>Qual é o seu{'\n'}nível de atividade{'\n'}física?</Text>
-              
-              <Pressable 
-                style={[styles.opcao, nivelAtividade === 'sedentario' && styles.opcaoSelecionada]}
+              <Text style={styles.pergunta}>
+                Qual é o seu{'\n'}nível de atividade{'\n'}física?
+              </Text>
+
+              <Pressable
+                style={[
+                  styles.opcao,
+                  nivelAtividade === 'sedentario' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setNivelAtividade('sedentario')}
               >
                 <View style={styles.radio}>
-                  {nivelAtividade === 'sedentario' && <View style={styles.radioSelecionado} />}
+                  {nivelAtividade === 'sedentario' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
                 <Text style={styles.opcaoTexto}>Sedentário</Text>
               </Pressable>
 
-              <Pressable 
-                style={[styles.opcao, nivelAtividade === 'baixo' && styles.opcaoSelecionada]}
+              <Pressable
+                style={[
+                  styles.opcao,
+                  nivelAtividade === 'baixo' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setNivelAtividade('baixo')}
               >
                 <View style={styles.radio}>
-                  {nivelAtividade === 'baixo' && <View style={styles.radioSelecionado} />}
+                  {nivelAtividade === 'baixo' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
                 <Text style={styles.opcaoTexto}>Baixo (1-2x/semana)</Text>
               </Pressable>
 
-              <Pressable 
-                style={[styles.opcao, nivelAtividade === 'medio' && styles.opcaoSelecionada]}
+              <Pressable
+                style={[
+                  styles.opcao,
+                  nivelAtividade === 'medio' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setNivelAtividade('medio')}
               >
                 <View style={styles.radio}>
-                  {nivelAtividade === 'medio' && <View style={styles.radioSelecionado} />}
+                  {nivelAtividade === 'medio' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
                 <Text style={styles.opcaoTexto}>Médio (3-5x/semana)</Text>
               </Pressable>
 
-              <Pressable 
-                style={[styles.opcao, nivelAtividade === 'alto' && styles.opcaoSelecionada]}
+              <Pressable
+                style={[
+                  styles.opcao,
+                  nivelAtividade === 'alto' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setNivelAtividade('alto')}
               >
                 <View style={styles.radio}>
-                  {nivelAtividade === 'alto' && <View style={styles.radioSelecionado} />}
+                  {nivelAtividade === 'alto' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
                 <Text style={styles.opcaoTexto}>Alto (6-7x/semana)</Text>
               </Pressable>
             </>
           )}
 
-          {/* ETAPA 6: COMER FDS */}
+          {}
           {etapa === 6 && (
             <>
-              <Text style={styles.pergunta}>Você costuma{'\n'}comer mais nos{'\n'}fins de semana?</Text>
-              
-              <Pressable 
-                style={[styles.opcao, comerFds === 'sim' && styles.opcaoSelecionada]}
+              <Text style={styles.pergunta}>
+                Você costuma{'\n'}comer mais nos{'\n'}fins de semana?
+              </Text>
+
+              <Pressable
+                style={[
+                  styles.opcao,
+                  comerFds === 'sim' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setComerFds('sim')}
               >
                 <View style={styles.radio}>
-                  {comerFds === 'sim' && <View style={styles.radioSelecionado} />}
+                  {comerFds === 'sim' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
                 <Text style={styles.opcaoTexto}>Sim</Text>
               </Pressable>
 
-              <Pressable 
-                style={[styles.opcao, comerFds === 'nao' && styles.opcaoSelecionada]}
+              <Pressable
+                style={[
+                  styles.opcao,
+                  comerFds === 'nao' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setComerFds('nao')}
               >
                 <View style={styles.radio}>
-                  {comerFds === 'nao' && <View style={styles.radioSelecionado} />}
+                  {comerFds === 'nao' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
                 <Text style={styles.opcaoTexto}>Não</Text>
               </Pressable>
             </>
           )}
 
-          {/* ETAPA 7: POSSUI DIETA */}
+          {}
           {etapa === 7 && (
             <>
-              <Text style={styles.pergunta}>Você já possui{'\n'}uma dieta definida{'\n'}por profissional?</Text>
-              
-              <Pressable 
-                style={[styles.opcao, possuiDieta === 'sim' && styles.opcaoSelecionada]}
+              <Text style={styles.pergunta}>
+                Você já possui{'\n'}uma dieta definida{'\n'}por profissional?
+              </Text>
+
+              <Pressable
+                style={[
+                  styles.opcao,
+                  possuiDieta === 'sim' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setPossuiDieta('sim')}
               >
                 <View style={styles.radio}>
-                  {possuiDieta === 'sim' && <View style={styles.radioSelecionado} />}
+                  {possuiDieta === 'sim' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
                 <Text style={styles.opcaoTexto}>Sim</Text>
               </Pressable>
 
-              <Pressable 
-                style={[styles.opcao, possuiDieta === 'nao' && styles.opcaoSelecionada]}
+              <Pressable
+                style={[
+                  styles.opcao,
+                  possuiDieta === 'nao' && styles.opcaoSelecionada,
+                ]}
                 onPress={() => setPossuiDieta('nao')}
               >
                 <View style={styles.radio}>
-                  {possuiDieta === 'nao' && <View style={styles.radioSelecionado} />}
+                  {possuiDieta === 'nao' && (
+                    <View style={styles.radioSelecionado} />
+                  )}
                 </View>
                 <Text style={styles.opcaoTexto}>Não</Text>
               </Pressable>
             </>
           )}
 
-          {/* ETAPA 8: TIPO DE DIETA */}
+          {}
           {etapa === 8 && (
             <>
-              <Text style={styles.pergunta}>Você gostaria de seguir{'\n'}alguma dieta específica?</Text>
-              
-              <ScrollView 
-              style={styles.scrollOpcoes}
-              showsVerticalScrollIndicator={true}
-              >
-                <Pressable 
-                  style={[styles.opcao, (tipoDieta === 'nenhuma' || tipoDieta === '') && styles.opcaoSelecionada]}
-                  onPress={() => setTipoDieta('nenhuma')}  // ← sempre enviar 'nenhuma'
-                >
-                <View style={styles.radio}>
-                  {(tipoDieta === '' || tipoDieta === 'nenhuma') && <View style={styles.radioSelecionado} />}
-                </View>
-                <Text style={styles.opcaoTexto}>Prefiro não seguir</Text>
-              </Pressable>
+              <Text style={styles.pergunta}>
+                Você gostaria de seguir{'\n'}alguma dieta específica?
+              </Text>
 
-                <Pressable 
-                  style={[styles.opcao, tipoDieta === 'low_carb' && styles.opcaoSelecionada]}
+              <ScrollView
+                style={styles.scrollOpcoes}
+                showsVerticalScrollIndicator={true}
+              >
+                <Pressable
+                  style={[
+                    styles.opcao,
+                    (tipoDieta === 'nenhuma' || tipoDieta === '') &&
+                      styles.opcaoSelecionada,
+                  ]}
+                  onPress={() => setTipoDieta('nenhuma')}
+                >
+                  <View style={styles.radio}>
+                    {(tipoDieta === '' || tipoDieta === 'nenhuma') && (
+                      <View style={styles.radioSelecionado} />
+                    )}
+                  </View>
+                  <Text style={styles.opcaoTexto}>Prefiro não seguir</Text>
+                </Pressable>
+
+                <Pressable
+                  style={[
+                    styles.opcao,
+                    tipoDieta === 'low_carb' && styles.opcaoSelecionada,
+                  ]}
                   onPress={() => setTipoDieta('low_carb')}
                 >
                   <View style={styles.radio}>
-                    {tipoDieta === 'low_carb' && <View style={styles.radioSelecionado} />}
+                    {tipoDieta === 'low_carb' && (
+                      <View style={styles.radioSelecionado} />
+                    )}
                   </View>
                   <Text style={styles.opcaoTexto}>Low Carb</Text>
                 </Pressable>
 
-                <Pressable 
-                  style={[styles.opcao, tipoDieta === 'cetogenica' && styles.opcaoSelecionada]}
+                <Pressable
+                  style={[
+                    styles.opcao,
+                    tipoDieta === 'cetogenica' && styles.opcaoSelecionada,
+                  ]}
                   onPress={() => setTipoDieta('cetogenica')}
                 >
                   <View style={styles.radio}>
-                    {tipoDieta === 'cetogenica' && <View style={styles.radioSelecionado} />}
+                    {tipoDieta === 'cetogenica' && (
+                      <View style={styles.radioSelecionado} />
+                    )}
                   </View>
                   <Text style={styles.opcaoTexto}>Cetogênica</Text>
                 </Pressable>
 
-                <Pressable 
-                  style={[styles.opcao, tipoDieta === 'mediterranea' && styles.opcaoSelecionada]}
+                <Pressable
+                  style={[
+                    styles.opcao,
+                    tipoDieta === 'mediterranea' && styles.opcaoSelecionada,
+                  ]}
                   onPress={() => setTipoDieta('mediterranea')}
                 >
                   <View style={styles.radio}>
-                    {tipoDieta === 'mediterranea' && <View style={styles.radioSelecionado} />}
+                    {tipoDieta === 'mediterranea' && (
+                      <View style={styles.radioSelecionado} />
+                    )}
                   </View>
                   <Text style={styles.opcaoTexto}>Mediterrânea</Text>
                 </Pressable>
 
-                <Pressable 
-                  style={[styles.opcao, tipoDieta === 'vegana' && styles.opcaoSelecionada]}
+                <Pressable
+                  style={[
+                    styles.opcao,
+                    tipoDieta === 'vegana' && styles.opcaoSelecionada,
+                  ]}
                   onPress={() => setTipoDieta('vegana')}
                 >
                   <View style={styles.radio}>
-                    {tipoDieta === 'vegana' && <View style={styles.radioSelecionado} />}
+                    {tipoDieta === 'vegana' && (
+                      <View style={styles.radioSelecionado} />
+                    )}
                   </View>
                   <Text style={styles.opcaoTexto}>Vegana</Text>
                 </Pressable>
 
-                <Pressable 
-                  style={[styles.opcao, tipoDieta === 'vegetariana' && styles.opcaoSelecionada]}
+                <Pressable
+                  style={[
+                    styles.opcao,
+                    tipoDieta === 'vegetariana' && styles.opcaoSelecionada,
+                  ]}
                   onPress={() => setTipoDieta('vegetariana')}
                 >
                   <View style={styles.radio}>
-                    {tipoDieta === 'vegetariana' && <View style={styles.radioSelecionado} />}
+                    {tipoDieta === 'vegetariana' && (
+                      <View style={styles.radioSelecionado} />
+                    )}
                   </View>
                   <Text style={styles.opcaoTexto}>Vegetariana</Text>
                 </Pressable>
 
-                <Pressable 
-                  style={[styles.opcao, tipoDieta === 'paleolitica' && styles.opcaoSelecionada]}
+                <Pressable
+                  style={[
+                    styles.opcao,
+                    tipoDieta === 'paleolitica' && styles.opcaoSelecionada,
+                  ]}
                   onPress={() => setTipoDieta('paleolitica')}
                 >
                   <View style={styles.radio}>
-                    {tipoDieta === 'paleolitica' && <View style={styles.radioSelecionado} />}
+                    {tipoDieta === 'paleolitica' && (
+                      <View style={styles.radioSelecionado} />
+                    )}
                   </View>
                   <Text style={styles.opcaoTexto}>Paleolítica</Text>
                 </Pressable>
 
-                <Pressable 
-                  style={[styles.opcao, tipoDieta === 'dieta_das_zonas' && styles.opcaoSelecionada]}
+                <Pressable
+                  style={[
+                    styles.opcao,
+                    tipoDieta === 'dieta_das_zonas' && styles.opcaoSelecionada,
+                  ]}
                   onPress={() => setTipoDieta('dieta_das_zonas')}
                 >
                   <View style={styles.radio}>
-                    {tipoDieta === 'dieta_das_zonas' && <View style={styles.radioSelecionado} />}
+                    {tipoDieta === 'dieta_das_zonas' && (
+                      <View style={styles.radioSelecionado} />
+                    )}
                   </View>
                   <Text style={styles.opcaoTexto}>Dieta das Zonas</Text>
                 </Pressable>
@@ -547,71 +726,108 @@ export default function PerguntasPerfil() {
             </>
           )}
 
-          {/* ETAPA 9: DISTÚRBIOS */}
+          {}
           {etapa === 9 && (
             <>
-              <Text style={styles.pergunta}>Você possui alguma{'\n'}doença ou restrição{'\n'}alimentar?</Text>
+              <Text style={styles.pergunta}>
+                Você possui alguma{'\n'}doença ou restrição{'\n'}alimentar?
+              </Text>
               <Text style={styles.dica}>
                 💡 Selecione todas que se aplicam (ou nenhuma)
               </Text>
-              
+
               <ScrollView style={styles.scrollOpcoes}>
-                <Pressable 
-                  style={[styles.opcao, disturbios.includes('celíaca') && styles.opcaoSelecionada]}
+                <Pressable
+                  style={[
+                    styles.opcao,
+                    disturbios.includes('celíaca') && styles.opcaoSelecionada,
+                  ]}
                   onPress={() => toggleDisturbio('celíaca')}
                 >
                   <View style={styles.checkbox}>
-                    {disturbios.includes('celíaca') && <View style={styles.checkboxSelecionado} />}
+                    {disturbios.includes('celíaca') && (
+                      <View style={styles.checkboxSelecionado} />
+                    )}
                   </View>
                   <Text style={styles.opcaoTexto}>Doença Celíaca</Text>
                 </Pressable>
 
-                <Pressable 
-                  style={[styles.opcao, disturbios.includes('diabetes') && styles.opcaoSelecionada]}
+                <Pressable
+                  style={[
+                    styles.opcao,
+                    disturbios.includes('diabetes') && styles.opcaoSelecionada,
+                  ]}
                   onPress={() => toggleDisturbio('diabetes')}
                 >
                   <View style={styles.checkbox}>
-                    {disturbios.includes('diabetes') && <View style={styles.checkboxSelecionado} />}
+                    {disturbios.includes('diabetes') && (
+                      <View style={styles.checkboxSelecionado} />
+                    )}
                   </View>
                   <Text style={styles.opcaoTexto}>Diabetes</Text>
                 </Pressable>
 
-                <Pressable 
-                  style={[styles.opcao, disturbios.includes('hipercolesterolemia') && styles.opcaoSelecionada]}
+                <Pressable
+                  style={[
+                    styles.opcao,
+                    disturbios.includes('hipercolesterolemia') &&
+                      styles.opcaoSelecionada,
+                  ]}
                   onPress={() => toggleDisturbio('hipercolesterolemia')}
                 >
                   <View style={styles.checkbox}>
-                    {disturbios.includes('hipercolesterolemia') && <View style={styles.checkboxSelecionado} />}
+                    {disturbios.includes('hipercolesterolemia') && (
+                      <View style={styles.checkboxSelecionado} />
+                    )}
                   </View>
                   <Text style={styles.opcaoTexto}>Hipercolesterolemia</Text>
                 </Pressable>
 
-                <Pressable 
-                  style={[styles.opcao, disturbios.includes('hipertensão') && styles.opcaoSelecionada]}
+                <Pressable
+                  style={[
+                    styles.opcao,
+                    disturbios.includes('hipertensão') &&
+                      styles.opcaoSelecionada,
+                  ]}
                   onPress={() => toggleDisturbio('hipertensão')}
                 >
                   <View style={styles.checkbox}>
-                    {disturbios.includes('hipertensão') && <View style={styles.checkboxSelecionado} />}
+                    {disturbios.includes('hipertensão') && (
+                      <View style={styles.checkboxSelecionado} />
+                    )}
                   </View>
                   <Text style={styles.opcaoTexto}>Hipertensão</Text>
                 </Pressable>
 
-                <Pressable 
-                  style={[styles.opcao, disturbios.includes('sii') && styles.opcaoSelecionada]}
+                <Pressable
+                  style={[
+                    styles.opcao,
+                    disturbios.includes('sii') && styles.opcaoSelecionada,
+                  ]}
                   onPress={() => toggleDisturbio('sii')}
                 >
                   <View style={styles.checkbox}>
-                    {disturbios.includes('sii') && <View style={styles.checkboxSelecionado} />}
+                    {disturbios.includes('sii') && (
+                      <View style={styles.checkboxSelecionado} />
+                    )}
                   </View>
-                  <Text style={styles.opcaoTexto}>Síndrome do Intestino Irritável (SII)</Text>
+                  <Text style={styles.opcaoTexto}>
+                    Síndrome do Intestino Irritável (SII)
+                  </Text>
                 </Pressable>
 
-                <Pressable 
-                  style={[styles.opcao, disturbios.includes('intolerancia_lactose') && styles.opcaoSelecionada]}
+                <Pressable
+                  style={[
+                    styles.opcao,
+                    disturbios.includes('intolerancia_lactose') &&
+                      styles.opcaoSelecionada,
+                  ]}
                   onPress={() => toggleDisturbio('intolerancia_lactose')}
                 >
                   <View style={styles.checkbox}>
-                    {disturbios.includes('intolerancia_lactose') && <View style={styles.checkboxSelecionado} />}
+                    {disturbios.includes('intolerancia_lactose') && (
+                      <View style={styles.checkboxSelecionado} />
+                    )}
                   </View>
                   <Text style={styles.opcaoTexto}>Intolerância à Lactose</Text>
                 </Pressable>
@@ -629,28 +845,32 @@ export default function PerguntasPerfil() {
                 <Text style={styles.botaoVoltarTexto}>← Voltar</Text>
               </Pressable>
             )}
-            
-            <Pressable 
+
+            <Pressable
               style={[
-                styles.botaoAvancar, 
+                styles.botaoAvancar,
                 etapa === 1 && styles.botaoAvancarFull,
-                enviando && styles.botaoDesabilitado
+                enviando && styles.botaoDesabilitado,
               ]}
               onPress={handleAvancar}
               disabled={enviando}
             >
               <Text style={styles.botaoTexto}>
-                {enviando ? 'Enviando...' : (etapa === 9 ? 'Finalizar' : 'Avançar')}
+                {enviando
+                  ? 'Enviando...'
+                  : etapa === 9
+                    ? 'Finalizar'
+                    : 'Avançar'}
               </Text>
             </Pressable>
           </View>
 
-          {/* Indicador de progresso */}
+          {}
           <View style={styles.progressoContainer}>
             {[...Array(9)].map((_, i) => (
-              <View 
-                key={i} 
-                style={[styles.bolinha, etapa >= i + 1 && styles.bolinhaAtiva]} 
+              <View
+                key={i}
+                style={[styles.bolinha, etapa >= i + 1 && styles.bolinhaAtiva]}
               />
             ))}
           </View>
@@ -828,7 +1048,7 @@ const styles = StyleSheet.create({
     borderColor: '#FBC02D',
   },
   infoBoxFixo: {
-    marginTop: 15,  // ✅ Adiciona espaço fixo acima
+    marginTop: 15,
   },
   infoTexto: {
     fontSize: 14,

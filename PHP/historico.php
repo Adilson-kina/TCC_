@@ -26,13 +26,17 @@ try {
     $stmt->execute([":usuario_id" => $usuario->id]);
     $refeicoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // 2. Buscar alimentos de cada refeição
-    $ids = array_column($refeicoes, 'refeicao_id');
-
-    if (empty($ids)) {
-        enviarErro(404, "Nenhuma refeição encontrada para buscar alimentos.");
+    // 2. Se não houver refeições, retornar sucesso com array vazio
+    if (empty($refeicoes)) {
+        enviarSucesso(200, [
+            "mensagem" => "Nenhuma refeição encontrada",
+            "refeicoes" => []
+        ]);
+        exit(); 
     }
 
+    // 3. Buscar alimentos de cada refeição
+    $ids = array_column($refeicoes, 'refeicao_id');
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
 
     $stmtAlimentos = $pdo->prepare("
@@ -42,14 +46,10 @@ try {
         WHERE ra.refeicao_id IN ($placeholders)
     ");
 
-    try {
-        $stmtAlimentos->execute($ids);
-    } catch (PDOException $e) {
-        enviarErro(500, "Erro ao buscar alimentos das refeições: " . $e->getMessage());
-    }
+    $stmtAlimentos->execute($ids);
     $alimentosPorRefeicao = $stmtAlimentos->fetchAll(PDO::FETCH_ASSOC);
 
-    // 3. Agrupar alimentos por refeição
+    // 4. Agrupar alimentos por refeição
     $mapaAlimentos = [];
     foreach ($alimentosPorRefeicao as $alimento) {
         $id = $alimento["refeicao_id"];
@@ -57,7 +57,7 @@ try {
         $mapaAlimentos[$id][] = $alimento;
     }
 
-    // 4. Montar resposta final
+    // 5. Montar resposta final
     foreach ($refeicoes as &$refeicao) {
         $id = $refeicao["refeicao_id"];
         $refeicao["alimentos"] = $mapaAlimentos[$id] ?? [];

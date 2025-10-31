@@ -20,7 +20,7 @@ $passos = max(0, intval($data["passos"] ?? 0));
 $dataRegistro = date("Y-m-d");
 
 try {
-    // 🆕 ADICIONAR: Buscar dados de hoje PRIMEIRO
+    // Buscar dados de hoje PRIMEIRO
     $stmtHoje = $pdo->prepare("
         SELECT calorias_ingeridas, calorias_gastas, saldo_calorico
         FROM calorias
@@ -94,7 +94,7 @@ try {
     $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
     $caloriasIngeridas = is_numeric($resultado["total_calorias"]) ? floatval($resultado["total_calorias"]) : 0;
 
-    // 🆕 Se já existir registro hoje, usar as calorias ingeridas de lá (mais confiável)
+    // Se já existir registro hoje, usar as calorias ingeridas de lá (mais confiável)
     if ($dadosHoje && $dadosHoje['calorias_ingeridas'] > 0) {
         $caloriasIngeridas = floatval($dadosHoje['calorias_ingeridas']);
     }

@@ -11,7 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 
 require_once(__DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.php');
 
-permitirMetodos(["POST", "GET"]); // ← CORREÇÃO AQUI: separar em dois elementos
+permitirMetodos(["POST", "GET"]); 
 
 $usuario = verificarToken($jwtSecretKey);
 $data = json_decode(file_get_contents("php://input"), true);

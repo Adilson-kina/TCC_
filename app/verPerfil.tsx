@@ -12,7 +12,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import api from '../components/api';
 
@@ -20,7 +20,8 @@ export default function Perfil() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [imagemTemp, setImagemTemp] = useState<number | null>(null);
-  const [avatarBackgroundColorTemp, setAvatarBackgroundColorTemp] = useState('#FFFFFF');
+  const [avatarBackgroundColorTemp, setAvatarBackgroundColorTemp] =
+    useState('#FFFFFF');
   const [perfil, setPerfil] = useState({
     nome: '',
     altura: 0,
@@ -28,7 +29,7 @@ export default function Perfil() {
     imc: 0,
     idade: 0,
     tipo_dieta: '',
-    restricoes_alimentares: ''
+    restricoes_alimentares: '',
   });
 
   const [imagem, setImagem] = useState<number | null>(null);
@@ -60,12 +61,11 @@ export default function Perfil() {
     { name: 'Rosa Pink', color: '#FF69B4' },
   ];
 
-  // Adicione esta função para carregar o avatar no useEffect:
   const carregarAvatar = async () => {
     try {
       const imagemSalva = await AsyncStorage.getItem('avatarImagem');
       const corSalva = await AsyncStorage.getItem('avatarCor');
-      
+
       if (imagemSalva !== null && imagemSalva !== '') {
         setImagem(parseInt(imagemSalva));
       }
@@ -77,22 +77,21 @@ export default function Perfil() {
     }
   };
 
-  // Atualize o useEffect existente:
   useEffect(() => {
     carregarPerfil();
-    carregarAvatar(); // Adiciona esta linha
+    carregarAvatar();
   }, []);
 
   useFocusEffect(
-      React.useCallback(() => {
-        carregarPerfil();
-      }, [])
-    );
+    React.useCallback(() => {
+      carregarPerfil();
+    }, [])
+  );
 
   const carregarPerfil = async () => {
     try {
       setLoading(true);
-      
+
       const data = await api.get('/perfil.php');
 
       if (data.nome) {
@@ -103,38 +102,45 @@ export default function Perfil() {
           imc: parseFloat(data.imc),
           idade: data.idade,
           tipo_dieta: formatarTipoDieta(data.tipo_dieta),
-          restricoes_alimentares: formatarRestricoes(data.restricoes_alimentares)
+          restricoes_alimentares: formatarRestricoes(
+            data.restricoes_alimentares
+          ),
         });
       }
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);
-      // O erro já é tratado pelo api.tsx com Alert
     } finally {
       setLoading(false);
     }
   };
 
-  // Atualiza a função formatarTipoDieta:
   const formatarTipoDieta = (tipo: string) => {
-    if (!tipo || tipo === 'nenhuma' || tipo === 'Nenhum tipo de dieta foi registrado.') {
+    if (
+      !tipo ||
+      tipo === 'nenhuma' ||
+      tipo === 'Nenhum tipo de dieta foi registrado.'
+    ) {
       return 'Nenhum tipo de dieta foi registrado.';
     }
-    
+
     const tipos = {
-      'low_carb': 'Low Carb',
-      'cetogenica': 'Cetogênica',
-      'mediterranea': 'Mediterrânea',
-      'vegana': 'Vegana',
-      'vegetariana': 'Vegetariana',
-      'paleolitica': 'Paleolítica',
-      'dieta_das_zonas': 'Dieta das Zonas',
+      low_carb: 'Low Carb',
+      cetogenica: 'Cetogênica',
+      mediterranea: 'Mediterrânea',
+      vegana: 'Vegana',
+      vegetariana: 'Vegetariana',
+      paleolitica: 'Paleolítica',
+      dieta_das_zonas: 'Dieta das Zonas',
     };
     return tipos[tipo] || tipo;
   };
 
-  // ADICIONA ESTA FUNÇÃO depois da formatarTipoDieta:
   const formatarRestricoes = (restricao: string) => {
-    if (!restricao || restricao.toLowerCase() === 'nenhum' || restricao.toLowerCase() === 'nenhuma') {
+    if (
+      !restricao ||
+      restricao.toLowerCase() === 'nenhum' ||
+      restricao.toLowerCase() === 'nenhuma'
+    ) {
       return 'Nenhuma restrição alimentar foi registrada.';
     }
     return restricao;
@@ -154,25 +160,24 @@ export default function Perfil() {
     setModalVisible(true);
   };
 
-  // Atualize selectImage para usar o temporário:
   const selectImage = (imageIndex: number) => {
     setImagemTemp(imageIndex);
   };
 
-  // Atualize selectAvatarColor para usar o temporário:
   const selectAvatarColor = (color: string) => {
     setAvatarBackgroundColorTemp(color);
   };
 
-  // Crie uma nova função para confirmar e salvar:
   const confirmarAvatar = async () => {
     setImagem(imagemTemp);
     setAvatarBackgroundColor(avatarBackgroundColorTemp);
     setModalVisible(false);
-    
-    // Salvar no AsyncStorage
+
     try {
-      await AsyncStorage.setItem('avatarImagem', imagemTemp !== null ? imagemTemp.toString() : '');
+      await AsyncStorage.setItem(
+        'avatarImagem',
+        imagemTemp !== null ? imagemTemp.toString() : ''
+      );
       await AsyncStorage.setItem('avatarCor', avatarBackgroundColorTemp);
     } catch (error) {
       console.error('Erro ao salvar avatar:', error);
@@ -195,14 +200,26 @@ export default function Perfil() {
         <Ionicons name="arrow-back" size={20} color="white" />
       </Pressable>
 
-    <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.profileCard}>
-          {/* Avatar Section */}
+          {}
           <TouchableOpacity style={styles.avatarSection} onPress={pickImage}>
-            <View style={[styles.avatarContainer, { backgroundColor: avatarBackgroundColor }]}>
+            <View
+              style={[
+                styles.avatarContainer,
+                { backgroundColor: avatarBackgroundColor },
+              ]}
+            >
               <Image
                 style={styles.avatarImage}
-                source={imagem !== null ? preSelectedImages[imagem] : require('./img/proxy-image.jpg')}
+                source={
+                  imagem !== null
+                    ? preSelectedImages[imagem]
+                    : require('./img/proxy-image.jpg')
+                }
               />
             </View>
             <View style={styles.editIcon}>
@@ -210,10 +227,10 @@ export default function Perfil() {
             </View>
           </TouchableOpacity>
 
-          {/* Nome */}
+          {}
           <Text style={styles.nomeUsuario}>{perfil.nome}</Text>
 
-          {/* Info Cards */}
+          {}
           <View style={styles.infoGrid}>
             <View style={styles.infoCard}>
               <Text style={styles.infoIcon}>📏</Text>
@@ -241,18 +258,18 @@ export default function Perfil() {
             </View>
           </View>
 
-          {/* Restrição Alimentar */}
+          {}
           <View style={styles.restricaoCard}>
             <Text style={styles.restricaoIcon}>🚫</Text>
             <View style={styles.restricaoContent}>
               <Text style={styles.restricaoLabel}>Restrição Alimentar:</Text>
               <Text style={styles.restricaoValue}>
-                {perfil.restricoes_alimentares}  {/* Remove o || 'Nenhuma' */}
+                {perfil.restricoes_alimentares} {}
               </Text>
             </View>
           </View>
 
-          {/* Tipo de Alimentação */}
+          {}
           <View style={styles.alimentacaoCard}>
             <Text style={styles.alimentacaoIcon}>🍽️</Text>
             <View style={styles.alimentacaoContent}>
@@ -261,15 +278,17 @@ export default function Perfil() {
             </View>
           </View>
 
-          {/* Botão Editar Perfil */}
-          <TouchableOpacity 
+          {}
+          <TouchableOpacity
             style={styles.editButton}
-            onPress={() => {router.push('/editarPerfil');}}
+            onPress={() => {
+              router.push('/editarPerfil');
+            }}
           >
             <Text style={styles.editButtonText}>Editar Perfil</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.logoutButton}
             onPress={() => {
               Alert.alert(
@@ -278,7 +297,7 @@ export default function Perfil() {
                 [
                   {
                     text: 'Cancelar',
-                    style: 'cancel'
+                    style: 'cancel',
                   },
                   {
                     text: 'Sair',
@@ -286,8 +305,8 @@ export default function Perfil() {
                     onPress: async () => {
                       await AsyncStorage.clear();
                       router.replace('/');
-                    }
-                  }
+                    },
+                  },
                 ]
               );
             }}
@@ -299,7 +318,7 @@ export default function Perfil() {
         <View style={styles.bottomPadding} />
       </ScrollView>
 
-      {/* Modal de personalização */}
+      {}
       <Modal
         animationType="slide"
         transparent={true}
@@ -312,27 +331,46 @@ export default function Perfil() {
 
             <View style={styles.tabContainer}>
               <TouchableOpacity
-                style={[styles.tabButton, activeTab === 'imagem' && styles.tabButtonActive]}
+                style={[
+                  styles.tabButton,
+                  activeTab === 'imagem' && styles.tabButtonActive,
+                ]}
                 onPress={() => setActiveTab('imagem')}
               >
                 <Text style={styles.tabIcon}>🖼️</Text>
-                <Text style={[styles.tabButtonText, activeTab === 'imagem' && styles.tabButtonTextActive]}>
+                <Text
+                  style={[
+                    styles.tabButtonText,
+                    activeTab === 'imagem' && styles.tabButtonTextActive,
+                  ]}
+                >
                   Imagens
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.tabButton, activeTab === 'cor' && styles.tabButtonActive]}
+                style={[
+                  styles.tabButton,
+                  activeTab === 'cor' && styles.tabButtonActive,
+                ]}
                 onPress={() => setActiveTab('cor')}
               >
                 <Text style={styles.tabIcon}>🎨</Text>
-                <Text style={[styles.tabButtonText, activeTab === 'cor' && styles.tabButtonTextActive]}>
+                <Text
+                  style={[
+                    styles.tabButtonText,
+                    activeTab === 'cor' && styles.tabButtonTextActive,
+                  ]}
+                >
                   Cor de Fundo
                 </Text>
               </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
               {activeTab === 'imagem' ? (
                 <View style={styles.imageGrid}>
                   {preSelectedImages.map((img, index) => (
@@ -341,11 +379,13 @@ export default function Perfil() {
                       onPress={() => selectImage(index)}
                       style={styles.imageOption}
                     >
-                      <View style={[
-                        styles.thumbnailContainer, 
-                        { backgroundColor: avatarBackgroundColorTemp },
-                        imagemTemp === index && styles.thumbnailSelected
-                      ]}>
+                      <View
+                        style={[
+                          styles.thumbnailContainer,
+                          { backgroundColor: avatarBackgroundColorTemp },
+                          imagemTemp === index && styles.thumbnailSelected,
+                        ]}
+                      >
                         <Image source={img} style={styles.thumbnailImg} />
                         {imagemTemp === index && (
                           <View style={styles.selectedBadge}>
@@ -368,17 +408,21 @@ export default function Perfil() {
                         style={[
                           styles.colorCircle,
                           { backgroundColor: item.color },
-                          avatarBackgroundColorTemp === item.color && styles.colorCircleSelected
+                          avatarBackgroundColorTemp === item.color &&
+                            styles.colorCircleSelected,
                         ]}
                       >
                         {avatarBackgroundColorTemp === item.color && (
                           <Text style={styles.colorCheckmark}>✓</Text>
                         )}
                       </View>
-                      <Text style={[
-                        styles.colorName,
-                        avatarBackgroundColorTemp === item.color && styles.colorNameSelected
-                      ]}>
+                      <Text
+                        style={[
+                          styles.colorName,
+                          avatarBackgroundColorTemp === item.color &&
+                            styles.colorNameSelected,
+                        ]}
+                      >
                         {item.name}
                       </Text>
                     </TouchableOpacity>
@@ -394,7 +438,7 @@ export default function Perfil() {
               >
                 <Text style={styles.saveButtonText}>✓ Salvar</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setModalVisible(false)}
@@ -430,10 +474,10 @@ const styles = StyleSheet.create({
     width: 35,
     height: 35,
     borderRadius: 20,
-    backgroundColor: "#007912",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
+    backgroundColor: '#007912',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -449,7 +493,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 60,
-    backgroundColor: "#ecfcec",
+    backgroundColor: '#ecfcec',
     zIndex: 9,
   },
   container: {
@@ -471,7 +515,7 @@ const styles = StyleSheet.create({
   profileCard: {
     backgroundColor: '#FFF',
     margin: 15,
-    marginTop: 85,  // muda de 20 para 85
+    marginTop: 85,
     padding: 20,
     borderRadius: 15,
     borderWidth: 2,
@@ -652,7 +696,6 @@ const styles = StyleSheet.create({
   bottomPadding: {
     height: 30,
   },
-  // Modal styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',

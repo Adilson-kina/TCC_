@@ -1,7 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import api from '../components/api';
 
 export default function Home() {
@@ -16,19 +26,19 @@ export default function Home() {
   const [jejumEmAndamento, setJejumEmAndamento] = useState(false);
   const [tempoRestanteJejum, setTempoRestanteJejum] = useState('--:--:--');
   const logo = require('./img/logo_icon.png');
-  
+
   const [dadosInicio, setDadosInicio] = useState({
     dieta: {
       meta: '',
       restricoes: [],
-      recomendados: []
+      recomendados: [],
     },
     atividade: {
       passos: 0,
-      calorias_gastas: 0
+      calorias_gastas: 0,
     },
     ultima_refeicao: null,
-    historico_calorias: []
+    historico_calorias: [],
   });
 
   const preSelectedImages = [
@@ -39,13 +49,12 @@ export default function Home() {
     require('./img/avatar5.png'),
     require('./img/avatar6.png'),
   ];
-  
-  // Adicione esta função para carregar o avatar:
+
   const carregarAvatar = async () => {
     try {
       const imagemSalva = await AsyncStorage.getItem('avatarImagem');
       const corSalva = await AsyncStorage.getItem('avatarCor');
-      
+
       if (imagemSalva !== null && imagemSalva !== '') {
         setAvatarImagem(parseInt(imagemSalva));
       }
@@ -57,49 +66,48 @@ export default function Home() {
     }
   };
 
-  // REMOVA todo aquele useEffect com setInterval e substitua por:
   useEffect(() => {
-      carregarDados();
-      carregarAvatar();
-      verificarStatusJejum();
-      verificarJejumEmAndamento();
-    }, []);
+    carregarDados();
+    carregarAvatar();
+    verificarStatusJejum();
+    verificarJejumEmAndamento();
+  }, []);
 
-    useEffect(() => {
-      let interval: NodeJS.Timeout;
-      
-      if (jejumEmAndamento) {
-        interval = setInterval(async () => {
-          const jejumData = await AsyncStorage.getItem('jejumData');
-          if (jejumData) {
-            const data = JSON.parse(jejumData);
-            calcularTempoRestanteHome(
-              new Date(data.horaInicio),
-              data.duracaoHoras,
-              data.duracaoMinutos
-            );
-          }
-        }, 1000);
-      }
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
 
-      return () => {
-        if (interval) clearInterval(interval);
-      };
-    }, [jejumEmAndamento]);
+    if (jejumEmAndamento) {
+      interval = setInterval(async () => {
+        const jejumData = await AsyncStorage.getItem('jejumData');
+        if (jejumData) {
+          const data = JSON.parse(jejumData);
+          calcularTempoRestanteHome(
+            new Date(data.horaInicio),
+            data.duracaoHoras,
+            data.duracaoMinutos
+          );
+        }
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [jejumEmAndamento]);
 
   useFocusEffect(
     React.useCallback(() => {
       carregarAvatar();
       carregarDados();
-      verificarStatusJejum(); 
+      verificarStatusJejum();
       verificarJejumEmAndamento();
     }, [])
   );
 
   const verificarStatusJejum = async () => {
     try {
-      const data = await api.get('/jejum.php', false); // false = não mostra alert de erro
-      
+      const data = await api.get('/jejum.php', false);
+
       if (data?.mensagem) {
         setJejumAtivo(data.jejum_ativo);
       }
@@ -115,12 +123,17 @@ export default function Home() {
         const data = JSON.parse(jejumData);
         const horaInicio = new Date(data.horaInicio);
         const agora = new Date();
-        const duracaoMs = (data.duracaoHoras * 60 + data.duracaoMinutos) * 60 * 1000;
+        const duracaoMs =
+          (data.duracaoHoras * 60 + data.duracaoMinutos) * 60 * 1000;
         const fimJejum = new Date(horaInicio.getTime() + duracaoMs);
 
         if (agora < fimJejum) {
           setJejumEmAndamento(true);
-          calcularTempoRestanteHome(horaInicio, data.duracaoHoras, data.duracaoMinutos);
+          calcularTempoRestanteHome(
+            horaInicio,
+            data.duracaoHoras,
+            data.duracaoMinutos
+          );
         } else {
           setJejumEmAndamento(false);
           await AsyncStorage.removeItem('jejumData');
@@ -133,27 +146,31 @@ export default function Home() {
     }
   };
 
-    const calcularTempoRestanteHome = (horaInicio: Date, duracaoHoras: number, duracaoMinutos: number) => {
-      const agora = new Date();
-      const duracaoMs = (duracaoHoras * 60 + duracaoMinutos) * 60 * 1000;
-      const fimJejum = new Date(horaInicio.getTime() + duracaoMs);
-      const diff = fimJejum.getTime() - agora.getTime();
+  const calcularTempoRestanteHome = (
+    horaInicio: Date,
+    duracaoHoras: number,
+    duracaoMinutos: number
+  ) => {
+    const agora = new Date();
+    const duracaoMs = (duracaoHoras * 60 + duracaoMinutos) * 60 * 1000;
+    const fimJejum = new Date(horaInicio.getTime() + duracaoMs);
+    const diff = fimJejum.getTime() - agora.getTime();
 
-      if (diff <= 0) {
-        setTempoRestanteJejum('00:00:00');
-        setJejumEmAndamento(false);
-        AsyncStorage.removeItem('jejumData');
-        return;
-      }
+    if (diff <= 0) {
+      setTempoRestanteJejum('00:00:00');
+      setJejumEmAndamento(false);
+      AsyncStorage.removeItem('jejumData');
+      return;
+    }
 
-      const horas = Math.floor(diff / (1000 * 60 * 60));
-      const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const segundos = Math.floor((diff % (1000 * 60)) / 1000);
+    const horas = Math.floor(diff / (1000 * 60 * 60));
+    const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const segundos = Math.floor((diff % (1000 * 60)) / 1000);
 
-      setTempoRestanteJejum(
-        `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`
-      );
-    };
+    setTempoRestanteJejum(
+      `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`
+    );
+  };
 
   const handleAcceptTermsHome = async () => {
     try {
@@ -175,7 +192,10 @@ export default function Home() {
       setJejumEmAndamento(false);
       setTempoRestanteJejum('00:00:00');
       setShowJejumBlockModal(false);
-      Alert.alert('✅ Jejum Parado', 'Agora você pode registrar suas refeições normalmente!');
+      Alert.alert(
+        '✅ Jejum Parado',
+        'Agora você pode registrar suas refeições normalmente!'
+      );
     } catch (error) {
       console.error('Erro ao parar jejum:', error);
       Alert.alert('Erro', 'Não foi possível parar o jejum');
@@ -200,11 +220,14 @@ export default function Home() {
       }
 
       try {
-        const historicoCalorias = await api.get('/calorias/calorias_historico.php', false);
+        const historicoCalorias = await api.get(
+          '/calorias/calorias_historico.php',
+          false
+        );
         if (historicoCalorias?.dados) {
           setDadosInicio(prev => ({
             ...prev,
-            historico_calorias: historicoCalorias.dados
+            historico_calorias: historicoCalorias.dados,
           }));
         }
       } catch (error) {
@@ -217,33 +240,46 @@ export default function Home() {
     }
   };
 
-  const formatarMeta = (meta) => {
+  const formatarMeta = meta => {
     const metas = {
-      'perder': 'Quero perder peso! 💪🔥',
-      'ganhar': 'Quero ganhar peso! 💪🍗',
-      'manter': 'Quero manter meu peso! 🎯',
-      'massa': 'Quero ganhar massa muscular! 💪🏋️'
+      perder: 'Quero perder peso! 💪🔥',
+      ganhar: 'Quero ganhar peso! 💪🍗',
+      manter: 'Quero manter meu peso! 🎯',
+      massa: 'Quero ganhar massa muscular! 💪🏋️',
     };
     return metas[meta] || 'Meta não definida';
   };
 
-  const formatarData = (dataISO) => {
+  const formatarData = dataISO => {
     if (!dataISO) return '';
     const data = new Date(dataISO);
     const dia = data.getDate().toString().padStart(2, '0');
-    const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    const meses = [
+      'jan',
+      'fev',
+      'mar',
+      'abr',
+      'mai',
+      'jun',
+      'jul',
+      'ago',
+      'set',
+      'out',
+      'nov',
+      'dez',
+    ];
     const mes = meses[data.getMonth()];
     const hora = data.getHours().toString().padStart(2, '0');
     const minutos = data.getMinutes().toString().padStart(2, '0');
     return `${dia} de ${mes} - ${hora}:${minutos}`;
   };
 
-  const formatarTipoRefeicao = (tipo) => {
+  const formatarTipoRefeicao = tipo => {
     const tipos = {
-      'cafe': 'Café da manhã',
-      'almoco': 'Almoço',
-      'janta': 'Janta',
-      'lanche': 'Lanche'
+      cafe: 'Café da manhã',
+      almoco: 'Almoço',
+      janta: 'Janta',
+      lanche: 'Lanche',
     };
     return tipos[tipo] || tipo;
   };
@@ -260,28 +296,23 @@ export default function Home() {
     }
   };
 
-  // Adicione esta função ANTES do return, junto com as outras funções:
-
   const getMensagemProgresso = () => {
     const historico = dadosInicio.progresso || [];
-    
+
     if (historico.length === 0) {
       return '📊 Registre seu peso!';
     }
-    
+
     if (historico.length === 1) {
       return '🎯 Primeiro passo dado!';
     }
-    
-    // Pegar primeiro e último peso para calcular tendência
+
     const pesoInicial = parseFloat(historico[0].peso);
     const pesoAtual = parseFloat(historico[historico.length - 1].peso);
     const diferenca = pesoAtual - pesoInicial;
-    
-    // Buscar a meta do usuário
+
     const meta = dadosInicio.dieta?.meta || '';
-    
-    // Mensagens baseadas na meta e progresso
+
     if (meta === 'perder') {
       if (diferenca < -2) return '🔥 Incrível! Perdendo peso demais!';
       if (diferenca < -1) return '💪 Ótimo progresso! Continue!';
@@ -289,7 +320,7 @@ export default function Home() {
       if (diferenca <= 0.5) return '⚖️ Mantendo estável!';
       return '⚠️ Atenção ao peso!';
     }
-    
+
     if (meta === 'ganhar' || meta === 'massa') {
       if (diferenca > 2) return '💪 Excelente ganho!';
       if (diferenca > 1) return '🏋️ Progresso sólido!';
@@ -297,13 +328,13 @@ export default function Home() {
       if (diferenca >= -0.5) return '⚖️ Mantendo estável!';
       return '⚠️ Cuidado, perdendo peso!';
     }
-    
+
     if (meta === 'manter') {
       if (Math.abs(diferenca) <= 0.5) return '🎯 Perfeito! Peso mantido!';
       if (Math.abs(diferenca) <= 1) return '👍 Quase lá!';
       return '⚠️ Atenção às variações!';
     }
-    
+
     return '📈 Continue assim!';
   };
 
@@ -315,49 +346,69 @@ export default function Home() {
             <Text style={styles.semDadosIcon}>📊</Text>
             <Text style={styles.semDadosTexto}>Sem dados</Text>
           </View>
-          <Text style={styles.semDadosSubtexto}>Registre refeições e passos</Text>
+          <Text style={styles.semDadosSubtexto}>
+            Registre refeições e passos
+          </Text>
         </View>
       );
     }
 
-    const pesos = historico.map(h => parseFloat(h.saldo_calorico));
-    const maxPeso = Math.max(...pesos);
-    const minPeso = Math.min(...pesos);
-    const range = maxPeso - minPeso || 1;
+    const saldos = historico.map(h => parseFloat(h.saldo_calorico));
+    const maxSaldo = Math.max(...saldos);
+    const minSaldo = Math.min(...saldos);
+    const range = maxSaldo - minSaldo || 1;
 
     const graphHeight = 60;
     const graphWidth = 100;
-    const pointSpacing = historico.length > 1 ? graphWidth / (historico.length - 1) : 0;
+    const pointSpacing =
+      historico.length > 1 ? graphWidth / (historico.length - 1) : 0;
 
     return (
       <View style={styles.miniGraficoContainer}>
-        <View style={{ width: graphWidth, height: graphHeight, position: 'relative' }}>
-          {/* Linha zero */}
-          <View style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            top: graphHeight / 2,
-            height: 1,
-            backgroundColor: '#E0E0E0',
-          }} />
+        <View
+          style={{
+            width: graphWidth,
+            height: graphHeight,
+            position: 'relative',
+          }}
+        >
+          {}
+          <View
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              top: graphHeight / 2,
+              height: 1,
+              backgroundColor: '#E0E0E0',
+            }}
+          />
 
-          {/* Linhas do gráfico */}
+          {}
           {historico.map((item, index) => {
             if (index === 0) return null;
-            
-            const prevPeso = parseFloat(historico[index - 1].saldo_calorico);
-            const currPeso = parseFloat(item.saldo_calorico);
-            
-            const prevY = (graphHeight / 2) - ((prevPeso / range) * (graphHeight / 3));
-            const currY = (graphHeight / 2) - ((currPeso / range) * (graphHeight / 3));
-            
+
+            const prevSaldo = parseFloat(historico[index - 1].saldo_calorico);
+            const currSaldo = parseFloat(item.saldo_calorico);
+
+            const prevY =
+              graphHeight / 2 -
+              ((prevSaldo - minSaldo) / range - 0.5) * (graphHeight * 0.8);
+            const currY =
+              graphHeight / 2 -
+              ((currSaldo - minSaldo) / range - 0.5) * (graphHeight * 0.8);
+
             const prevX = (index - 1) * pointSpacing;
             const currX = index * pointSpacing;
-            
-            const angle = Math.atan2(currY - prevY, currX - prevX) * (180 / Math.PI);
-            const length = Math.sqrt(Math.pow(currX - prevX, 2) + Math.pow(currY - prevY, 2));
-            
+
+            const angle =
+              Math.atan2(currY - prevY, currX - prevX) * (180 / Math.PI);
+            const length = Math.sqrt(
+              Math.pow(currX - prevX, 2) + Math.pow(currY - prevY, 2)
+            );
+
+            const lineColor = currSaldo < 0 ? '#10b981' : '#ef4444';
+
             return (
               <View
                 key={`line-${index}`}
@@ -365,35 +416,39 @@ export default function Home() {
                   position: 'absolute',
                   width: length,
                   height: 2,
-                  backgroundColor: '#3b82f6',
+                  backgroundColor: lineColor,
                   left: prevX,
                   top: prevY,
                   transform: [{ rotate: `${angle}deg` }],
-                  transformOrigin: 'left center'
+                  transformOrigin: 'left center',
                 }}
               />
             );
           })}
 
-          {/* Pontos */}
+          {}
           {historico.map((item, index) => {
-            const peso = parseFloat(item.saldo_calorico);
-            const y = (graphHeight / 2) - ((peso / range) * (graphHeight / 3));
+            const saldo = parseFloat(item.saldo_calorico);
+            const y =
+              graphHeight / 2 -
+              ((saldo - minSaldo) / range - 0.5) * (graphHeight * 0.8);
             const x = index * pointSpacing;
-            
+
+            const pointColor = saldo < 0 ? '#10b981' : '#ef4444';
+
             return (
-              <View 
+              <View
                 key={`point-${index}`}
                 style={{
                   position: 'absolute',
                   width: 6,
                   height: 6,
                   borderRadius: 3,
-                  backgroundColor: '#3b82f6',
+                  backgroundColor: pointColor,
                   borderWidth: 1,
                   borderColor: '#FFF',
                   left: x - 3,
-                  top: y - 3
+                  top: y - 3,
                 }}
               />
             );
@@ -406,7 +461,7 @@ export default function Home() {
 
   const renderMiniGrafico = () => {
     const historico = dadosInicio.progresso || [];
-    
+
     if (historico.length === 0) {
       return (
         <View style={styles.chartPlaceholder}>
@@ -430,35 +485,47 @@ export default function Home() {
         </View>
       );
     }
-    
+
     const pesos = historico.map(h => parseFloat(h.peso));
     const maxPeso = Math.max(...pesos);
     const minPeso = Math.min(...pesos);
     const range = maxPeso - minPeso || 1;
 
-    const graphHeight = 70;  // 🔧 Reduzi de 80
-    const graphWidth = 130;  // 🔧 Aumentei de 120
-    const pointSpacing = historico.length > 1 ? graphWidth / (historico.length - 1) : 0;
+    const graphHeight = 70;
+    const graphWidth = 130;
+    const pointSpacing =
+      historico.length > 1 ? graphWidth / (historico.length - 1) : 0;
 
     return (
       <View style={styles.chartPlaceholder}>
-        <View style={{ width: graphWidth, height: graphHeight, position: 'relative' }}>
-          {/* Linha do gráfico */}
+        <View
+          style={{
+            width: graphWidth,
+            height: graphHeight,
+            position: 'relative',
+          }}
+        >
+          {}
           {historico.map((item, index) => {
             if (index === 0) return null;
-            
+
             const prevPeso = parseFloat(historico[index - 1].peso);
             const currPeso = parseFloat(item.peso);
-            
-            const prevY = graphHeight - ((prevPeso - minPeso) / range) * graphHeight;
-            const currY = graphHeight - ((currPeso - minPeso) / range) * graphHeight;
-            
+
+            const prevY =
+              graphHeight - ((prevPeso - minPeso) / range) * graphHeight;
+            const currY =
+              graphHeight - ((currPeso - minPeso) / range) * graphHeight;
+
             const prevX = (index - 1) * pointSpacing;
             const currX = index * pointSpacing;
-            
-            const angle = Math.atan2(currY - prevY, currX - prevX) * (180 / Math.PI);
-            const length = Math.sqrt(Math.pow(currX - prevX, 2) + Math.pow(currY - prevY, 2));
-            
+
+            const angle =
+              Math.atan2(currY - prevY, currX - prevX) * (180 / Math.PI);
+            const length = Math.sqrt(
+              Math.pow(currX - prevX, 2) + Math.pow(currY - prevY, 2)
+            );
+
             return (
               <View
                 key={`line-${index}`}
@@ -470,20 +537,20 @@ export default function Home() {
                   left: prevX,
                   top: prevY,
                   transform: [{ rotate: `${angle}deg` }],
-                  transformOrigin: 'left center'
+                  transformOrigin: 'left center',
                 }}
               />
             );
           })}
 
-          {/* Pontos do gráfico */}
+          {}
           {historico.map((item, index) => {
             const peso = parseFloat(item.peso);
             const y = graphHeight - ((peso - minPeso) / range) * graphHeight;
             const x = index * pointSpacing;
-            
+
             return (
-              <View 
+              <View
                 key={`point-${index}`}
                 style={{
                   position: 'absolute',
@@ -494,7 +561,7 @@ export default function Home() {
                   borderWidth: 2,
                   borderColor: '#FFF',
                   left: x - 5,
-                  top: y - 5
+                  top: y - 5,
                 }}
               />
             );
@@ -506,7 +573,12 @@ export default function Home() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
         <ActivityIndicator size="large" color="#4CAF50" />
         <Text style={{ marginTop: 10, color: 'white' }}>Carregando...</Text>
       </View>
@@ -515,22 +587,19 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {}
       <View style={styles.header}>
         <View style={styles.logoContainer}>
-        <Image 
-          source={logo}
-          style={styles.logoImage}
-        />
-      </View>
-        <TouchableOpacity 
+          <Image source={logo} style={styles.logoImage} />
+        </View>
+        <TouchableOpacity
           style={styles.profileButton}
           onPress={() => router.push('/verPerfil')}
         >
           <View style={[styles.profilePhoto, { backgroundColor: avatarCor }]}>
             {avatarImagem !== null && (
-              <Image 
-                source={preSelectedImages[avatarImagem]} 
+              <Image
+                source={preSelectedImages[avatarImagem]}
                 style={styles.profileImage}
               />
             )}
@@ -538,9 +607,12 @@ export default function Home() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Minha Dieta Card */}
-        <TouchableOpacity 
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
+        {}
+        <TouchableOpacity
           style={styles.dietCard}
           onPress={() => router.push('/dieta')}
         >
@@ -564,14 +636,19 @@ export default function Home() {
 
           <View style={styles.alimentosSection}>
             <Text style={styles.alimentosLabel}>🍽️ Principais Alimentos:</Text>
-            {dadosInicio.dieta.top_alimentos && dadosInicio.dieta.top_alimentos.length > 0 ? (
+            {dadosInicio.dieta.top_alimentos &&
+            dadosInicio.dieta.top_alimentos.length > 0 ? (
               dadosInicio.dieta.top_alimentos.map((alimento, index) => (
                 <Text key={index} style={styles.alimentoItem}>
-                  {index + 1}. {alimento.nome} - {parseFloat(alimento.valor).toFixed(1)}{alimento.unidade}
+                  {index + 1}. {alimento.nome} -{' '}
+                  {parseFloat(alimento.valor).toFixed(1)}
+                  {alimento.unidade}
                 </Text>
               ))
             ) : (
-              <Text style={styles.alimentoItem}>Configure sua dieta primeiro</Text>
+              <Text style={styles.alimentoItem}>
+                Configure sua dieta primeiro
+              </Text>
             )}
           </View>
 
@@ -580,22 +657,36 @@ export default function Home() {
           </Text>
         </TouchableOpacity>
 
-        {/* Refeições and Calorias Row */}
+        {}
         <View style={styles.row}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[
-              styles.card, 
+              styles.card,
               styles.cardLeft,
-              jejumEmAndamento && styles.cardDisabled
+              jejumEmAndamento && styles.cardDisabled,
             ]}
             onPress={handleRefeicoesPress}
             disabled={jejumEmAndamento}
           >
             <View style={styles.cardHeader}>
-              <Text style={[styles.cardIcon, jejumEmAndamento && styles.textDisabled]}>🍴</Text>
-              <Text style={[styles.cardTitle, jejumEmAndamento && styles.textDisabled]}>Refeições</Text>
+              <Text
+                style={[
+                  styles.cardIcon,
+                  jejumEmAndamento && styles.textDisabled,
+                ]}
+              >
+                🍴
+              </Text>
+              <Text
+                style={[
+                  styles.cardTitle,
+                  jejumEmAndamento && styles.textDisabled,
+                ]}
+              >
+                Refeições
+              </Text>
             </View>
-            
+
             {jejumEmAndamento ? (
               <View style={styles.blockedContent}>
                 <Text style={styles.lockIconBig}>🔒</Text>
@@ -604,38 +695,46 @@ export default function Home() {
               </View>
             ) : (
               <>
-            
-            <View style={styles.mealInfo}>
-              <View style={styles.mealStatRow}>
-                <Text style={styles.mealStatLabel} numberOfLines={1}>📊 Refeições hoje:</Text>
-                <Text style={styles.mealStatValue}>
-                  {dadosInicio.refeicoes_hoje?.total || 0}
-                </Text>
-              </View>
-              
-              <View style={styles.mealStatRow}>
-                <Text style={styles.mealStatLabel} numberOfLines={1}>🔥 Calorias:</Text>
-                <Text style={styles.mealStatValue}>
-                  {parseFloat(dadosInicio.refeicoes_hoje?.calorias_total || 0).toFixed(0)} kcal
-                </Text>
-              </View>
-              
-              <View style={[styles.mealStatRow, styles.nextMealRow]}>
-                <Text style={styles.mealStatLabel} numberOfLines={1}>⏰ Próxima:</Text>
-                <Text style={styles.nextMealValue}>
-                  {dadosInicio.proxima_refeicao || 'Almoço'}
-                </Text>
-              </View>
-            </View>
-            
-            <Text style={styles.mealFooter}>
-              ➕ Registrar nova refeição
-            </Text>
-            </>
-          )}
-        </TouchableOpacity>
+                <View style={styles.mealInfo}>
+                  <View style={styles.mealStatRow}>
+                    <Text style={styles.mealStatLabel} numberOfLines={1}>
+                      📊 Refeições hoje:
+                    </Text>
+                    <Text style={styles.mealStatValue}>
+                      {dadosInicio.refeicoes_hoje?.total || 0}
+                    </Text>
+                  </View>
 
-          <TouchableOpacity 
+                  <View style={styles.mealStatRow}>
+                    <Text style={styles.mealStatLabel} numberOfLines={1}>
+                      🔥 Calorias:
+                    </Text>
+                    <Text style={styles.mealStatValue}>
+                      {parseFloat(
+                        dadosInicio.refeicoes_hoje?.calorias_total || 0
+                      ).toFixed(0)}{' '}
+                      kcal
+                    </Text>
+                  </View>
+
+                  <View style={[styles.mealStatRow, styles.nextMealRow]}>
+                    <Text style={styles.mealStatLabel} numberOfLines={1}>
+                      ⏰ Próxima:
+                    </Text>
+                    <Text style={styles.nextMealValue}>
+                      {dadosInicio.proxima_refeicao || 'Almoço'}
+                    </Text>
+                  </View>
+                </View>
+
+                <Text style={styles.mealFooter}>
+                  ➕ Registrar nova refeição
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={[styles.card, styles.cardRight]}
             onPress={() => router.push('/calorias')}
           >
@@ -643,41 +742,49 @@ export default function Home() {
               <Text style={styles.cardIcon}>🔥</Text>
               <Text style={styles.cardTitle}>Calorias</Text>
             </View>
-            
-            <MiniGraficoLinhaHome historico={dadosInicio.historico_calorias || []} />
-            
+
+            <MiniGraficoLinhaHome
+              historico={dadosInicio.historico_calorias || []}
+            />
+
             <View style={styles.calorieInfo}>
-              {/* Passos */}
+              {}
               <View style={styles.calorieInfoItem}>
                 <Text style={styles.calorieLabel}>🚶 Passos:</Text>
                 <Text style={styles.calorieConsumed}>
-                  {dadosInicio.atividade.passos > 0 
-                    ? parseInt(dadosInicio.atividade.passos).toLocaleString('pt-BR')
+                  {dadosInicio.atividade.passos > 0
+                    ? parseInt(dadosInicio.atividade.passos).toLocaleString(
+                        'pt-BR'
+                      )
                     : '--'}
                 </Text>
               </View>
-              
-              {/* Saldo Calórico */}
+
+              {}
               <View style={styles.calorieInfoItem}>
                 <Text style={styles.calorieLabel}>
-                  {dadosInicio.atividade.saldo_calorico === 0 
-                    ? '⚖️' 
-                    : dadosInicio.atividade.saldo_calorico > 0 
-                      ? '📈' 
+                  {dadosInicio.atividade.saldo_calorico === 0
+                    ? '⚖️'
+                    : dadosInicio.atividade.saldo_calorico > 0
+                      ? '📈'
                       : '📉'}
                   {' Saldo:'}
                 </Text>
-                <Text style={[
-                  styles.calorieBurned,
-                  { 
-                    color: dadosInicio.atividade.saldo_calorico === 0 
-                      ? '#666'
-                      : dadosInicio.atividade.saldo_calorico > 0 
-                        ? '#ef4444' 
-                        : '#10b981' 
-                  }
-                ]}>
-                  {dadosInicio.atividade.calorias_ingeridas > 0 || dadosInicio.atividade.calorias_gastas > 0
+                <Text
+                  style={[
+                    styles.calorieBurned,
+                    {
+                      color:
+                        dadosInicio.atividade.saldo_calorico === 0
+                          ? '#666'
+                          : dadosInicio.atividade.saldo_calorico > 0
+                            ? '#ef4444'
+                            : '#10b981',
+                    },
+                  ]}
+                >
+                  {dadosInicio.atividade.calorias_ingeridas > 0 ||
+                  dadosInicio.atividade.calorias_gastas > 0
                     ? `${dadosInicio.atividade.saldo_calorico > 0 ? '+' : ''}${Math.round(dadosInicio.atividade.saldo_calorico)} kcal`
                     : '--'}
                 </Text>
@@ -686,9 +793,9 @@ export default function Home() {
           </TouchableOpacity>
         </View>
 
-        {/* Progresso and Histórico Row */}
+        {}
         <View style={styles.row}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.card, styles.cardLeft]}
             onPress={() => router.push('/progresso')}
           >
@@ -696,15 +803,13 @@ export default function Home() {
               <Text style={styles.cardIcon}>📊</Text>
               <Text style={styles.cardTitle}>Progresso</Text>
             </View>
-            
+
             {renderMiniGrafico()}
-            
-            <Text style={styles.progressFooter}>
-              {getMensagemProgresso()}
-            </Text>
+
+            <Text style={styles.progressFooter}>{getMensagemProgresso()}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.card, styles.cardRight]}
             onPress={() => router.push('/historico')}
           >
@@ -712,7 +817,7 @@ export default function Home() {
               <Text style={styles.cardIcon}>⏱️</Text>
               <Text style={styles.cardTitle}>Histórico</Text>
             </View>
-            
+
             {dadosInicio.ultima_refeicao ? (
               <View style={styles.historicoContent}>
                 <Text style={styles.historicoItem}>
@@ -730,8 +835,8 @@ export default function Home() {
                 <Text style={styles.historicoItem}>
                   🍽️ <Text style={styles.historicoLabel}>Alimentos:</Text>{' '}
                   <Text style={styles.historicoGood}>
-                    {dadosInicio.ultima_refeicao.alimentos.length === 1 
-                      ? '1 item' 
+                    {dadosInicio.ultima_refeicao.alimentos.length === 1
+                      ? '1 item'
                       : `${dadosInicio.ultima_refeicao.alimentos.length} itens`}
                   </Text>
                 </Text>
@@ -739,22 +844,25 @@ export default function Home() {
             ) : (
               <View style={styles.historicoContent}>
                 <View style={styles.noHistoricoBox}>
-                  <Text style={styles.noHistoricoText}>Nenhuma refeição registrada</Text>
+                  <Text style={styles.noHistoricoText}>
+                    Nenhuma refeição registrada
+                  </Text>
                 </View>
               </View>
             )}
-            
+
             <Text style={styles.historicoFooter}>
               📊 Veja seu histórico completo
             </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Jejum Card */}
-        <TouchableOpacity 
+        {}
+        <TouchableOpacity
           style={[
             styles.jejumCard,
-            (jejumAtivo === false || jejumAtivo === null) && styles.jejumCardDisabled
+            (jejumAtivo === false || jejumAtivo === null) &&
+              styles.jejumCardDisabled,
           ]}
           onPress={handleJejumPress}
         >
@@ -762,8 +870,8 @@ export default function Home() {
             <Text style={styles.jejumIcon}>⏰</Text>
             <Text style={styles.jejumTitle}>Jejum</Text>
           </View>
-          
-          {(jejumAtivo === false || jejumAtivo === null) ? (
+
+          {jejumAtivo === false || jejumAtivo === null ? (
             <View style={styles.jejumDisabledContainer}>
               <View style={styles.jejumLockIconContainer}>
                 <Text style={styles.jejumLockIcon}>🔒</Text>
@@ -777,19 +885,23 @@ export default function Home() {
             <>
               <Text style={styles.jejumSubtitle}>Tempo restante:</Text>
               <Text style={styles.jejumTime}>{tempoRestanteJejum}</Text>
-              <Text style={styles.jejumDescription}>para sua próxima refeição</Text>
+              <Text style={styles.jejumDescription}>
+                para sua próxima refeição
+              </Text>
             </>
           ) : (
             <>
               <Text style={styles.jejumSubtitle}>🎯 Jejum Ativo</Text>
-              <Text style={styles.jejumDescription}>Toque para iniciar o contador</Text>
+              <Text style={styles.jejumDescription}>
+                Toque para iniciar o contador
+              </Text>
             </>
           )}
 
           <View style={styles.jejumDisabledFooterBox}>
             <Text style={styles.jejumDisabledFooter}>
-              {(jejumAtivo === false || jejumAtivo === null) 
-                ? '⚠️ Leia o termo de ciência antes de ativar' 
+              {jejumAtivo === false || jejumAtivo === null
+                ? '⚠️ Leia o termo de ciência antes de ativar'
                 : jejumEmAndamento
                   ? '⏱️ Jejum em andamento'
                   : '⏰ Toque para gerenciar seu jejum'}
@@ -800,7 +912,7 @@ export default function Home() {
         <View style={styles.bottomPadding} />
       </ScrollView>
 
-      {/* Modal de Bloqueio de Jejum */}
+      {}
       <Modal
         animationType="fade"
         transparent={true}
@@ -812,33 +924,35 @@ export default function Home() {
             <View style={styles.modalIcon}>
               <Text style={styles.modalIconText}>⏰</Text>
             </View>
-            
+
             <Text style={styles.modalTitle}>Jejum em Andamento</Text>
-            
+
             <View style={styles.jejumModalInfo}>
               <Text style={styles.jejumModalText}>
-                Você está no meio de um jejum intermitente e não pode registrar refeições no momento.
+                Você está no meio de um jejum intermitente e não pode registrar
+                refeições no momento.
               </Text>
-              
+
               <View style={styles.jejumModalTimeBox}>
                 <Text style={styles.jejumModalTimeLabel}>Tempo restante:</Text>
                 <Text style={styles.jejumModalTime}>{tempoRestanteJejum}</Text>
               </View>
-              
+
               <Text style={styles.jejumModalSubtext}>
-                Aguarde o término do jejum ou pare o contador para registrar refeições.
+                Aguarde o término do jejum ou pare o contador para registrar
+                refeições.
               </Text>
             </View>
 
             <View style={styles.modalButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.acceptButton, { backgroundColor: '#F44336' }]}
                 onPress={handlePararJejumDaHome}
               >
                 <Text style={styles.acceptButtonText}>⏹ Parar Jejum</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.declineButton}
                 onPress={() => setShowJejumBlockModal(false)}
               >
@@ -849,7 +963,7 @@ export default function Home() {
         </View>
       </Modal>
 
-      {/* Modal de Termos */}
+      {}
       <Modal
         animationType="fade"
         transparent={true}
@@ -861,30 +975,34 @@ export default function Home() {
             <View style={styles.modalIcon}>
               <Text style={styles.modalIconText}>⚠️</Text>
             </View>
-            
+
             <Text style={styles.modalTitle}>Termo de Ciência</Text>
-            
-            <ScrollView style={styles.termsScroll} showsVerticalScrollIndicator={true}>
+
+            <ScrollView
+              style={styles.termsScroll}
+              showsVerticalScrollIndicator={true}
+            >
               <Text style={styles.termsText}>
-                A funcionalidade de jejum vem desativada por padrão, pois, se mal utilizada, pode gerar 
-                resultados indesejáveis. Por exemplo, o efeito sanfona.
+                A funcionalidade de jejum vem desativada por padrão, pois, se
+                mal utilizada, pode gerar resultados indesejáveis. Por exemplo,
+                o efeito sanfona.
               </Text>
               <Text style={styles.termsText}>
-                Antes de ativá-la, certifique-se de que o jejum foi recomendado por seu nutricionista 
-                e de que você está ciente de que a responsabilidade pelo uso da funcionalidade é 
-                inteiramente sua.
+                Antes de ativá-la, certifique-se de que o jejum foi recomendado
+                por seu nutricionista e de que você está ciente de que a
+                responsabilidade pelo uso da funcionalidade é inteiramente sua.
               </Text>
             </ScrollView>
 
             <View style={styles.modalButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.acceptButton}
                 onPress={handleAcceptTermsHome}
               >
                 <Text style={styles.acceptButtonText}>✓ Prosseguir</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.declineButton}
                 onPress={() => setShowTermsModal(false)}
               >
@@ -902,8 +1020,8 @@ const styles = StyleSheet.create({
   noHistoricoBox: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 30,  // aumentei de 20
-    flex: 1,  // adicione isso
+    paddingVertical: 30,
+    flex: 1,
   },
   noHistoricoIcon: {
     fontSize: 40,
@@ -1015,7 +1133,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-    singlePointContainer: {
+  singlePointContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 20,
@@ -1039,7 +1157,7 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     marginTop: 8,
   },
-    noDataText: {
+  noDataText: {
     fontSize: 12,
     color: '#999',
     textAlign: 'center',
@@ -1063,17 +1181,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
   },
   mealStatRow: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: 8,
-  paddingHorizontal: 4,
-},
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
   mealStatLabel: {
-    fontSize: 11,  // reduzi de 12
+    fontSize: 11,
     color: '#666',
     fontWeight: '500',
-    flex: 1,  // adicione isso
+    flex: 1,
   },
   mealStatValue: {
     fontSize: 13,
@@ -1097,24 +1215,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 15, // SUBSTITUI o paddingTop e paddingBottom
+    paddingVertical: 15,
     backgroundColor: '#4CAF50',
-    minHeight: 100, // ADICIONA altura mínima
+    minHeight: 100,
   },
   logoContainer: {
-    width: 70, // AUMENTEI MUITO de 50
-    height: 70, // AUMENTEI MUITO de 50
-    borderRadius: 15, // Aumentei o arredondamento
+    width: 70,
+    height: 70,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
   },
   logoImage: {
-    width: '100%', // Reduzi de 80% para dar mais espaço
+    width: '100%',
     height: '100%',
     resizeMode: 'contain',
   },
   profileButton: {
-    width: 70, // AUMENTEI MUITO de 50
+    width: 70,
     height: 70,
   },
   profileImage: {
@@ -1123,11 +1241,11 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   profilePhoto: {
-    width: 70, // AUMENTEI MUITO de 50
+    width: 70,
     height: 70,
-    borderRadius: 35, // Metade de 70
-    borderWidth: 1, // Aumentei de 3
-    borderColor: '#000000', // Mudei para branco como na imagem
+    borderRadius: 35,
+    borderWidth: 1,
+    borderColor: '#000000',
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
@@ -1165,7 +1283,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     flex: 1,
   },
-    headerTitleBlack: {
+  headerTitleBlack: {
     color: '#00813B',
   },
   headerTitleGreen: {
@@ -1228,7 +1346,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     minHeight: 180,
-    justifyContent: 'space-between',  // 🆕 ADICIONAR
+    justifyContent: 'space-between',
   },
   cardLeft: {
     flex: 1,
@@ -1248,7 +1366,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   cardTitle: {
-    fontSize: 18,  // AUMENTADO de 16
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
   },
@@ -1256,41 +1374,41 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   mealTime: {
-    fontSize: 13,  // AUMENTADO de 11
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 5,  // AUMENTADO de 3
+    marginBottom: 5,
   },
   mealDetail: {
-    fontSize: 12,  // AUMENTADO de 10
+    fontSize: 12,
     color: '#666',
-    marginBottom: 4,  // AUMENTADO de 2
-    lineHeight: 18,  // 🆕 ADICIONAR espaçamento entre linhas
+    marginBottom: 4,
+    lineHeight: 18,
   },
   mealFooter: {
-    fontSize: 11,  // 🆕 REDUZIR para 11 (igual ao do card de dieta)
+    fontSize: 11,
     color: '#757575',
     fontStyle: 'italic',
-    marginTop: 'auto',  // 🆕 ADICIONAR para empurrar para baixo
+    marginTop: 'auto',
   },
   calorieInfo: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    gap: 8,  // Adicione esta linha
+    gap: 8,
   },
   calorieConsumed: {
-    fontSize: 13,  // AUMENTADO de 11
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#333',
   },
   calorieBurned: {
-    fontSize: 13,  // AUMENTADO de 11
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#FF5722',
   },
   chartPlaceholder: {
-    alignItems: 'center',      // 🔧 Centraliza horizontalmente
-    justifyContent: 'center',  // 🔧 Centraliza verticalmente
+    alignItems: 'center',
+    justifyContent: 'center',
     height: 80,
     marginVertical: 10,
   },
@@ -1325,19 +1443,19 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   progressFooter: {
-    fontSize: 12,  // AUMENTADO de 10
+    fontSize: 12,
     color: '#757575',
     textAlign: 'center',
-    marginTop: 5,  // 🆕 ADICIONAR
+    marginTop: 5,
   },
   historicoContent: {
     marginBottom: 8,
   },
   historicoItem: {
-    fontSize: 13,  // AUMENTADO de 11
+    fontSize: 13,
     color: '#333',
-    marginBottom: 6,  // AUMENTADO de 4
-    lineHeight: 18,  // 🆕 ADICIONAR
+    marginBottom: 6,
+    lineHeight: 18,
   },
   historicoLabel: {
     fontWeight: 'bold',
@@ -1349,10 +1467,10 @@ const styles = StyleSheet.create({
     color: '#C62828',
   },
   historicoFooter: {
-    fontSize: 12,  // AUMENTADO de 10
+    fontSize: 12,
     color: '#757575',
     fontStyle: 'italic',
-    marginTop: 8,  // 🆕 ADICIONAR
+    marginTop: 8,
   },
   jejumCard: {
     backgroundColor: 'white',
@@ -1407,21 +1525,21 @@ const styles = StyleSheet.create({
     height: 20,
   },
   jejumCardDisabled: {
-  backgroundColor: '#F5F5F5',
-  opacity: 0.7,
-},
-jejumDisabledText: {
-  fontSize: 24,
-  fontWeight: 'bold',
-  color: '#999',
-  marginVertical: 10,
-},
-jejumDisabledSubtext: {
-  fontSize: 14,
-  color: '#666',
-  textAlign: 'center',
-  marginBottom: 10,
-},
+    backgroundColor: '#F5F5F5',
+    opacity: 0.7,
+  },
+  jejumDisabledText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#999',
+    marginVertical: 10,
+  },
+  jejumDisabledSubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -1562,7 +1680,6 @@ jejumDisabledSubtext: {
     textAlign: 'center',
   },
 
-  // Estilos para info de calorias
   calorieInfoItem: {
     alignItems: 'center',
     flex: 1,
@@ -1580,5 +1697,5 @@ jejumDisabledSubtext: {
   calorieBurned: {
     fontSize: 13,
     fontWeight: 'bold',
-  }
+  },
 });

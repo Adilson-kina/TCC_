@@ -12,7 +12,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import api from '../components/api';
 
@@ -28,15 +28,15 @@ export default function EditarPerfil() {
   const [senhaAtual, setSenhaAtual] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
-  
+
   const [tipoDieta, setTipoDieta] = useState('');
-    const [disturbios, setDisturbios] = useState({
+  const [disturbios, setDisturbios] = useState({
     celíaca: false,
     diabetes: false,
     hipercolesterolemia: false,
     hipertensão: false,
     sii: false,
-    intolerancia_lactose: false  // ← ADICIONAR
+    intolerancia_lactose: false,
   });
 
   const [mostrarModalDeletar, setMostrarModalDeletar] = useState(false);
@@ -58,36 +58,47 @@ export default function EditarPerfil() {
   }, []);
 
   const carregarDados = async () => {
-    const formatarDataParaExibicao = (dataBanco) => {
+    const formatarDataParaExibicao = dataBanco => {
       const [ano, mes, dia] = dataBanco.split('-');
       return `${dia}/${mes}/${ano}`;
     };
 
     try {
       setLoading(true);
-      
+
       const data = await api.get('/perfil.php');
 
       if (data.nome) {
         setNome(data.nome);
         setDataNascimento(formatarDataParaExibicao(data.data_nascimento));
         setAltura(data.altura.toString());
-        
-        // ✅ CORRIGIDO: Garantir que sempre tenha um valor, mesmo se vier vazio
+
         const tipoDietaRecebido = data.tipo_dieta || 'nenhuma';
         setTipoDieta(tipoDietaRecebido.toLowerCase());
-        
-        // Parsear distúrbios
+
         if (data.disturbios && data.disturbios.toLowerCase() !== 'nenhum') {
-          const disturbiosArray = data.disturbios.split(',').map(d => d.trim().toLowerCase());
-          
+          const disturbiosArray = data.disturbios
+            .split(',')
+            .map(d => d.trim().toLowerCase());
+
           setDisturbios({
-            celíaca: disturbiosArray.includes('celíaca') || disturbiosArray.includes('celiaca'),
+            celíaca:
+              disturbiosArray.includes('celíaca') ||
+              disturbiosArray.includes('celiaca'),
             diabetes: disturbiosArray.includes('diabetes'),
-            hipercolesterolemia: disturbiosArray.includes('hipercolesterolemia'),
-            hipertensão: disturbiosArray.includes('hipertensão') || disturbiosArray.includes('hipertensao'),
-            sii: disturbiosArray.includes('sii') || disturbiosArray.includes('síndrome do intestino irritável'),
-            intolerancia_lactose: disturbiosArray.includes('intolerância à lactose') || disturbiosArray.includes('intolerancia_lactose') || disturbiosArray.includes('intolerancia à lactose')
+            hipercolesterolemia: disturbiosArray.includes(
+              'hipercolesterolemia'
+            ),
+            hipertensão:
+              disturbiosArray.includes('hipertensão') ||
+              disturbiosArray.includes('hipertensao'),
+            sii:
+              disturbiosArray.includes('sii') ||
+              disturbiosArray.includes('síndrome do intestino irritável'),
+            intolerancia_lactose:
+              disturbiosArray.includes('intolerância à lactose') ||
+              disturbiosArray.includes('intolerancia_lactose') ||
+              disturbiosArray.includes('intolerancia à lactose'),
           });
         } else {
           setDisturbios({
@@ -96,7 +107,7 @@ export default function EditarPerfil() {
             hipercolesterolemia: false,
             hipertensão: false,
             sii: false,
-            intolerancia_lactose: false
+            intolerancia_lactose: false,
           });
         }
       }
@@ -110,21 +121,23 @@ export default function EditarPerfil() {
   function formatarDataParaBanco(data: string): string {
     const partes = data.split('/');
     if (partes.length === 3) {
-        const [dia, mes, ano] = partes;
-        return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+      const [dia, mes, ano] = partes;
+      return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
     }
     return data;
   }
 
   const salvarAlteracoes = async () => {
-    // Validações
     if (!nome.trim()) {
       Alert.alert('Erro', 'Nome é obrigatório');
       return;
     }
 
     if (!dataNascimento || dataNascimento.length !== 10) {
-      Alert.alert('Erro', 'Data de nascimento é obrigatória e deve estar completa');
+      Alert.alert(
+        'Erro',
+        'Data de nascimento é obrigatória e deve estar completa'
+      );
       return;
     }
 
@@ -133,7 +146,6 @@ export default function EditarPerfil() {
       return;
     }
 
-    // Validar tipo de dieta
     if (!tipoDieta || tipoDieta === '') {
       Alert.alert('Erro', 'Selecione um tipo de dieta');
       return;
@@ -143,7 +155,6 @@ export default function EditarPerfil() {
   };
 
   const continuarSalvamento = async () => {
-    // Se está mudando senha, validar
     if (novaSenha) {
       if (!senhaAtual) {
         Alert.alert('Erro', 'Digite sua senha atual para alterá-la');
@@ -163,15 +174,14 @@ export default function EditarPerfil() {
       setSalvando(true);
 
       const mapeamentoNomes = {
-        'celíaca': 'celíaca',
-        'diabetes': 'diabetes',
-        'hipercolesterolemia': 'hipercolesterolemia',
-        'hipertensão': 'hipertensão',
-        'sii': 'sii',
-        'intolerancia_lactose': 'intolerância à lactose'
+        celíaca: 'celíaca',
+        diabetes: 'diabetes',
+        hipercolesterolemia: 'hipercolesterolemia',
+        hipertensão: 'hipertensão',
+        sii: 'sii',
+        intolerancia_lactose: 'intolerância à lactose',
       };
 
-      // Montar array de distúrbios selecionados
       const disturbiosSelecionados = Object.keys(disturbios)
         .filter(key => disturbios[key])
         .map(key => mapeamentoNomes[key] || key)
@@ -183,14 +193,14 @@ export default function EditarPerfil() {
         altura: parseInt(altura),
         tipo_dieta: tipoDieta,
         disturbios: disturbiosSelecionados || 'nenhum',
-        ...(novaSenha && { senha_atual: senhaAtual, nova_senha: novaSenha })
+        ...(novaSenha && { senha_atual: senhaAtual, nova_senha: novaSenha }),
       };
 
       const data = await api.put('/perfil.php', body);
 
       if (data.mensagem) {
         Alert.alert('Sucesso', 'Perfil atualizado com sucesso!', [
-          { text: 'OK', onPress: () => router.back() }
+          { text: 'OK', onPress: () => router.back() },
         ]);
       }
     } catch (error) {
@@ -209,17 +219,17 @@ export default function EditarPerfil() {
     try {
       setDeletando(true);
 
-      const data = await api.delete('/perfil.php', { senha: senhaConfirmarDelete });
-      
-      // Se chegou aqui, deu sucesso
+      const data = await api.delete('/perfil.php', {
+        senha: senhaConfirmarDelete,
+      });
+
       await AsyncStorage.clear();
       setMostrarModalDeletar(false);
-      
+
       Alert.alert('Conta Deletada', 'Sua conta foi removida com sucesso', [
-        { text: 'OK', onPress: () => router.replace('/') }
+        { text: 'OK', onPress: () => router.replace('/') },
       ]);
     } catch (error: any) {
-      // Erro real (senha errada, etc)
       setDeletando(false);
       Alert.alert('Erro', error.message || 'Não foi possível deletar a conta');
     }
@@ -241,7 +251,10 @@ export default function EditarPerfil() {
         <Ionicons name="arrow-back" size={20} color="white" />
       </Pressable>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Informações Básicas</Text>
 
@@ -259,15 +272,15 @@ export default function EditarPerfil() {
             placeholder="DD/MM/AAAA"
             placeholderTextColor="#747474"
             value={dataNascimento}
-            onChangeText={(text) => {
-                let formatted = text.replace(/\D/g, ''); // Remove tudo que não for número
-                if (formatted.length >= 2) {
+            onChangeText={text => {
+              let formatted = text.replace(/\D/g, '');
+              if (formatted.length >= 2) {
                 formatted = formatted.slice(0, 2) + '/' + formatted.slice(2);
-                }
-                if (formatted.length >= 5) {
+              }
+              if (formatted.length >= 5) {
                 formatted = formatted.slice(0, 5) + '/' + formatted.slice(5, 9);
-                }
-                setDataNascimento(formatted);
+              }
+              setDataNascimento(formatted);
             }}
             keyboardType="numeric"
             maxLength={10}
@@ -285,17 +298,19 @@ export default function EditarPerfil() {
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Tipo de Dieta</Text>
-          {tiposDieta.map((tipo) => (
+          {tiposDieta.map(tipo => (
             <TouchableOpacity
               key={tipo.value}
               style={[
                 styles.radioOption,
-                tipoDieta === tipo.value && styles.radioOptionSelected
+                tipoDieta === tipo.value && styles.radioOptionSelected,
               ]}
               onPress={() => setTipoDieta(tipo.value)}
             >
               <View style={styles.radioCircle}>
-                {tipoDieta === tipo.value && <View style={styles.radioCircleSelected} />}
+                {tipoDieta === tipo.value && (
+                  <View style={styles.radioCircleSelected} />
+                )}
               </View>
               <Text style={styles.radioText}>{tipo.label}</Text>
             </TouchableOpacity>
@@ -304,40 +319,44 @@ export default function EditarPerfil() {
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Distúrbios/Doenças</Text>
-          
-          {Object.keys(disturbios).map((key) => {
-          const nomesFormatados = {
-            'celíaca': 'Celíaca',
-            'diabetes': 'Diabetes',
-            'hipercolesterolemia': 'Hipercolesterolemia',
-            'hipertensão': 'Hipertensão',
-            'sii': 'SII',
-            'intolerancia_lactose': 'Intolerância à Lactose'
-          };
-          
-          return (
-            <TouchableOpacity
-              key={key}
-              style={styles.checkboxOption}
-              onPress={() => setDisturbios({...disturbios, [key]: !disturbios[key]})}
-            >
-              <View style={[
-                styles.checkbox,
-                disturbios[key] && styles.checkboxChecked
-              ]}>
-                {disturbios[key] && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-              <Text style={styles.checkboxText}>
-                {nomesFormatados[key] || key}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+
+          {Object.keys(disturbios).map(key => {
+            const nomesFormatados = {
+              celíaca: 'Celíaca',
+              diabetes: 'Diabetes',
+              hipercolesterolemia: 'Hipercolesterolemia',
+              hipertensão: 'Hipertensão',
+              sii: 'SII',
+              intolerancia_lactose: 'Intolerância à Lactose',
+            };
+
+            return (
+              <TouchableOpacity
+                key={key}
+                style={styles.checkboxOption}
+                onPress={() =>
+                  setDisturbios({ ...disturbios, [key]: !disturbios[key] })
+                }
+              >
+                <View
+                  style={[
+                    styles.checkbox,
+                    disturbios[key] && styles.checkboxChecked,
+                  ]}
+                >
+                  {disturbios[key] && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+                <Text style={styles.checkboxText}>
+                  {nomesFormatados[key] || key}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Alterar Senha</Text>
-          
+
           <Text style={styles.label}>Senha Atual</Text>
           <TextInput
             style={styles.input}
@@ -357,7 +376,9 @@ export default function EditarPerfil() {
             placeholderTextColor="#888"
             secureTextEntry
           />
-          <Text style={styles.passwordHint}>⚠️ A senha deve ter no mínimo 6 caracteres</Text>
+          <Text style={styles.passwordHint}>
+            ⚠️ A senha deve ter no mínimo 6 caracteres
+          </Text>
 
           <Text style={styles.label}>Confirmar Nova Senha</Text>
           <TextInput
@@ -378,7 +399,7 @@ export default function EditarPerfil() {
           {salvando ? (
             <ActivityIndicator size="small" color="#FFF" />
           ) : (
-            <Text style={styles.salvarButtonText}>💾 Salvar Alterações</Text>
+            <Text style={styles.salvarButtonText}>Salvar Alterações</Text>
           )}
         </TouchableOpacity>
 
@@ -386,27 +407,24 @@ export default function EditarPerfil() {
           style={styles.deletarButton}
           onPress={() => setMostrarModalDeletar(true)}
         >
-          <Text style={styles.deletarButtonText}>🗑️ Deletar Conta</Text>
+          <Text style={styles.deletarButtonText}>Deletar Conta</Text>
         </TouchableOpacity>
 
         <View style={styles.bottomPadding} />
       </ScrollView>
 
-      {/* Modal de Confirmação de Exclusão */}
+      {}
       {mostrarModalDeletar && (
-        <Pressable 
-          style={styles.modalOverlay}
-          onPress={Keyboard.dismiss}
-        >
-          <Pressable 
+        <Pressable style={styles.modalOverlay} onPress={Keyboard.dismiss}>
+          <Pressable
             style={styles.modalContent}
-            onPress={(e) => e.stopPropagation()}
+            onPress={e => e.stopPropagation()}
           >
             <Text style={styles.modalTitle}>⚠️ Deletar Conta</Text>
             <Text style={styles.modalText}>
               Esta ação é irreversível! Todos os seus dados serão perdidos.
             </Text>
-            
+
             <Text style={styles.label}>Confirme sua senha:</Text>
             <TextInput
               style={styles.input}
@@ -461,10 +479,10 @@ const styles = StyleSheet.create({
     width: 35,
     height: 35,
     borderRadius: 20,
-    backgroundColor: "#007912",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
+    backgroundColor: '#007912',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -480,7 +498,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 60,
-    backgroundColor: "#ecfcec",
+    backgroundColor: '#ecfcec',
     zIndex: 9,
   },
   container: {
@@ -498,7 +516,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    paddingTop: 70,  // adiciona isso para dar espaço pro botão
+    paddingTop: 70,
   },
   card: {
     backgroundColor: '#FFF',
@@ -630,7 +648,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 100, 
+    zIndex: 100,
   },
   modalContent: {
     width: '85%',

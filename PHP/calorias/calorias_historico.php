@@ -9,7 +9,6 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     exit();
 }
 
-// 👇 CORRIJA ESTA LINHA - deve ter '..' para subir uma pasta
 require_once(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.php');
 
 permitirMetodos(["GET"]);
@@ -32,7 +31,7 @@ try {
     // Inverte para ordem cronológica
     $historico = array_reverse($historico);
 
-    // ✅ CORREÇÃO: Retorna dentro de um objeto com chave "dados"
+    // Retorna dentro de um objeto com chave "dados"
     enviarSucesso(200, [
         "mensagem" => "Histórico carregado com sucesso!",
         "dados" => $historico

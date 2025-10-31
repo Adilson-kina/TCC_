@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -13,8 +13,8 @@ import {
   Text,
   TextInput,
   TouchableWithoutFeedback,
-  View
-} from "react-native";
+  View,
+} from 'react-native';
 import api from '../components/api';
 
 const windowWidth = Dimensions.get('window').width;
@@ -34,36 +34,36 @@ export default function SignUp() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async () => {
-    setErrorMessage("");
+    setErrorMessage('');
 
     if (!nome || !email || !senha) {
-      setErrorMessage("Preencha todos os campos");
+      setErrorMessage('Preencha todos os campos');
       return;
     }
 
     try {
-      const response = await api.noAuth.post('/auth.php?endpoint=cadastro', { 
-        nome, 
-        email, 
-        senha 
+      const response = await api.noAuth.post('/auth.php?endpoint=cadastro', {
+        nome,
+        email,
+        senha,
       });
 
       if (response?.token) {
-        await AsyncStorage.setItem("token", response.token);
-        await AsyncStorage.setItem("userId", response.id.toString());
-        router.navigate("/termos");
+        await AsyncStorage.setItem('token', response.token);
+        await AsyncStorage.setItem('userId', response.id.toString());
+        router.navigate('/termos');
         return;
       }
 
       if (response?.id) {
-        await AsyncStorage.setItem("userId", response.id.toString());
-        router.navigate("/termos");
+        await AsyncStorage.setItem('userId', response.id.toString());
+        router.navigate('/termos');
       }
     } catch (error: any) {
-      setErrorMessage(error.message || "Erro ao fazer cadastro");
+      setErrorMessage(error.message || 'Erro ao fazer cadastro');
     }
   };
 
@@ -73,21 +73,22 @@ export default function SignUp() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.backButtonBackground} />
-      <Pressable style={styles.backButton} onPress={() => router.push("/")}>
+      <Pressable style={styles.backButton} onPress={() => router.push('/')}>
         <Ionicons name="arrow-back" size={20} color="white" />
       </Pressable>
 
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.innerContainer}>
             <Text style={styles.title}>
-              Inicie sua jornada rumo a uma alimentação saudável e um estado emocional equilibrado
+              Inicie sua jornada rumo a uma alimentação saudável e um estado
+              emocional equilibrado
             </Text>
 
-            {errorMessage !== "" && (
+            {errorMessage !== '' && (
               <View style={styles.errorBox}>
                 <Text style={styles.errorIcon}>⚠️</Text>
                 <Text style={styles.errorText}>{errorMessage}</Text>
@@ -96,7 +97,12 @@ export default function SignUp() {
 
             <View style={styles.form}>
               <View style={styles.items}>
-                <Ionicons name="person-outline" size={20} color="#666" style={styles.icon} />
+                <Ionicons
+                  name="person-outline"
+                  size={20}
+                  color="#666"
+                  style={styles.icon}
+                />
                 <TextInput
                   style={styles.input}
                   value={nome}
@@ -108,7 +114,12 @@ export default function SignUp() {
               </View>
 
               <View style={styles.items}>
-                <Ionicons name="mail-outline" size={20} color="#666" style={styles.icon} />
+                <Ionicons
+                  name="mail-outline"
+                  size={20}
+                  color="#666"
+                  style={styles.icon}
+                />
                 <TextInput
                   style={styles.input}
                   value={email}
@@ -120,7 +131,12 @@ export default function SignUp() {
               </View>
 
               <View style={styles.items}>
-                <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.icon} />
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={20}
+                  color="#666"
+                  style={styles.icon}
+                />
                 <TextInput
                   style={styles.input}
                   value={senha}
@@ -154,15 +170,15 @@ export default function SignUp() {
 const styles = StyleSheet.create({
   backButton: {
     position: 'absolute',
-    top: 20,  // reduzi de 50 para 10
+    top: 20,
     left: 20,
     width: 35,
     height: 35,
     borderRadius: 20,
-    backgroundColor: "#007912",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
+    backgroundColor: '#007912',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -178,12 +194,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 60,
-    backgroundColor: "#ecfcec",
+    backgroundColor: '#ecfcec',
     zIndex: 9,
   },
   container: {
     flex: 1,
-    backgroundColor: "#ecfcec",
+    backgroundColor: '#ecfcec',
   },
   scrollContent: {
     flexGrow: 1,
@@ -192,19 +208,19 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     paddingHorizontal: 20,
-    paddingTop: 85,  // espaço pro botão
+    paddingTop: 85,
     paddingBottom: 40,
-    alignItems: "center",
-    justifyContent: "flex-start",
+    alignItems: 'center',
+    justifyContent: 'flex-start',
   },
   title: {
-    fontSize: 38,  // aumentado de 28 para 38
-    fontWeight: "bold",
-    color: "#088c1c",
-    textAlign: "left",  // mudado de "center" para "left"
+    fontSize: 38,
+    fontWeight: 'bold',
+    color: '#088c1c',
+    textAlign: 'left',
     marginBottom: 30,
     paddingHorizontal: 10,
-    width: '100%',  // adiciona largura total
+    width: '100%',
   },
   errorBox: {
     backgroundColor: '#FFEBEE',
@@ -229,7 +245,7 @@ const styles = StyleSheet.create({
   },
   form: {
     width: '100%',
-    alignItems: "center",
+    alignItems: 'center',
     gap: 15,
     marginBottom: 20,
   },
@@ -237,11 +253,11 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: "#dadada",
+    backgroundColor: '#dadada',
     borderRadius: 15,
     paddingHorizontal: 15,
     height: 50,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -256,18 +272,18 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: '100%',
-    color: "#000000",
+    color: '#000000',
     fontSize: 16,
   },
   button: {
     width: '80%',
     height: 50,
     borderRadius: 20,
-    backgroundColor: "#007912",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#007912',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 10,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -278,21 +294,21 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 18,
-    color: "white",
-    fontWeight: "bold",
+    color: 'white',
+    fontWeight: 'bold',
   },
   goto: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 10,
   },
   gotoText: {
     fontSize: 16,
-    color: "#333",
+    color: '#333',
   },
   gotoTextLink: {
     fontSize: 16,
-    color: "#3392FF",
-    fontWeight: "600",
+    color: '#3392FF',
+    fontWeight: '600',
   },
 });

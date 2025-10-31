@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import PedometerComponent from '../components/Pedometer';
@@ -35,10 +35,10 @@ const CaloriasScreen = () => {
   const enviarDados = async () => {
     try {
       const data = await api.post('/calorias/calorias.php', { passos }, false);
-      
+
       if (data.mensagem && data.tmb !== undefined) {
         setDadosCalorias(data);
-        setPassos(data.passos || 0); // 🆕 Atualizar passos com o valor do banco
+        setPassos(data.passos || 0);
       }
     } catch (error) {
       console.error('Erro ao enviar dados:', error);
@@ -52,7 +52,7 @@ const CaloriasScreen = () => {
   const carregarHistorico = async () => {
     try {
       const data = await api.get('/calorias/calorias_historico.php', false);
-      
+
       if (data.dados) {
         setHistorico(data.dados);
       }
@@ -89,9 +89,9 @@ const CaloriasScreen = () => {
   if (!dadosCalorias) {
     return (
       <View style={styles.container}>
-        {/* Header Verde */}
+        {}
         <View style={styles.header}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
           >
@@ -101,12 +101,14 @@ const CaloriasScreen = () => {
           <View style={styles.placeholder} />
         </View>
 
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.errorCard}>
-            <Text style={styles.errorText}>⚠️ Complete o questionário para ver seus dados</Text>
+            <Text style={styles.errorText}>
+              ⚠️ Complete o questionário para ver seus dados
+            </Text>
           </View>
         </ScrollView>
       </View>
@@ -119,9 +121,9 @@ const CaloriasScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header Verde */}
+      {}
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
         >
@@ -131,22 +133,22 @@ const CaloriasScreen = () => {
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Card Principal */}
+        {}
         <View style={styles.mainCard}>
-          {/* Gráfico Circular - Consumidas vs Gastas */}
+          {}
           <View style={styles.graficoSection}>
-            <GraficoCircularBalanco 
-              consumidas={caloriasIngeridas} 
+            <GraficoCircularBalanco
+              consumidas={caloriasIngeridas}
               gastas={caloriasGastas}
             />
-            
+
             <View style={styles.infoSection}>
               <View style={styles.infoRow}>
                 <Text style={styles.infoIcon}>🍽️</Text>
@@ -157,29 +159,40 @@ const CaloriasScreen = () => {
                   </Text>
                 </View>
               </View>
-              
+
               <View style={styles.infoRow}>
                 <Text style={styles.infoIcon}>🚶</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.infoLabel}>Andando</Text>
-                  <Text style={styles.infoValue} numberOfLines={1} adjustsFontSizeToFit>
-                    {passos.toLocaleString('pt-BR')} passos ({Math.round(caloriasGastas)} Kcal)
+                  <Text
+                    style={styles.infoValue}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    {passos.toLocaleString('pt-BR')} passos (
+                    {Math.round(caloriasGastas)} Kcal)
                   </Text>
                 </View>
               </View>
-              
+
               <View style={[styles.infoRow, styles.finaisRow]}>
                 <Text style={styles.infoIcon}>▶️</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.infoLabel}>Calorias finais</Text>
-                  <Text style={[
-                    styles.infoValueFinais,
-                    { color: saldoCalorico > 0 ? '#ef4444' : '#10b981' }
-                  ]} numberOfLines={1}>
-                    {saldoCalorico > 0 ? '+' : ''}{Math.round(saldoCalorico)} Kcal
+                  <Text
+                    style={[
+                      styles.infoValueFinais,
+                      { color: saldoCalorico > 0 ? '#ef4444' : '#10b981' },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {saldoCalorico > 0 ? '+' : ''}
+                    {Math.round(saldoCalorico)} Kcal
                   </Text>
                   <Text style={styles.infoSubtext}>
-                    {saldoCalorico > 0 ? 'Superávit (ganho)' : 'Déficit (perda)'}
+                    {saldoCalorico > 0
+                      ? 'Superávit (ganho)'
+                      : 'Déficit (perda)'}
                   </Text>
                 </View>
               </View>
@@ -189,19 +202,22 @@ const CaloriasScreen = () => {
           {/* Contagem Calórica */}
           <View style={styles.contagemSection}>
             <Text style={styles.contagemTitle}>🔥 Contagem Calórica</Text>
-            <Text style={styles.contagemSubtitle}>Seu limite diário ideal:</Text>
-            
+            <Text style={styles.contagemSubtitle}>
+              Seu limite diário ideal:
+            </Text>
+
             <View style={styles.contagemValores}>
               <View style={styles.contagemItem}>
                 <Text style={styles.contagemLabel}>Meta</Text>
                 <Text style={styles.contagemValor}>
-                  {Math.round(dadosCalorias.objetivo_minimo)} - {Math.round(dadosCalorias.objetivo_maximo)}
+                  {Math.round(dadosCalorias.objetivo_minimo)} -{' '}
+                  {Math.round(dadosCalorias.objetivo_maximo)}
                 </Text>
                 <Text style={styles.contagemUnidade}>kcal/dia</Text>
               </View>
-              
+
               <View style={styles.contagemDivisor} />
-              
+
               <View style={styles.contagemItem}>
                 <Text style={styles.contagemLabel}>Gasto Estimado</Text>
                 <Text style={[styles.contagemValor, { color: '#f97316' }]}>
@@ -213,33 +229,45 @@ const CaloriasScreen = () => {
 
             <View style={styles.avisoMinimo}>
               <Text style={styles.avisoTexto}>
-                ⚠️ Limite mínimo seguro: <Text style={styles.avisoValor}>{Math.round(dadosCalorias.limite_minimo_seguro)} kcal</Text>
+                ⚠️ Limite mínimo seguro:{' '}
+                <Text style={styles.avisoValor}>
+                  {Math.round(dadosCalorias.limite_minimo_seguro)} kcal
+                </Text>
               </Text>
               <Text style={styles.avisoSubtexto}>
                 Nunca consuma menos que isso!
               </Text>
-            <Text style={styles.avisoSubtexto}>
-              📊 Estes limites são calculados com base no seu TMB (Taxa Metabólica Basal) de {Math.round(dadosCalorias.tmb)} kcal
-            </Text>
+              <Text style={styles.avisoSubtexto}>
+                📊 Estes limites são calculados com base no seu TMB (Taxa
+                Metabólica Basal) de {Math.round(dadosCalorias.tmb)} kcal
+              </Text>
             </View>
           </View>
 
-          {/* Gráfico de Histórico - Calorias Finais */}
-          {historico.length > 0 && (
+          {}
+          {historico && historico.length > 0 ? (
             <View style={styles.graficoHistoricoWrapper}>
-              <Text style={styles.graficoHistoricoTitulo}>📈 Histórico Semanal</Text>
+              <Text style={styles.graficoHistoricoTitulo}>
+                📈 Histórico Semanal
+              </Text>
               <Text style={styles.graficoHistoricoSubtitulo}>
                 Calorias finais por dia (consumidas - gastas)
               </Text>
               <GraficoHistoricoSaldo historico={historico} />
             </View>
-          )}
+          ) : null}
 
-          {/* 👇 ADICIONAR AQUI - Pedômetro */}
-          <View style={{ marginTop: 20, paddingTop: 20, borderTopWidth: 1, borderTopColor: '#E0E0E0' }}>
+          {}
+          <View
+            style={{
+              marginTop: 20,
+              paddingTop: 20,
+              borderTopWidth: 1,
+              borderTopColor: '#E0E0E0',
+            }}
+          >
             <PedometerComponent onStepsChange={handleStepsUpdate} />
           </View>
-
         </View>
       </ScrollView>
     </View>
@@ -247,29 +275,51 @@ const CaloriasScreen = () => {
 };
 
 const GraficoCircularBalanco = ({ consumidas, gastas }) => {
-  const total = consumidas + gastas;
-  const percentualConsumidas = total > 0 ? (consumidas / total) * 100 : 50;
+  const caloriasConsumidas = Number(consumidas) || 0;
+  const caloriasGastas = Number(gastas) || 0;
+
+  const total = caloriasConsumidas + caloriasGastas;
+  const percentualConsumidas =
+    total > 0 ? (caloriasConsumidas / total) * 100 : 50;
   const anguloConsumidas = (percentualConsumidas / 100) * 360;
+
+  const corConsumidas = total === 0 ? '#9CA3AF' : '#3b82f6';
+  const corGastas = total === 0 ? '#D1D5DB' : '#10b981';
 
   return (
     <View style={styles.graficoCircular}>
-      <View style={[styles.circuloCompacto, {
-        borderTopColor: anguloConsumidas >= 90 ? '#3b82f6' : '#10b981',
-        borderRightColor: anguloConsumidas >= 180 ? '#3b82f6' : '#10b981',
-        borderBottomColor: anguloConsumidas >= 270 ? '#3b82f6' : '#10b981',
-        borderLeftColor: '#3b82f6',
-      }]}>
-        <Text style={styles.circuloTexto}>{Math.round(percentualConsumidas)}%</Text>
-        <Text style={styles.circuloLabel}>consumidas</Text>
+      <View
+        style={[
+          styles.circuloCompacto,
+          {
+            borderTopColor: anguloConsumidas >= 90 ? corConsumidas : corGastas,
+            borderRightColor:
+              anguloConsumidas >= 180 ? corConsumidas : corGastas,
+            borderBottomColor:
+              anguloConsumidas >= 270 ? corConsumidas : corGastas,
+            borderLeftColor: corConsumidas,
+          },
+        ]}
+      >
+        <Text style={styles.circuloTexto}>
+          {total === 0 ? '0' : Math.round(percentualConsumidas)}%
+        </Text>
+        <Text style={styles.circuloLabel}>
+          {total === 0 ? 'nenhum dado' : 'consumidas'}
+        </Text>
       </View>
-      
+
       <View style={styles.legendaCompacta}>
         <View style={styles.legendaItem}>
-          <View style={[styles.legendaBolinha, { backgroundColor: '#3b82f6' }]} />
+          <View
+            style={[styles.legendaBolinha, { backgroundColor: corConsumidas }]}
+          />
           <Text style={styles.legendaTexto}>Consumidas</Text>
         </View>
         <View style={styles.legendaItem}>
-          <View style={[styles.legendaBolinha, { backgroundColor: '#10b981' }]} />
+          <View
+            style={[styles.legendaBolinha, { backgroundColor: corGastas }]}
+          />
           <Text style={styles.legendaTexto}>Gastas</Text>
         </View>
       </View>
@@ -278,16 +328,50 @@ const GraficoCircularBalanco = ({ consumidas, gastas }) => {
 };
 
 const GraficoHistoricoSaldo = ({ historico }) => {
-  if (!historico || historico.length === 0) return null;
+  if (!historico || !Array.isArray(historico) || historico.length === 0) {
+    return (
+      <View style={styles.graficoVazio}>
+        <Text style={styles.graficoVazioTexto}>
+          📊 Nenhum histórico disponível ainda
+        </Text>
+        <Text style={styles.graficoVazioSubtexto}>
+          Registre suas refeições e ande mais para ver o gráfico aqui
+        </Text>
+      </View>
+    );
+  }
+
+  const temDadosSignificativos = historico.some(h => {
+    const calorias = Number(h.calorias_ingeridas) || 0;
+    const gastas = Number(h.calorias_gastas) || 0;
+    return calorias > 0 || gastas > 0;
+  });
+
+  if (!temDadosSignificativos) {
+    return (
+      <View style={styles.graficoVazio}>
+        <Text style={styles.graficoVazioTexto}>
+          📊 Nenhum histórico disponível ainda
+        </Text>
+        <Text style={styles.graficoVazioSubtexto}>
+          Registre suas refeições e ande mais para ver o gráfico aqui
+        </Text>
+      </View>
+    );
+  }
 
   const screenWidth = Dimensions.get('window').width - 60;
 
   const labels = historico.map(h => {
     const data = new Date(h.data_registro);
-    return data.toLocaleDateString('pt-BR', { weekday: 'short' }).substring(0, 3);
+    return data
+      .toLocaleDateString('pt-BR', { weekday: 'short' })
+      .substring(0, 3);
   });
 
-  const dataSaldo = historico.map(h => Math.round(h.saldo_calorico));
+  const dataSaldo = historico.map(h =>
+    Math.round(Number(h.saldo_calorico) || 0)
+  );
   const linhaZero = Array(historico.length).fill(0);
 
   const chartData = {
@@ -319,7 +403,7 @@ const GraficoHistoricoSaldo = ({ historico }) => {
       r: '4',
       strokeWidth: '2',
       stroke: '#3b82f6',
-      fill: '#fff'
+      fill: '#fff',
     },
   };
 
@@ -597,6 +681,23 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  graficoVazio: {
+    backgroundColor: '#F9FAFB',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  graficoVazioTexto: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '600',
+    marginBottom: 5,
+  },
+  graficoVazioSubtexto: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
 });
 

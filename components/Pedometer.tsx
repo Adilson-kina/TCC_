@@ -9,14 +9,16 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 
 interface PedometerComponentProps {
   onStepsChange: (steps: number) => void;
 }
 
-export default function PedometerComponent({ onStepsChange }: PedometerComponentProps) {
+export default function PedometerComponent({
+  onStepsChange,
+}: PedometerComponentProps) {
   const [isPedometerAvailable, setIsPedometerAvailable] = useState('checking');
   const [currentStepCount, setCurrentStepCount] = useState(0);
   const [isActive, setIsActive] = useState(false);
@@ -27,9 +29,7 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
     checkPedometerStatus();
   }, []);
 
-  // 🔍 DEBUG: Log quando o modal muda
-  useEffect(() => {
-  }, [showTermsModal]);
+  useEffect(() => {}, [showTermsModal]);
 
   useEffect(() => {
     let subscription: any = null;
@@ -38,24 +38,20 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
       if (!isActive) return;
 
       try {
-        
         const isAvailable = await Pedometer.isAvailableAsync();
-        
+
         setIsPedometerAvailable(String(isAvailable));
 
         if (isAvailable) {
-          // Pedir permissão
           if (Platform.OS === 'android') {
             try {
               const { status } = await Pedometer.requestPermissionsAsync();
-              
+
               if (status !== 'granted') {
                 Alert.alert(
                   'Permissão Negada',
                   'O app precisa de permissão para contar seus passos. Por favor, ative nas configurações do app.',
-                  [
-                    { text: 'OK', onPress: () => setIsActive(false) }
-                  ]
+                  [{ text: 'OK', onPress: () => setIsActive(false) }]
                 );
                 await AsyncStorage.setItem('pedometroAtivo', 'false');
                 return;
@@ -68,17 +64,15 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
             }
           }
 
-          // Pegar passos de hoje
           const end = new Date();
           const start = new Date();
           start.setHours(0, 0, 0, 0);
 
           try {
             const pastStepCount = await Pedometer.getStepCountAsync(start, end);
-            
+
             if (pastStepCount) {
               setCurrentStepCount(pastStepCount.steps);
-              // 🔧 CORREÇÃO: Usar setTimeout para não interferir no render
               setTimeout(() => onStepsChange(pastStepCount.steps), 0);
             }
           } catch (stepError) {
@@ -86,11 +80,9 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
             setError('Erro ao buscar passos');
           }
 
-          // Monitorar em tempo real
-          subscription = Pedometer.watchStepCount((result) => {
+          subscription = Pedometer.watchStepCount(result => {
             setCurrentStepCount(prev => {
               const newTotal = prev + result.steps;
-              // 🔧 CORREÇÃO: Usar setTimeout para não interferir no render
               setTimeout(() => onStepsChange(newTotal), 0);
               return newTotal;
             });
@@ -100,9 +92,7 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
           Alert.alert(
             'Pedômetro indisponível',
             'Seu dispositivo não suporta contador de passos automático.',
-            [
-              { text: 'OK', onPress: () => setIsActive(false) }
-            ]
+            [{ text: 'OK', onPress: () => setIsActive(false) }]
           );
           await AsyncStorage.setItem('pedometroAtivo', 'false');
         }
@@ -125,15 +115,14 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
 
   const checkPedometerStatus = async () => {
     try {
-      
       const saved = await AsyncStorage.getItem('pedometroAtivo');
       const firstTime = await AsyncStorage.getItem('pedometroFirstTime');
-      
+
       if (saved === 'true') {
         setIsActive(true);
       } else if (firstTime === null) {
         setShowTermsModal(true);
-        await AsyncStorage.setItem('pedometroFirstTime', 'shown'); // Marca que já mostrou
+        await AsyncStorage.setItem('pedometroFirstTime', 'shown');
       } else {
         setIsPedometerAvailable('false');
       }
@@ -150,7 +139,6 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
     try {
       await AsyncStorage.setItem('pedometroAtivo', 'true');
       setShowTermsModal(false);
-      // 🔧 CORREÇÃO: Ativar depois de fechar o modal
       setTimeout(() => setIsActive(true), 300);
     } catch (error) {
       console.error('Erro ao salvar preferência:', error);
@@ -175,7 +163,7 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
       [
         {
           text: 'Cancelar',
-          style: 'cancel'
+          style: 'cancel',
         },
         {
           text: 'Desativar',
@@ -189,8 +177,8 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
             } catch (error) {
               console.error('Erro ao desativar:', error);
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -203,10 +191,10 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
           <View style={styles.info}>
             <Text style={styles.label}>Pedômetro Automático</Text>
             <Text style={styles.status}>
-              {isPedometerAvailable === 'checking' 
-                ? '🔄 Verificando...' 
+              {isPedometerAvailable === 'checking'
+                ? '🔄 Verificando...'
                 : isActive && isPedometerAvailable === 'true'
-                  ? '✅ Ativo' 
+                  ? '✅ Ativo'
                   : '🔒 Desativado'}
             </Text>
           </View>
@@ -215,81 +203,97 @@ export default function PedometerComponent({ onStepsChange }: PedometerComponent
         {isActive && isPedometerAvailable === 'true' ? (
           <>
             <View style={styles.stepsContainer}>
-              <Text style={styles.stepsNumber}>{currentStepCount.toLocaleString('pt-BR')}</Text>
+              <Text style={styles.stepsNumber}>
+                {currentStepCount.toLocaleString('pt-BR')}
+              </Text>
               <Text style={styles.stepsLabel}>passos hoje</Text>
             </View>
-            <TouchableOpacity style={styles.deactivateButton} onPress={handleDeactivate}>
-              <Text style={styles.deactivateButtonText}>🔒 Desativar Pedômetro</Text>
+            <TouchableOpacity
+              style={styles.deactivateButton}
+              onPress={handleDeactivate}
+            >
+              <Text style={styles.deactivateButtonText}>
+                🔒 Desativar Pedômetro
+              </Text>
             </TouchableOpacity>
           </>
         ) : (
           <View style={styles.inactiveContainer}>
             <Text style={styles.infoText}>
-              📱 O pedômetro automático conta seus passos em tempo real usando o sensor do celular.
+              📱 O pedômetro automático conta seus passos em tempo real usando o
+              sensor do celular.
             </Text>
-            <TouchableOpacity style={styles.activateButton} onPress={handleActivate}>
+            <TouchableOpacity
+              style={styles.activateButton}
+              onPress={handleActivate}
+            >
               <Text style={styles.activateButtonText}>✓ Ativar Pedômetro</Text>
             </TouchableOpacity>
           </View>
         )}
       </View>
 
-      {/* Modal de Termos */}
+      {}
       <Modal
         animationType="slide"
         transparent={true}
         visible={showTermsModal}
-        onRequestClose={() => {}} // 🆕 Previne fechar com botão voltar do Android
+        onRequestClose={() => {}}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalIcon}>
               <Text style={styles.modalIconText}>🚶</Text>
             </View>
-            
+
             <Text style={styles.modalTitle}>Ativar Pedômetro Automático?</Text>
-            
-            <ScrollView style={styles.termsScroll} showsVerticalScrollIndicator={true}>
+
+            <ScrollView
+              style={styles.termsScroll}
+              showsVerticalScrollIndicator={true}
+            >
               <Text style={styles.termsText}>
-                O pedômetro automático utiliza o sensor de movimento do seu celular para contar seus passos durante o dia.
+                O pedômetro automático utiliza o sensor de movimento do seu
+                celular para contar seus passos durante o dia.
               </Text>
-              
+
               <Text style={[styles.termsText, styles.termsBold]}>
                 ✅ Como funciona:
               </Text>
               <Text style={styles.termsText}>
-                • Conta seus passos automaticamente enquanto você anda{'\n'}
-                • Funciona em segundo plano{'\n'}
-                • Calcula as calorias gastas baseado nos seus passos{'\n'}
-                • Respeita sua privacidade - os dados ficam apenas no seu celular
+                • Conta seus passos automaticamente enquanto você anda{'\n'}•
+                Funciona em segundo plano{'\n'}• Calcula as calorias gastas
+                baseado nos seus passos{'\n'}• Respeita sua privacidade - os
+                dados ficam apenas no seu celular
               </Text>
-              
+
               <Text style={[styles.termsText, styles.termsBold]}>
                 ⚠️ Importante:
               </Text>
               <Text style={styles.termsText}>
-                • Requer permissão de acesso aos sensores de movimento{'\n'}
-                • Pode consumir um pouco mais de bateria{'\n'}
-                • Funciona apenas em dispositivos físicos (não em emuladores){'\n'}
-                • Você pode desativar a qualquer momento
+                • Requer permissão de acesso aos sensores de movimento{'\n'}•
+                Pode consumir um pouco mais de bateria{'\n'}• Funciona apenas em
+                dispositivos físicos (não em emuladores){'\n'}• Você pode
+                desativar a qualquer momento
               </Text>
-              
+
               <View style={styles.recommendationBox}>
                 <Text style={styles.recommendationText}>
-                  💡 <Text style={styles.termsBold}>Recomendado:</Text> Ative o pedômetro para ter cálculos de calorias mais precisos!
+                  💡 <Text style={styles.termsBold}>Recomendado:</Text> Ative o
+                  pedômetro para ter cálculos de calorias mais precisos!
                 </Text>
               </View>
             </ScrollView>
 
             <View style={styles.modalButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.acceptButton}
                 onPress={handleAcceptTerms}
               >
                 <Text style={styles.acceptButtonText}>✓ Ativar Agora</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.declineButton}
                 onPress={handleDeclineTerms}
               >

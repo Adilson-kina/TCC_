@@ -8,7 +8,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import api from '../components/api';
 
@@ -16,15 +16,14 @@ export default function DietaScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [salvando, setSalvando] = useState(false);
-  
-  // Dados da dieta
+
   const [restricoes, setRestricoes] = useState([]);
   const [recomendados, setRecomendados] = useState([]);
   const [alimentosPermitidos, setAlimentosPermitidos] = useState([]);
   const [dietaSalva, setDietaSalva] = useState([]);
   const [avisoOrdenacao, setAvisoOrdenacao] = useState('');
   const [meta, setMeta] = useState('');
-  
+
   const [termoBusca, setTermoBusca] = useState('');
   const [resultadosBusca, setResultadosBusca] = useState([]);
   const [alimentosSelecionados, setAlimentosSelecionados] = useState([]);
@@ -65,12 +64,12 @@ export default function DietaScreen() {
         setAlimentosPermitidos(data.alimentos_permitidos || []);
         setDietaSalva(data.dieta_salva || []);
         setAlimentosSelecionados((data.dieta_salva || []).map(a => a.id));
-        
-        const categoriasUnicas = [...new Set(
-          (data.alimentos_permitidos || []).map(a => a.categoria)
-        )].sort();
+
+        const categoriasUnicas = [
+          ...new Set((data.alimentos_permitidos || []).map(a => a.categoria)),
+        ].sort();
         setCategorias(categoriasUnicas);
-        
+
         if (data.ordenacao_home) {
           setOrdenacaoHome(data.ordenacao_home);
         }
@@ -83,8 +82,8 @@ export default function DietaScreen() {
   };
 
   const buscarPorCategoria = () => {
-    const resultados = alimentosPermitidos.filter(alimento => 
-      alimento.categoria === categoriaFiltro
+    const resultados = alimentosPermitidos.filter(
+      alimento => alimento.categoria === categoriaFiltro
     );
     setResultadosBusca(resultados);
     setTermoBusca('');
@@ -92,16 +91,18 @@ export default function DietaScreen() {
 
   const buscarAlimentos = () => {
     const termo = termoBusca.toLowerCase();
-    const resultados = alimentosPermitidos.filter(alimento => 
+    const resultados = alimentosPermitidos.filter(alimento =>
       alimento.nome.toLowerCase().includes(termo)
     );
     setResultadosBusca(resultados.slice(0, 20));
     setCategoriaFiltro('');
   };
 
-  const toggleAlimento = (alimentoId) => {
+  const toggleAlimento = alimentoId => {
     if (alimentosSelecionados.includes(alimentoId)) {
-      setAlimentosSelecionados(alimentosSelecionados.filter(id => id !== alimentoId));
+      setAlimentosSelecionados(
+        alimentosSelecionados.filter(id => id !== alimentoId)
+      );
     } else {
       setAlimentosSelecionados([...alimentosSelecionados, alimentoId]);
     }
@@ -111,20 +112,20 @@ export default function DietaScreen() {
     try {
       setSalvando(true);
       setAvisoOrdenacao('');
-      
+
       const data = await api.post('/dieta.php', {
         alimentos_selecionados: alimentosSelecionados,
-        ordenacao_home: ordenacaoHome
+        ordenacao_home: ordenacaoHome,
       });
 
       if (data.dieta_atualizada) {
         setDietaSalva(data.dieta_atualizada);
-        
+
         if (data.aviso_ordenacao) {
           setAvisoOrdenacao(data.aviso_ordenacao);
         }
-        
-        Alert.alert('Sucesso', '✅ Dieta salva com sucesso!');
+
+        Alert.alert('Sucesso', 'Dieta salva com sucesso!');
       }
     } catch (error) {
       console.error('Erro ao salvar dieta:', error);
@@ -144,37 +145,37 @@ export default function DietaScreen() {
   }
 
   const emojiPorCategoria = {
-    "Alimentos preparados": "🍝",
-    "Bebidas (alcoólicas e não alcoólicas)": "🍷",
-    "Carnes e derivados": "🥩",
-    "Cereais e derivados": "🌽",
-    "Frutas e derivados": "🍎",
-    "Gorduras e óleos": "🧈",
-    "Leguminosas e derivados": "🥜",
-    "Leite e derivados": "🥛",
-    "Nozes e sementes": "🌰",
-    "Outros alimentos industrializados": "🍮",
-    "Ovos e derivados": "🥚",
-    "Pescados e frutos do mar": "🐟",
-    "Produtos açucarados": "🍫",
-    "Verduras e derivados": "🥬",
+    'Alimentos preparados': '🍝',
+    'Bebidas (alcoólicas e não alcoólicas)': '🍷',
+    'Carnes e derivados': '🥩',
+    'Cereais e derivados': '🌽',
+    'Frutas e derivados': '🍎',
+    'Gorduras e óleos': '🧈',
+    'Leguminosas e derivados': '🥜',
+    'Leite e derivados': '🥛',
+    'Nozes e sementes': '🌰',
+    'Outros alimentos industrializados': '🍮',
+    'Ovos e derivados': '🥚',
+    'Pescados e frutos do mar': '🐟',
+    'Produtos açucarados': '🍫',
+    'Verduras e derivados': '🥬',
   };
 
-  const formatarMeta = (meta) => {
+  const formatarMeta = meta => {
     const metas = {
-      'perder': 'Quero perder peso! ',
-      'ganhar': 'Quero ganhar peso! ',
-      'manter': 'Quero manter meu peso! ',
-      'massa': 'Quero ganhar massa muscular!'
+      perder: 'Quero perder peso! ',
+      ganhar: 'Quero ganhar peso! ',
+      manter: 'Quero manter meu peso! ',
+      massa: 'Quero ganhar massa muscular!',
     };
     return metas[meta] || 'Meta não definida';
   };
 
   return (
     <View style={styles.container}>
-      {/* Header Verde */}
+      {}
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
         >
@@ -184,20 +185,23 @@ export default function DietaScreen() {
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Widget Editar Dieta */}
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
+        {}
         <View style={styles.editarDietaWidget}>
           <Text style={styles.widgetTitle}>Editar Dieta</Text>
-          
-          {/* Aviso de Ordenação */}
+
+          {}
           {avisoOrdenacao && (
             <View style={styles.avisoContainer}>
               <Text style={styles.avisoIcon}>⚠️</Text>
               <Text style={styles.avisoTexto}>{avisoOrdenacao}</Text>
             </View>
           )}
-          
-          {/* Input de Busca */}
+
+          {}
           <View style={styles.searchContainer}>
             <TextInput
               style={styles.buscaInput}
@@ -210,13 +214,13 @@ export default function DietaScreen() {
               <Text>🔍</Text>
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.espacamentoBusca} />
-          
-          {/* Header quando categoria está selecionada */}
+
+          {}
           {categoriaFiltro && (
             <View style={styles.categoriaHeader}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.voltarCategoria}
                 onPress={() => setCategoriaFiltro('')}
               >
@@ -228,39 +232,39 @@ export default function DietaScreen() {
 
           {/* Lista de Categorias */}
           {!categoriaFiltro && !termoBusca && (
-            <ScrollView 
+            <ScrollView
               style={styles.categoriasScroll}
               showsVerticalScrollIndicator={false}
             >
-              {categorias.map((cat) => (
+              {categorias.map(cat => (
                 <TouchableOpacity
                   key={cat}
                   style={styles.categoriaItem}
                   onPress={() => setCategoriaFiltro(cat)}
                 >
                   <Text style={styles.categoriaNome}>
-                    {emojiPorCategoria[cat] || "📂"} {cat}
+                    {emojiPorCategoria[cat] || '📂'} {cat}
                   </Text>
                   <Text style={styles.categoriaIcon}>›</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
           )}
-          
+
           {/* Lista de resultados */}
           {resultadosBusca.length > 0 && (
-            <ScrollView 
+            <ScrollView
               style={styles.resultadosScroll}
               showsVerticalScrollIndicator={true}
             >
-              {resultadosBusca.map((alimento) => {
+              {resultadosBusca.map(alimento => {
                 const isSelected = alimentosSelecionados.includes(alimento.id);
                 return (
                   <TouchableOpacity
                     key={alimento.id}
                     style={[
                       styles.resultadoItem,
-                      isSelected && styles.resultadoItemSelecionado
+                      isSelected && styles.resultadoItemSelecionado,
                     ]}
                     onPress={() => toggleAlimento(alimento.id)}
                   >
@@ -270,10 +274,12 @@ export default function DietaScreen() {
                         {parseFloat(alimento.energia_kcal).toFixed(0)} Kcal
                       </Text>
                     </View>
-                    <View style={[
-                      styles.checkbox,
-                      isSelected && styles.checkboxSelecionado
-                    ]}>
+                    <View
+                      style={[
+                        styles.checkbox,
+                        isSelected && styles.checkboxSelecionado,
+                      ]}
+                    >
                       {isSelected && <Text style={styles.checkmark}>✓</Text>}
                     </View>
                   </TouchableOpacity>
@@ -298,17 +304,21 @@ export default function DietaScreen() {
             <Text style={styles.metaIcon}>🎯</Text>
             <Text style={styles.metaText}>META: {formatarMeta(meta)}</Text>
           </View>
-          
+
           <View style={styles.restricaoSection}>
             <Text style={styles.restricaoIcon}>🚫</Text>
             <View style={styles.restricaoContent}>
               <Text style={styles.restricaoTitle}>Restrição Alimentar:</Text>
               {restricoes.length > 0 ? (
                 restricoes.map((item, index) => (
-                  <Text key={index} style={styles.restricaoText}>✕ {item}</Text>
+                  <Text key={index} style={styles.restricaoText}>
+                    ✕ {item}
+                  </Text>
                 ))
               ) : (
-                <Text style={styles.restricaoText}>Nenhuma restrição alimentar foi registrada.</Text>
+                <Text style={styles.restricaoText}>
+                  Nenhuma restrição alimentar foi registrada.
+                </Text>
               )}
             </View>
           </View>
@@ -319,59 +329,85 @@ export default function DietaScreen() {
               <Text style={styles.recomendadosTitle}>Recomendações:</Text>
               {recomendados.length > 0 ? (
                 recomendados.map((item, index) => (
-                  <Text key={index} style={styles.recomendadosText}>{item}</Text>
+                  <Text key={index} style={styles.recomendadosText}>
+                    {item}
+                  </Text>
                 ))
               ) : (
-                <Text style={styles.recomendadosText}>Nenhum distúrbio ou tipo de dieta foi registrado.</Text>
+                <Text style={styles.recomendadosText}>
+                  Nenhum distúrbio ou tipo de dieta foi registrado.
+                </Text>
               )}
             </View>
           </View>
 
           {/* Exibir na Tela Inicial */}
           <View style={styles.exibirSection}>
-            <Text style={styles.exibirTitle}>Exibir alimentos na tela inicial por:</Text>
-            
-            <TouchableOpacity 
-              style={[styles.radioOption, ordenacaoHome === 'carboidrato_g' && styles.radioOptionSelected]}
+            <Text style={styles.exibirTitle}>
+              Exibir alimentos na tela inicial por:
+            </Text>
+
+            <TouchableOpacity
+              style={[
+                styles.radioOption,
+                ordenacaoHome === 'carboidrato_g' && styles.radioOptionSelected,
+              ]}
               onPress={() => setOrdenacaoHome('carboidrato_g')}
             >
               <View style={styles.radioCircle}>
-                {ordenacaoHome === 'carboidrato_g' && <View style={styles.radioCircleSelected} />}
+                {ordenacaoHome === 'carboidrato_g' && (
+                  <View style={styles.radioCircleSelected} />
+                )}
               </View>
               <Text style={styles.radioText}>Mais carboidratos</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[styles.radioOption, ordenacaoHome === 'proteina_g' && styles.radioOptionSelected]}
+            <TouchableOpacity
+              style={[
+                styles.radioOption,
+                ordenacaoHome === 'proteina_g' && styles.radioOptionSelected,
+              ]}
               onPress={() => setOrdenacaoHome('proteina_g')}
             >
               <View style={styles.radioCircle}>
-                {ordenacaoHome === 'proteina_g' && <View style={styles.radioCircleSelected} />}
+                {ordenacaoHome === 'proteina_g' && (
+                  <View style={styles.radioCircleSelected} />
+                )}
               </View>
               <Text style={styles.radioText}>Mais proteína</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[styles.radioOption, ordenacaoHome === 'energia_kcal' && styles.radioOptionSelected]}
+            <TouchableOpacity
+              style={[
+                styles.radioOption,
+                ordenacaoHome === 'energia_kcal' && styles.radioOptionSelected,
+              ]}
               onPress={() => setOrdenacaoHome('energia_kcal')}
             >
               <View style={styles.radioCircle}>
-                {ordenacaoHome === 'energia_kcal' && <View style={styles.radioCircleSelected} />}
+                {ordenacaoHome === 'energia_kcal' && (
+                  <View style={styles.radioCircleSelected} />
+                )}
               </View>
               <Text style={styles.radioText}>Mais calóricos</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[styles.radioOption, ordenacaoHome === 'lipideos_g' && styles.radioOptionSelected]}
+            <TouchableOpacity
+              style={[
+                styles.radioOption,
+                ordenacaoHome === 'lipideos_g' && styles.radioOptionSelected,
+              ]}
               onPress={() => setOrdenacaoHome('lipideos_g')}
             >
               <View style={styles.radioCircle}>
-                {ordenacaoHome === 'lipideos_g' && <View style={styles.radioCircleSelected} />}
+                {ordenacaoHome === 'lipideos_g' && (
+                  <View style={styles.radioCircleSelected} />
+                )}
               </View>
               <Text style={styles.radioText}>Mais lipídeos</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.confirmarButton}
               onPress={salvarDieta}
               disabled={salvando}
@@ -397,8 +433,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 35, // aumentei para empurrar o conteúdo para baixo
-    paddingBottom: 15, // mantém o espaço embaixo
+    paddingTop: 35,
+    paddingBottom: 15,
     backgroundColor: '#4CAF50',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
@@ -409,7 +445,7 @@ const styles = StyleSheet.create({
     color: '#FFF',
   },
   headerSpacer: {
-    width: 40, // mesmo tamanho do botão para centralizar o título
+    width: 40,
   },
   backButton: {
     width: 40,
@@ -428,7 +464,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 60,
-    backgroundColor: "#ecfcec",
+    backgroundColor: '#ecfcec',
     zIndex: 9,
   },
   container: {

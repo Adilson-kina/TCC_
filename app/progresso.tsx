@@ -11,7 +11,7 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View
+  View,
 } from 'react-native';
 import api from '../components/api';
 
@@ -28,7 +28,7 @@ export default function ProgressoScreen() {
   const [novaMeta, setNovaMeta] = useState('');
   const [novoValor, setNovoValor] = useState('');
   const [alterandoMeta, setAlterandoMeta] = useState(false);
-  
+
   const [dadosProgresso, setDadosProgresso] = useState({
     meta: '',
     peso_inicial: 0,
@@ -40,7 +40,7 @@ export default function ProgressoScreen() {
     valor_desejado: 0,
     bateu_meta: false,
     total_registros_peso: 0,
-    ultima_atualizacao: null
+    ultima_atualizacao: null,
   });
 
   useEffect(() => {
@@ -54,13 +54,14 @@ export default function ProgressoScreen() {
 
       if (data.mensagem) {
         setDadosProgresso(data);
-        
-        // Verificar se pode atualizar
+
         if (data.ultima_atualizacao && data.total_registros_peso > 1) {
           const ultimaData = new Date(data.ultima_atualizacao);
           const hoje = new Date();
-          const diferencaDias = Math.floor((hoje - ultimaData) / (1000 * 60 * 60 * 24));
-          
+          const diferencaDias = Math.floor(
+            (hoje - ultimaData) / (1000 * 60 * 60 * 24)
+          );
+
           if (diferencaDias < 7) {
             setPodeAtualizar(false);
             setDiasRestantes(7 - diferencaDias);
@@ -95,10 +96,10 @@ export default function ProgressoScreen() {
 
     try {
       setAlterandoMeta(true);
-      
+
       const body = {
         tipo_meta: novaMeta,
-        valor_desejado: novaMeta === 'massa' ? null : parseFloat(novoValor)
+        valor_desejado: novaMeta === 'massa' ? null : parseFloat(novoValor),
       };
 
       const data = await api.patch('/progresso.php', body);
@@ -127,7 +128,7 @@ export default function ProgressoScreen() {
         'Você ainda não bateu sua meta atual. Tem certeza que deseja alterar? Seu progresso será reiniciado.',
         [
           { text: 'Cancelar', style: 'cancel' },
-          { text: 'Sim, alterar', onPress: () => setMostrarModalMeta(true) }
+          { text: 'Sim, alterar', onPress: () => setMostrarModalMeta(true) },
         ]
       );
     }
@@ -136,7 +137,7 @@ export default function ProgressoScreen() {
   const atualizarPeso = async () => {
     if (!podeAtualizar) {
       Alert.alert(
-        'Aguarde!', 
+        'Aguarde!',
         `Você só pode atualizar seu peso uma vez por semana. Faltam ${diasRestantes} dia(s).`
       );
       return;
@@ -149,7 +150,9 @@ export default function ProgressoScreen() {
 
     try {
       setSalvando(true);
-      const data = await api.put('/progresso.php', { peso: parseFloat(novoPeso) });
+      const data = await api.put('/progresso.php', {
+        peso: parseFloat(novoPeso),
+      });
 
       if (data.mensagem) {
         Alert.alert('Sucesso', 'Peso atualizado com sucesso!');
@@ -166,10 +169,10 @@ export default function ProgressoScreen() {
 
   const formatarMeta = (meta: string) => {
     const metas = {
-      'perder': 'Meta de Perder Peso',
-      'ganhar': 'Meta de Ganhar Peso',
-      'manter': 'Meta de Manter Peso',
-      'massa': 'Meta de Ganhar Massa'
+      perder: 'Meta de Perder Peso',
+      ganhar: 'Meta de Ganhar Peso',
+      manter: 'Meta de Manter Peso',
+      massa: 'Meta de Ganhar Massa',
     };
     return metas[meta] || 'Meta não definida';
   };
@@ -194,9 +197,9 @@ export default function ProgressoScreen() {
 
   const renderGrafico = () => {
     const historico = dadosProgresso.historico || [];
-    
+
     if (historico.length === 0) return null;
-    
+
     const pesos = historico.map(h => parseFloat(h.peso));
     const maxPeso = Math.max(...pesos);
     const minPeso = Math.min(...pesos);
@@ -204,34 +207,43 @@ export default function ProgressoScreen() {
 
     const graphHeight = 200;
     const graphWidth = screenWidth - 80;
-    const pointSpacing = historico.length > 1 ? (graphWidth - 20) / (historico.length - 1) : 0;
+    const pointSpacing =
+      historico.length > 1 ? (graphWidth - 20) / (historico.length - 1) : 0;
 
     return (
       <View style={styles.graphContainer}>
-        {/* Grid lines */}
-        {[0, 1, 2, 3, 4].map((i) => (
-          <View key={`grid-${i}`} style={[styles.gridLine, { top: (graphHeight / 4) * i }]} />
+        {}
+        {[0, 1, 2, 3, 4].map(i => (
+          <View
+            key={`grid-${i}`}
+            style={[styles.gridLine, { top: (graphHeight / 4) * i }]}
+          />
         ))}
 
-        {/* Linhas do gráfico */}
+        {}
         {historico.map((item, index) => {
           if (index === 0) return null;
-          
+
           const prevPeso = parseFloat(historico[index - 1].peso);
           const currPeso = parseFloat(item.peso);
-          
-          // Calcular posições Y (invertido porque canvas começa do topo)
-          const prevY = 10 + (graphHeight - 30) - (((prevPeso - minPeso) / range) * (graphHeight - 30));
-          const currY = 10 + (graphHeight - 30) - (((currPeso - minPeso) / range) * (graphHeight - 30));
-          
-          const prevX = 10 + ((index - 1) * pointSpacing);
-          const currX = 10 + (index * pointSpacing);
-          
+
+          const prevY =
+            10 +
+            (graphHeight - 30) -
+            ((prevPeso - minPeso) / range) * (graphHeight - 30);
+          const currY =
+            10 +
+            (graphHeight - 30) -
+            ((currPeso - minPeso) / range) * (graphHeight - 30);
+
+          const prevX = 10 + (index - 1) * pointSpacing;
+          const currX = 10 + index * pointSpacing;
+
           const dx = currX - prevX;
           const dy = currY - prevY;
           const angle = Math.atan2(dy, dx) * (180 / Math.PI);
           const length = Math.sqrt(dx * dx + dy * dy);
-          
+
           return (
             <View
               key={`line-${index}`}
@@ -243,21 +255,24 @@ export default function ProgressoScreen() {
                 left: prevX,
                 top: prevY,
                 transform: [{ rotate: `${angle}deg` }],
-                transformOrigin: '0% 50%'
+                transformOrigin: '0% 50%',
               }}
             />
           );
         })}
 
-        {/* Pontos do gráfico */}
+        {}
         {historico.map((item, index) => {
           const peso = parseFloat(item.peso);
-          const y = 10 + (graphHeight - 30) - (((peso - minPeso) / range) * (graphHeight - 30));
-          const x = 10 + (index * pointSpacing);
-          
+          const y =
+            10 +
+            (graphHeight - 30) -
+            ((peso - minPeso) / range) * (graphHeight - 30);
+          const x = 10 + index * pointSpacing;
+
           return (
-            <View 
-              key={`point-${index}`} 
+            <View
+              key={`point-${index}`}
               style={{
                 position: 'absolute',
                 width: 12,
@@ -267,24 +282,27 @@ export default function ProgressoScreen() {
                 borderWidth: 2,
                 borderColor: '#FFF',
                 left: x - 6,
-                top: y - 6
+                top: y - 6,
               }}
             />
           );
         })}
 
-        {/* Labels do eixo X */}
+        {}
         <View style={styles.xAxisLabels}>
           {historico.map((item, index) => {
-            // Mostrar primeira, uma do meio e última
-            if (index !== 0 && index !== Math.floor(historico.length / 2) && index !== historico.length - 1) return null;
-            
-            const x = 10 + (index * pointSpacing);
-            
-            // 🆕 ADICIONE ESTAS LINHAS
+            if (
+              index !== 0 &&
+              index !== Math.floor(historico.length / 2) &&
+              index !== historico.length - 1
+            )
+              return null;
+
+            const x = 10 + index * pointSpacing;
+
             let textAlign = 'center';
             let leftOffset = -20;
-            
+
             if (index === 0) {
               textAlign = 'left';
               leftOffset = 0;
@@ -292,17 +310,19 @@ export default function ProgressoScreen() {
               textAlign = 'right';
               leftOffset = -40;
             }
-            // 🆕 ATÉ AQUI
-            
+
             return (
-              <Text key={`label-${index}`} style={{ 
-                position: 'absolute', 
-                left: x + leftOffset,  // 🔧 MUDOU: era x - 20
-                fontSize: 11,
-                color: '#666',
-                width: 40,
-                textAlign: textAlign  // 🔧 MUDOU: era 'center'
-              }}>
+              <Text
+                key={`label-${index}`}
+                style={{
+                  position: 'absolute',
+                  left: x + leftOffset,
+                  fontSize: 11,
+                  color: '#666',
+                  width: 40,
+                  textAlign: textAlign,
+                }}
+              >
                 {item.data_formatada}
               </Text>
             );
@@ -321,14 +341,15 @@ export default function ProgressoScreen() {
     );
   }
 
-  const temDadosPeso = dadosProgresso.peso_inicial > 0 && dadosProgresso.peso_atual > 0;
+  const temDadosPeso =
+    dadosProgresso.peso_inicial > 0 && dadosProgresso.peso_atual > 0;
 
   if (!temDadosPeso) {
     return (
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.backButton}
               onPress={() => router.back()}
             >
@@ -346,7 +367,9 @@ export default function ProgressoScreen() {
             </Text>
 
             <View style={styles.firstWeightCard}>
-              <Text style={styles.inputLabel}>Registrar seu primeiro peso:</Text>
+              <Text style={styles.inputLabel}>
+                Registrar seu primeiro peso:
+              </Text>
               <View style={styles.inputRow}>
                 <TextInput
                   style={styles.input}
@@ -357,7 +380,10 @@ export default function ProgressoScreen() {
                   onChangeText={setNovoPeso}
                 />
                 <TouchableOpacity
-                  style={[styles.submitButton, salvando && styles.submitButtonDisabled]}
+                  style={[
+                    styles.submitButton,
+                    salvando && styles.submitButtonDisabled,
+                  ]}
                   onPress={atualizarPeso}
                   disabled={salvando}
                 >
@@ -382,7 +408,7 @@ export default function ProgressoScreen() {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
           >
@@ -392,9 +418,14 @@ export default function ProgressoScreen() {
           <View style={styles.placeholder} />
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>{formatarMeta(dadosProgresso.meta)}</Text>
+            <Text style={styles.cardTitle}>
+              {formatarMeta(dadosProgresso.meta)}
+            </Text>
 
             {renderGrafico()}
 
@@ -402,7 +433,9 @@ export default function ProgressoScreen() {
               <View style={styles.statColumn}>
                 <Text style={styles.statEmoji}>🎯</Text>
                 <Text style={styles.statLabel}>INICIAL:</Text>
-                <Text style={styles.statWeight}>{dadosProgresso.peso_inicial}Kg</Text>
+                <Text style={styles.statWeight}>
+                  {dadosProgresso.peso_inicial}Kg
+                </Text>
                 <Text style={[styles.statIMC, { color: statusImcInicial.cor }]}>
                   IMC: {statusImcInicial.texto}
                 </Text>
@@ -411,92 +444,114 @@ export default function ProgressoScreen() {
               <View style={styles.statColumn}>
                 <Text style={styles.statEmoji}>⏳</Text>
                 <Text style={styles.statLabel}>ATUAL:</Text>
-                <Text style={styles.statWeight}>{dadosProgresso.peso_atual}Kg</Text>
+                <Text style={styles.statWeight}>
+                  {dadosProgresso.peso_atual}Kg
+                </Text>
                 <Text style={[styles.statIMC, { color: statusImcAtual.cor }]}>
                   IMC: {statusImcAtual.texto}
                 </Text>
               </View>
             </View>
 
-          <View style={styles.progressInfo}>
-            {dadosProgresso.total_registros_peso === 1 ? (
-              <>
-                <Text style={styles.progressText}>🎉 Parabéns!</Text>
-                <Text style={styles.progressText}>Você registrou seu peso pela primeira vez!</Text>
-                <Text style={styles.progressText}>Continue acompanhando sua evolução! 💪</Text>
-              </>
-            ) : dadosProgresso.meta === 'massa' ? (
-              <>
-                <Text style={styles.progressText}>Você já registrou seu peso</Text>
-                <Text style={styles.weeksText}>{dadosProgresso.total_registros_peso}</Text>
-                <Text style={styles.progressText}>vezes! Continue assim! 💪</Text>
-              </>
-            ) : (() => {
-              const diferenca = calcularDiferenca();
-              const semanas = calcularSemanas();
-              const atingiuValor = dadosProgresso.bateu_meta;
-              
-              // Verifica se está SEGUINDO a meta (perdendo/ganhando na direção certa)
-              const seguindoMeta = 
-                (dadosProgresso.meta === 'perder' && diferenca < -0.3) || // Perdeu pelo menos 300g
-                (dadosProgresso.meta === 'ganhar' && diferenca > 0.3) ||  // Ganhou pelo menos 300g
-                (dadosProgresso.meta === 'manter' && Math.abs(diferenca) <= 1); // Manteve ±1kg
-              
-              if (atingiuValor) {
-                return (
-                  <>
-                    <Text style={styles.progressText}>
-                      🎉 Parabéns! Você atingiu sua meta de {dadosProgresso.valor_desejado}kg em
-                    </Text>
-                    <Text style={styles.weeksText}>{semanas}</Text>
-                    <Text style={styles.progressText}>Semanas! 🎯</Text>
-                  </>
-                );
-              }
-              
-              if (seguindoMeta) {
-                return (
-                  <>
-                    <Text style={styles.progressText}>
-                      💪 Você {
-                        dadosProgresso.meta === 'perder' ? 'perdeu' :
-                        dadosProgresso.meta === 'ganhar' ? 'ganhou' : 'manteve'
-                      }
-                    </Text>
-                    <Text style={styles.weeksText}>{Math.abs(diferenca).toFixed(1)}kg</Text>
-                    <Text style={styles.progressText}>
-                      em {semanas} {semanas === 1 ? 'semana' : 'semanas'}! 
-                      {dadosProgresso.meta === 'perder' && ` Faltam ${(dadosProgresso.peso_atual - dadosProgresso.valor_desejado).toFixed(1)}kg!` }
-                      {dadosProgresso.meta === 'ganhar' && ` Faltam ${(dadosProgresso.valor_desejado - dadosProgresso.peso_atual).toFixed(1)}kg!` }
-                      {dadosProgresso.meta === 'manter' && ' Continue assim! 🎯' }
-                    </Text>
-                  </>
-                );
-              }
-              
-              // Não está seguindo a meta
-              return (
+            <View style={styles.progressInfo}>
+              {dadosProgresso.total_registros_peso === 1 ? (
                 <>
+                  <Text style={styles.progressText}>🎉 Parabéns!</Text>
                   <Text style={styles.progressText}>
-                    ⚠️ Você {diferenca > 0 ? 'ganhou' : 'perdeu'}
+                    Você registrou seu peso pela primeira vez!
                   </Text>
-                  <Text style={styles.weeksText}>{Math.abs(diferenca).toFixed(1)}kg</Text>
                   <Text style={styles.progressText}>
-                    {dadosProgresso.meta === 'perder' && diferenca > 0 ? 
-                      'Você está ganhando peso. Revise sua dieta!' :
-                    dadosProgresso.meta === 'ganhar' && diferenca < 0 ?
-                      'Você está perdendo peso. Aumente as calorias!' :
-                    dadosProgresso.meta === 'manter' ?
-                      'Muita variação! Tente manter mais estável.' :
-                      'Ajuste sua estratégia!'
-                    }
+                    Continue acompanhando sua evolução! 💪
                   </Text>
                 </>
-              );
-            })()}
-          </View>
+              ) : dadosProgresso.meta === 'massa' ? (
+                <>
+                  <Text style={styles.progressText}>
+                    Você já registrou seu peso
+                  </Text>
+                  <Text style={styles.weeksText}>
+                    {dadosProgresso.total_registros_peso}
+                  </Text>
+                  <Text style={styles.progressText}>
+                    vezes! Continue assim! 💪
+                  </Text>
+                </>
+              ) : (
+                (() => {
+                  const diferenca = calcularDiferenca();
+                  const semanas = calcularSemanas();
+                  const atingiuValor = dadosProgresso.bateu_meta;
 
-            {/* ⚠️ AVISO SE NÃO PODE ATUALIZAR */}
+                  const seguindoMeta =
+                    (dadosProgresso.meta === 'perder' && diferenca < -0.3) ||
+                    (dadosProgresso.meta === 'ganhar' && diferenca > 0.3) ||
+                    (dadosProgresso.meta === 'manter' &&
+                      Math.abs(diferenca) <= 1);
+
+                  if (atingiuValor) {
+                    return (
+                      <>
+                        <Text style={styles.progressText}>
+                          🎉 Parabéns! Você atingiu sua meta de{' '}
+                          {dadosProgresso.valor_desejado}kg em
+                        </Text>
+                        <Text style={styles.weeksText}>{semanas}</Text>
+                        <Text style={styles.progressText}>Semanas! 🎯</Text>
+                      </>
+                    );
+                  }
+
+                  if (seguindoMeta) {
+                    return (
+                      <>
+                        <Text style={styles.progressText}>
+                          💪 Você{' '}
+                          {dadosProgresso.meta === 'perder'
+                            ? 'perdeu'
+                            : dadosProgresso.meta === 'ganhar'
+                              ? 'ganhou'
+                              : 'manteve'}
+                        </Text>
+                        <Text style={styles.weeksText}>
+                          {Math.abs(diferenca).toFixed(1)}kg
+                        </Text>
+                        <Text style={styles.progressText}>
+                          em {semanas} {semanas === 1 ? 'semana' : 'semanas'}!
+                          {dadosProgresso.meta === 'perder' &&
+                            ` Faltam ${(dadosProgresso.peso_atual - dadosProgresso.valor_desejado).toFixed(1)}kg!`}
+                          {dadosProgresso.meta === 'ganhar' &&
+                            ` Faltam ${(dadosProgresso.valor_desejado - dadosProgresso.peso_atual).toFixed(1)}kg!`}
+                          {dadosProgresso.meta === 'manter' &&
+                            ' Continue assim! 🎯'}
+                        </Text>
+                      </>
+                    );
+                  }
+
+                  return (
+                    <>
+                      <Text style={styles.progressText}>
+                        ⚠️ Você {diferenca > 0 ? 'ganhou' : 'perdeu'}
+                      </Text>
+                      <Text style={styles.weeksText}>
+                        {Math.abs(diferenca).toFixed(1)}kg
+                      </Text>
+                      <Text style={styles.progressText}>
+                        {dadosProgresso.meta === 'perder' && diferenca > 0
+                          ? 'Você está ganhando peso. Revise sua dieta!'
+                          : dadosProgresso.meta === 'ganhar' && diferenca < 0
+                            ? 'Você está perdendo peso. Aumente as calorias!'
+                            : dadosProgresso.meta === 'manter'
+                              ? 'Muita variação! Tente manter mais estável.'
+                              : 'Ajuste sua estratégia!'}
+                      </Text>
+                    </>
+                  );
+                })()
+              )}
+            </View>
+
+            {}
             {!podeAtualizar && (
               <View style={styles.warningBox}>
                 <Text style={styles.warningIcon}>⏰</Text>
@@ -504,7 +559,8 @@ export default function ProgressoScreen() {
                   Você só pode atualizar seu peso uma vez por semana.
                 </Text>
                 <Text style={styles.warningDays}>
-                  Faltam {diasRestantes} dia{diasRestantes !== 1 ? 's' : ''} para a próxima atualização
+                  Faltam {diasRestantes} dia{diasRestantes !== 1 ? 's' : ''}{' '}
+                  para a próxima atualização
                 </Text>
               </View>
             )}
@@ -514,7 +570,11 @@ export default function ProgressoScreen() {
               <View style={styles.inputRow}>
                 <TextInput
                   style={[styles.input, !podeAtualizar && styles.inputDisabled]}
-                  placeholder={podeAtualizar ? "Insira seu peso em Kg" : "Aguarde para atualizar"}
+                  placeholder={
+                    podeAtualizar
+                      ? 'Insira seu peso em Kg'
+                      : 'Aguarde para atualizar'
+                  }
                   keyboardType="numeric"
                   value={novoPeso}
                   onChangeText={setNovoPeso}
@@ -522,8 +582,8 @@ export default function ProgressoScreen() {
                 />
                 <TouchableOpacity
                   style={[
-                    styles.submitButton, 
-                    (salvando || !podeAtualizar) && styles.submitButtonDisabled
+                    styles.submitButton,
+                    (salvando || !podeAtualizar) && styles.submitButtonDisabled,
                   ]}
                   onPress={atualizarPeso}
                   disabled={salvando || !podeAtualizar}
@@ -547,7 +607,7 @@ export default function ProgressoScreen() {
               <Text style={styles.alterarMetaIcon}>🎯</Text>
               <Text style={styles.alterarMetaText}>Alterar Meta</Text>
             </TouchableOpacity>
-            
+
             {dadosProgresso.bateu_meta && (
               <Text style={styles.alterarMetaHint}>
                 ✅ Parabéns! Você pode definir uma nova meta agora!
@@ -557,80 +617,112 @@ export default function ProgressoScreen() {
 
           {/* Modal de Alterar Meta */}
           {mostrarModalMeta && (
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>🎯 Nova Meta</Text>
-                
-                <Text style={styles.modalLabel}>Escolha sua meta:</Text>
-                <View style={styles.metaOptions}>
-                  <TouchableOpacity
-                    style={[styles.metaOption, novaMeta === 'perder' && styles.metaOptionSelected]}
-                    onPress={() => setNovaMeta('perder')}
-                  >
-                    <Text style={styles.metaOptionText}>🔥 Perder</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    style={[styles.metaOption, novaMeta === 'ganhar' && styles.metaOptionSelected]}
-                    onPress={() => setNovaMeta('ganhar')}
-                  >
-                    <Text style={styles.metaOptionText}>📈 Ganhar</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    style={[styles.metaOption, novaMeta === 'manter' && styles.metaOptionSelected]}
-                    onPress={() => setNovaMeta('manter')}
-                  >
-                    <Text style={styles.metaOptionText}>⚖️ Manter</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    style={[styles.metaOption, novaMeta === 'massa' && styles.metaOptionSelected]}
-                    onPress={() => setNovaMeta('massa')}
-                  >
-                    <Text style={styles.metaOptionText}>💪 Massa</Text>
-                  </TouchableOpacity>
-                </View>
-                
-                {novaMeta && novaMeta !== 'massa' && (
-                  <>
-                    <Text style={styles.modalLabel}>Peso desejado (kg):</Text>
-                    <TextInput
-                      style={styles.modalInput}
-                      placeholder="Ex: 65.5"
-                      keyboardType="numeric"
-                      value={novoValor}
-                      onChangeText={setNovoValor}
-                    />
-                  </>
-                )}
-                
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.modalButtonCancel]}
-                    onPress={() => {
-                      setMostrarModalMeta(false);
-                      setNovaMeta('');
-                      setNovoValor('');
-                    }}
-                  >
-                    <Text style={styles.modalButtonText}>Cancelar</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.modalButtonConfirm, alterandoMeta && styles.modalButtonDisabled]}
-                    onPress={alterarMeta}
-                    disabled={alterandoMeta}
-                  >
-                    {alterandoMeta ? (
-                      <ActivityIndicator size="small" color="#FFF" />
-                    ) : (
-                      <Text style={[styles.modalButtonText, { color: '#FFF' }]}>Confirmar</Text>
+            <TouchableWithoutFeedback
+              onPress={() => {
+                setMostrarModalMeta(false);
+                setNovaMeta('');
+                setNovoValor('');
+              }}
+            >
+              <View style={styles.modalOverlay}>
+                <TouchableWithoutFeedback onPress={e => e.stopPropagation()}>
+                  <View style={styles.modalContent}>
+                    <Text style={styles.modalTitle}>🎯 Nova Meta</Text>
+
+                    <Text style={styles.modalLabel}>Escolha sua meta:</Text>
+                    <View style={styles.metaOptions}>
+                      <TouchableOpacity
+                        style={[
+                          styles.metaOption,
+                          novaMeta === 'perder' && styles.metaOptionSelected,
+                        ]}
+                        onPress={() => setNovaMeta('perder')}
+                      >
+                        <Text style={styles.metaOptionText}>🔥 Perder</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[
+                          styles.metaOption,
+                          novaMeta === 'ganhar' && styles.metaOptionSelected,
+                        ]}
+                        onPress={() => setNovaMeta('ganhar')}
+                      >
+                        <Text style={styles.metaOptionText}>📈 Ganhar</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[
+                          styles.metaOption,
+                          novaMeta === 'manter' && styles.metaOptionSelected,
+                        ]}
+                        onPress={() => setNovaMeta('manter')}
+                      >
+                        <Text style={styles.metaOptionText}>⚖️ Manter</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[
+                          styles.metaOption,
+                          novaMeta === 'massa' && styles.metaOptionSelected,
+                        ]}
+                        onPress={() => setNovaMeta('massa')}
+                      >
+                        <Text style={styles.metaOptionText}>💪 Massa</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {novaMeta && novaMeta !== 'massa' && (
+                      <>
+                        <Text style={styles.modalLabel}>
+                          Peso desejado (kg):
+                        </Text>
+                        <TextInput
+                          style={styles.modalInput}
+                          placeholder="Ex: 65.5"
+                          keyboardType="numeric"
+                          value={novoValor}
+                          onChangeText={setNovoValor}
+                        />
+                      </>
                     )}
-                  </TouchableOpacity>
-                </View>
+
+                    <View style={styles.modalButtons}>
+                      <TouchableOpacity
+                        style={[styles.modalButton, styles.modalButtonCancel]}
+                        onPress={() => {
+                          setMostrarModalMeta(false);
+                          setNovaMeta('');
+                          setNovoValor('');
+                        }}
+                      >
+                        <Text style={styles.modalButtonText}>Cancelar</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[
+                          styles.modalButton,
+                          styles.modalButtonConfirm,
+                          alterandoMeta && styles.modalButtonDisabled,
+                        ]}
+                        onPress={alterarMeta}
+                        disabled={alterandoMeta}
+                      >
+                        {alterandoMeta ? (
+                          <ActivityIndicator size="small" color="#FFF" />
+                        ) : (
+                          <Text
+                            style={[styles.modalButtonText, { color: '#FFF' }]}
+                          >
+                            Confirmar
+                          </Text>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </TouchableWithoutFeedback>
               </View>
-            </View>
+            </TouchableWithoutFeedback>
           )}
 
           <View style={styles.bottomPadding} />
@@ -677,6 +769,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
+    elevation: 1000,
   },
   modalContent: {
     backgroundColor: '#FFF',
@@ -944,7 +1037,7 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 14,
     color: '#666',
-    textAlign: 'center',  // 🔥 ADICIONE ESTA LINHA
+    textAlign: 'center',
   },
   weeksText: {
     fontSize: 48,

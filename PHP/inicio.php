@@ -68,7 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             enviarErro(404, "Meta não encontrada para este usuário.");
         }
 
-        // 1.5. Buscar distúrbios para gerar resumo nutricional
+        // 1.1 Buscar distúrbios para gerar resumo nutricional
         $stmtDisturbios = $pdo->prepare("
             SELECT p.pergunta8_disturbios
             FROM perguntas p
@@ -174,7 +174,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $stmtUltimaRefeicao->execute([":usuario_id" => $usuario->id]);
         $ultimaRefeicao = $stmtUltimaRefeicao->fetch(PDO::FETCH_ASSOC);
 
-        // 🆕 5. ADICIONAR ISTO AQUI - Buscar total de refeições de HOJE
+        // 5. Buscar total de refeições de HOJE
         $dataHoje = date("Y-m-d");
         $stmtHoje = $pdo->prepare("
             SELECT 
@@ -192,7 +192,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         ]);
         $refeicoesHoje = $stmtHoje->fetch(PDO::FETCH_ASSOC);
 
-        // 🆕 6. Sugerir próxima refeição (respeita sequência, mas ajusta se horário avançou demais)
+        // 6. Sugerir próxima refeição (respeita sequência, mas ajusta se horário avançou demais)
         $proximaRefeicao = 'Café da Manhã'; // padrão
         $horaAtual = (int)date('H');
 
@@ -208,7 +208,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $sequenciaRefeicoes = ['cafe', 'almoco', 'lanche', 'janta'];
 
         // Determinar refeição apropriada pelo horário atual
-        $refeicaoAtualPorHorario = 'janta'; // padrão
+        $refeicaoAtualPorHorario = 'janta'; 
         if ($horaAtual >= 6 && $horaAtual < 11) {
             $refeicaoAtualPorHorario = 'cafe';
         } elseif ($horaAtual >= 11 && $horaAtual < 15) {

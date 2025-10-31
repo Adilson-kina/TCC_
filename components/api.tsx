@@ -6,30 +6,25 @@ const LOCAL_API = 'http://localhost/DietaseAPP/PHP';
 
 let API_BASE = RAILWAY_API;
 
-// ✅ Função para testar conexão e alternar automaticamente
 async function detectApiBase(): Promise<string> {
   try {
-    // Tenta Railway primeiro
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 segundos timeout
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-    await fetch(`https://tcc-production-b4f7.up.railway.app/test_api.php`, { 
+    await fetch(`https://tcc-production-b4f7.up.railway.app/test_api.php`, {
       signal: controller.signal,
-      method: 'GET'
+      method: 'GET',
     });
-    
+
     clearTimeout(timeoutId);
     console.log('✅ Usando Railway API!');
     return RAILWAY_API;
-    
   } catch (error) {
-    // Se falhar, usa local
     console.log('⚠️ Railway offline, usando API local...');
     return LOCAL_API;
   }
 }
 
-// ✅ Inicializa API base na primeira chamada
 let apiBaseInitialized = false;
 
 async function getApiBase(): Promise<string> {
@@ -40,7 +35,6 @@ async function getApiBase(): Promise<string> {
   return API_BASE;
 }
 
-// ✅ Tipos para melhor type safety
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS';
 
 interface ApiRequestOptions {
@@ -51,7 +45,6 @@ interface ApiRequestOptions {
   showErrorAlert?: boolean;
 }
 
-// ✅ Helper para buscar token com error handling
 async function getToken(): Promise<string | null> {
   try {
     return await AsyncStorage.getItem('token');
@@ -60,55 +53,47 @@ async function getToken(): Promise<string | null> {
   }
 }
 
-// ✅ Função principal de requisição
 export async function apiRequest({
   endpoint,
   method = 'GET',
   body = null,
   requiresAuth = true,
-  showErrorAlert = true
+  showErrorAlert = true,
 }: ApiRequestOptions): Promise<any> {
   try {
-    // 1. Preparar headers
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'Accept': 'application/json'
+      Accept: 'application/json',
     };
 
-    // 2. Adicionar token se necessário
     if (requiresAuth) {
       const token = await getToken();
-      
+
       if (!token) {
         throw new Error('Token não encontrado. Faça login novamente.');
       }
-      
+
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    // 3. Preparar options
     const options: RequestInit = {
       method,
       headers,
     };
 
-    // 4. Adicionar body se não for GET
     if (body && method !== 'GET') {
       options.body = JSON.stringify(body);
     }
 
-    // 5. Fazer requisição
-    const apiBase = await getApiBase(); // ← Adicione isso
+    const apiBase = await getApiBase();
     const response = await fetch(`${apiBase}${endpoint}`, options);
 
-    // 6. Ler resposta como texto primeiro
     const text = await response.text();
-    
+
     if (!text.trim()) {
       throw new Error('Resposta vazia do servidor');
     }
 
-    // 7. Converter para JSON
     let data;
     try {
       data = JSON.parse(text);
@@ -116,7 +101,6 @@ export async function apiRequest({
       throw new Error('Resposta inválida do servidor');
     }
 
-    // 8. Verificar erros da API
     if (!response.ok) {
       const errorMessage = data?.erro || `Erro ${response.status}`;
       throw new Error(errorMessage);
@@ -126,34 +110,25 @@ export async function apiRequest({
       throw new Error(data.erro);
     }
 
-    // 9. Sucesso!
     return data;
-
   } catch (error: any) {
-
-    // Mostrar alert se configurado
     if (showErrorAlert) {
       const userMessage = error.message || 'Erro desconhecido';
-      
-      // Mensagens mais amigáveis
+
       const friendlyMessages: Record<string, string> = {
         'Network request failed': 'Sem conexão com a internet',
         'Token não encontrado': 'Sessão expirada. Faça login novamente.',
         'Resposta vazia do servidor': 'Servidor não respondeu corretamente',
-        'The user aborted a request': 'Tempo de resposta excedido'
+        'The user aborted a request': 'Tempo de resposta excedido',
       };
 
-      Alert.alert(
-        'Erro',
-        friendlyMessages[userMessage] || userMessage
-      );
+      Alert.alert('Erro', friendlyMessages[userMessage] || userMessage);
     }
 
     throw error;
   }
 }
 
-// ✅ Helpers específicos para cada método
 export const api = {
   get: (endpoint: string, showErrorAlert = true) =>
     apiRequest({ endpoint, method: 'GET', showErrorAlert }),
@@ -170,17 +145,16 @@ export const api = {
   patch: (endpoint: string, body: any, showErrorAlert = true) =>
     apiRequest({ endpoint, method: 'PATCH', body, showErrorAlert }),
 
-  // ✅ Sem autenticação (login/cadastro)
   noAuth: {
     post: (endpoint: string, body: any, showErrorAlert = true) =>
-      apiRequest({ 
-        endpoint, 
-        method: 'POST', 
-        body, 
+      apiRequest({
+        endpoint,
+        method: 'POST',
+        body,
         requiresAuth: false,
-        showErrorAlert 
-      })
-  }
+        showErrorAlert,
+      }),
+  },
 };
 
 export default api;

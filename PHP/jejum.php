@@ -67,7 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
             ":id" => $usuario->id
         ]);
 
-        // 🆕 Buscar dados atualizados
+        // Buscar dados atualizados
         $stmtGet = $pdo->prepare("
             SELECT u.jejum_ativo, p.pergunta3_jejum_intermitente, u.nome
             FROM usuarios u

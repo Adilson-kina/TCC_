@@ -1,7 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import api from '../components/api';
 
 interface JejumData {
@@ -26,27 +35,27 @@ export default function Jejum() {
   }, []);
 
   useEffect(() => {
-      let interval: NodeJS.Timeout;
-      
-      if (jejumStarted) {
-          calcularTempoRestante();
-          interval = setInterval(() => {
-              calcularTempoRestante();
-          }, 1000);
-      }
-      
-      return () => {
-          if (interval) clearInterval(interval);
-      };
+    let interval: NodeJS.Timeout;
+
+    if (jejumStarted) {
+      calcularTempoRestante();
+      interval = setInterval(() => {
+        calcularTempoRestante();
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [jejumStarted]);
 
-const carregarStatusJejum = async () => {
+  const carregarStatusJejum = async () => {
     try {
       const data = await api.get('/jejum.php');
 
       if (data.mensagem && !data.erro) {
         const jejumAtivo = data.jejum_ativo;
-        
+
         if (jejumAtivo === null || jejumAtivo === false) {
           setTermsAccepted(false);
           setShowTerms(false);
@@ -57,7 +66,6 @@ const carregarStatusJejum = async () => {
       }
     } catch (error) {
       console.error('Erro ao carregar jejum:', error);
-      // O Alert já é mostrado pelo api.tsx
     } finally {
       setLoading(false);
     }
@@ -70,11 +78,15 @@ const carregarStatusJejum = async () => {
         const data: JejumData = JSON.parse(jejumData);
         const horaInicio = new Date(data.horaInicio);
         const agora = new Date();
-        const duracaoMs = (data.duracaoHoras * 60 + data.duracaoMinutos) * 60 * 1000;
+        const duracaoMs =
+          (data.duracaoHoras * 60 + data.duracaoMinutos) * 60 * 1000;
         const fimJejum = new Date(horaInicio.getTime() + duracaoMs);
 
         if (agora < fimJejum) {
-          setJejumTime({ hours: data.duracaoHoras, minutes: data.duracaoMinutos });
+          setJejumTime({
+            hours: data.duracaoHoras,
+            minutes: data.duracaoMinutos,
+          });
           setJejumStarted(true);
         } else {
           await AsyncStorage.removeItem('jejumData');
@@ -94,7 +106,8 @@ const carregarStatusJejum = async () => {
       const data: JejumData = JSON.parse(jejumData);
       const horaInicio = new Date(data.horaInicio);
       const agora = new Date();
-      const duracaoMs = (data.duracaoHoras * 60 + data.duracaoMinutos) * 60 * 1000;
+      const duracaoMs =
+        (data.duracaoHoras * 60 + data.duracaoMinutos) * 60 * 1000;
       const fimJejum = new Date(horaInicio.getTime() + duracaoMs);
       const diff = fimJejum.getTime() - agora.getTime();
 
@@ -142,7 +155,7 @@ const carregarStatusJejum = async () => {
 
       setJejumStarted(true);
       Alert.alert(
-        '✅ Jejum Iniciado', 
+        '✅ Jejum Iniciado',
         `Sua próxima refeição será em ${jejumTime.hours}h${jejumTime.minutes > 0 ? jejumTime.minutes + 'min' : ''}`
       );
     } catch (error) {
@@ -242,41 +255,42 @@ const carregarStatusJejum = async () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={goBack}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={goBack}>
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>⏰ Jejum</Text>
         <View style={styles.placeholder} />
       </View>
 
-      {/* Content */}
+      {}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
-          {/* Card Principal */}
+          {}
           <View style={styles.mainCard}>
-            <Text style={styles.cardTitle}>⏰ Controle de Jejum Intermitente</Text>
+            <Text style={styles.cardTitle}>
+              ⏰ Controle de Jejum Intermitente
+            </Text>
             <Text style={styles.cardSubtitle}>
               Gerencie seu tempo de jejum e controle suas refeições
             </Text>
           </View>
 
-          {/* Time Picker - Apenas quando não está ativo */}
+          {}
           {!jejumStarted && (
             <>
               <View style={styles.sectionCard}>
                 <Text style={styles.sectionTitle}>Duração do Jejum:</Text>
-                
+
                 <View style={styles.timePickerContainer}>
                   <View style={styles.timeColumn}>
                     <TouchableOpacity onPress={() => adjustTime('hours', 1)}>
                       <Text style={styles.arrowButton}>▲</Text>
                     </TouchableOpacity>
-                    <Text style={styles.timeDisplay}>{formatTime(jejumTime.hours)}</Text>
+                    <Text style={styles.timeDisplay}>
+                      {formatTime(jejumTime.hours)}
+                    </Text>
                     <TouchableOpacity onPress={() => adjustTime('hours', -1)}>
                       <Text style={styles.arrowButton}>▼</Text>
                     </TouchableOpacity>
@@ -289,7 +303,9 @@ const carregarStatusJejum = async () => {
                     <TouchableOpacity onPress={() => adjustTime('minutes', 1)}>
                       <Text style={styles.arrowButton}>▲</Text>
                     </TouchableOpacity>
-                    <Text style={styles.timeDisplay}>{formatTime(jejumTime.minutes)}</Text>
+                    <Text style={styles.timeDisplay}>
+                      {formatTime(jejumTime.minutes)}
+                    </Text>
                     <TouchableOpacity onPress={() => adjustTime('minutes', -1)}>
                       <Text style={styles.arrowButton}>▼</Text>
                     </TouchableOpacity>
@@ -300,13 +316,14 @@ const carregarStatusJejum = async () => {
                 <View style={styles.infoBox}>
                   <Text style={styles.infoIcon}>ℹ️</Text>
                   <Text style={styles.infoText}>
-                    Fazer refeições a cada {jejumTime.hours}h{jejumTime.minutes > 0 && `${jejumTime.minutes}min`}
+                    Fazer refeições a cada {jejumTime.hours}h
+                    {jejumTime.minutes > 0 && `${jejumTime.minutes}min`}
                   </Text>
                 </View>
               </View>
 
-              {/* Action Button */}
-              <TouchableOpacity 
+              {}
+              <TouchableOpacity
                 style={styles.startButton}
                 onPress={handleStartJejum}
               >
@@ -316,12 +333,12 @@ const carregarStatusJejum = async () => {
             </>
           )}
 
-          {/* Status do Jejum Ativo */}
+          {}
           {jejumStarted && (
             <>
               <View style={styles.sectionCard}>
                 <Text style={styles.sectionTitle}>Jejum em Andamento</Text>
-                
+
                 <View style={styles.clockContainer}>
                   <View style={styles.clockCircle}>
                     <Text style={styles.clockText}>⏰</Text>
@@ -337,13 +354,15 @@ const carregarStatusJejum = async () => {
                   <Text style={styles.nextMealIcon}>🍽️</Text>
                   <View style={styles.nextMealInfo}>
                     <Text style={styles.nextMealLabel}>Próxima Refeição:</Text>
-                    <Text style={styles.nextMealTime}>{horaProximaRefeicao}</Text>
+                    <Text style={styles.nextMealTime}>
+                      {horaProximaRefeicao}
+                    </Text>
                   </View>
                 </View>
               </View>
 
-              {/* Stop Button */}
-              <TouchableOpacity 
+              {}
+              <TouchableOpacity
                 style={styles.stopButton}
                 onPress={handleStopJejum}
               >
@@ -353,27 +372,35 @@ const carregarStatusJejum = async () => {
             </>
           )}
 
-          {/* Estatísticas/Info Card */}
+          {}
           <View style={styles.statsCard}>
-            <Text style={styles.statsTitle}>💡 Dicas sobre Jejum Intermitente</Text>
+            <Text style={styles.statsTitle}>
+              💡 Dicas sobre Jejum Intermitente
+            </Text>
             <View style={styles.tipItem}>
               <Text style={styles.tipIcon}>💧</Text>
-              <Text style={styles.tipText}>Mantenha-se hidratado durante o jejum</Text>
+              <Text style={styles.tipText}>
+                Mantenha-se hidratado durante o jejum
+              </Text>
             </View>
             <View style={styles.tipItem}>
               <Text style={styles.tipIcon}>⚠️</Text>
-              <Text style={styles.tipText}>Consulte seu nutricionista antes de iniciar</Text>
+              <Text style={styles.tipText}>
+                Consulte seu nutricionista antes de iniciar
+              </Text>
             </View>
             <View style={styles.tipItem}>
               <Text style={styles.tipIcon}>🎯</Text>
-              <Text style={styles.tipText}>Seja consistente com seus horários</Text>
+              <Text style={styles.tipText}>
+                Seja consistente com seus horários
+              </Text>
             </View>
           </View>
 
-          {/* Desativar Jejum */}
+          {}
           {termsAccepted && (
-            <TouchableOpacity 
-              onPress={handleDesativarJejum} 
+            <TouchableOpacity
+              onPress={handleDesativarJejum}
               style={styles.deactivateButton}
             >
               <Text style={styles.deactivateIcon}>🔒</Text>
@@ -387,7 +414,7 @@ const carregarStatusJejum = async () => {
         </View>
       </ScrollView>
 
-      {/* Modal de Parar Jejum */}
+      {}
       <Modal
         animationType="fade"
         transparent={true}
@@ -399,22 +426,22 @@ const carregarStatusJejum = async () => {
             <View style={styles.modalIcon}>
               <Text style={styles.modalIconText}>⏹️</Text>
             </View>
-            
+
             <Text style={styles.modalTitle}>Parar Jejum</Text>
-            
+
             <Text style={styles.termsText}>
               Deseja realmente parar o jejum? O contador será resetado.
             </Text>
 
             <View style={styles.modalButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.acceptButton, { backgroundColor: '#F44336' }]}
                 onPress={confirmarPararJejum}
               >
                 <Text style={styles.acceptButtonText}>Parar</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.declineButton}
                 onPress={() => setShowStopModal(false)}
               >
@@ -425,7 +452,7 @@ const carregarStatusJejum = async () => {
         </View>
       </Modal>
 
-      {/* Modal de Desativar Jejum */}
+      {}
       <Modal
         animationType="fade"
         transparent={true}
@@ -437,22 +464,23 @@ const carregarStatusJejum = async () => {
             <View style={styles.modalIcon}>
               <Text style={styles.modalIconText}>⚠️</Text>
             </View>
-            
+
             <Text style={styles.modalTitle}>Desativar Jejum</Text>
-            
+
             <Text style={styles.termsText}>
-              Deseja desativar completamente a funcionalidade de jejum? Você precisará aceitar os termos novamente para reativar.
+              Deseja desativar completamente a funcionalidade de jejum? Você
+              precisará aceitar os termos novamente para reativar.
             </Text>
 
             <View style={styles.modalButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.acceptButton, { backgroundColor: '#F44336' }]}
                 onPress={confirmarDesativarJejum}
               >
                 <Text style={styles.acceptButtonText}>Desativar</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.declineButton}
                 onPress={() => setShowDeactivateModal(false)}
               >
@@ -463,7 +491,7 @@ const carregarStatusJejum = async () => {
         </View>
       </Modal>
 
-      {/* Terms Modal */}
+      {}
       <Modal
         animationType="fade"
         transparent={true}
@@ -475,30 +503,34 @@ const carregarStatusJejum = async () => {
             <View style={styles.modalIcon}>
               <Text style={styles.modalIconText}>⚠️</Text>
             </View>
-            
+
             <Text style={styles.modalTitle}>Termo de Ciência</Text>
-            
-            <ScrollView style={styles.termsScroll} showsVerticalScrollIndicator={true}>
+
+            <ScrollView
+              style={styles.termsScroll}
+              showsVerticalScrollIndicator={true}
+            >
               <Text style={styles.termsText}>
-                A funcionalidade de jejum vem desativada por padrão, pois, se mal utilizada, pode gerar 
-                resultados indesejáveis. Por exemplo, o efeito sanfona.
+                A funcionalidade de jejum vem desativada por padrão, pois, se
+                mal utilizada, pode gerar resultados indesejáveis. Por exemplo,
+                o efeito sanfona.
               </Text>
               <Text style={styles.termsText}>
-                Antes de ativá-la, certifique-se de que o jejum foi recomendado por seu nutricionista 
-                e de que você está ciente de que a responsabilidade pelo uso da funcionalidade é 
-                inteiramente sua.
+                Antes de ativá-la, certifique-se de que o jejum foi recomendado
+                por seu nutricionista e de que você está ciente de que a
+                responsabilidade pelo uso da funcionalidade é inteiramente sua.
               </Text>
             </ScrollView>
 
             <View style={styles.modalButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.acceptButton}
                 onPress={handleAcceptTerms}
               >
                 <Text style={styles.acceptButtonText}>✓ Prosseguir</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.declineButton}
                 onPress={handleDeclineTerms}
               >

@@ -1,7 +1,14 @@
-
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Dimensions,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import api from '../components/api';
 
 const windowWidth = Dimensions.get('window').width;
@@ -19,39 +26,35 @@ export default function PerguntasEssenciais() {
   const router = useRouter();
   const [etapa, setEtapa] = useState(1);
   const [errorMessage, setErrorMessage] = useState('');
-  
-  // Estados para cada resposta
+
   const [sexo, setSexo] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
   const [altura, setAltura] = useState('');
   const [peso, setPeso] = useState('');
 
-  // Função para avançar de etapa
   const handleAvancar = () => {
     setErrorMessage('');
-    
-    // Validações por etapa
+
     if (etapa === 1 && !sexo) {
       setErrorMessage('Por favor, selecione seu sexo biológico');
       return;
     }
-    
+
     if (etapa === 2 && !dataNascimento) {
       setErrorMessage('Por favor, informe sua data de nascimento');
       return;
     }
-    
+
     if (etapa === 3 && (!altura || parseFloat(altura) <= 0)) {
       setErrorMessage('Por favor, informe uma altura válida');
       return;
     }
-    
+
     if (etapa === 4 && (!peso || parseFloat(peso) <= 0)) {
       setErrorMessage('Por favor, informe um peso válido');
       return;
     }
 
-    // Se for a última etapa, envia os dados
     if (etapa === 4) {
       enviarDados();
     } else {
@@ -62,8 +65,8 @@ export default function PerguntasEssenciais() {
   function formatarDataParaBanco(data: string): string {
     const partes = data.split('/');
     if (partes.length === 3) {
-        const [dia, mes, ano] = partes;
-        return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+      const [dia, mes, ano] = partes;
+      return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
     }
     return data;
   }
@@ -74,19 +77,19 @@ export default function PerguntasEssenciais() {
         sexo_biologico: sexo,
         data_nascimento: formatarDataParaBanco(dataNascimento),
         altura: altura,
-        peso: peso
+        peso: peso,
       });
 
       if (data?.mensagem) {
-        // Sucesso! Redireciona para as perguntas de perfil
         router.push('/perguntasPerfil');
       }
     } catch (error: any) {
-      setErrorMessage(error.message || 'Erro ao enviar dados. Tente novamente.');
+      setErrorMessage(
+        error.message || 'Erro ao enviar dados. Tente novamente.'
+      );
     }
   };
 
-  // Função para voltar
   const handleVoltar = () => {
     if (etapa > 1) {
       setEtapa(etapa - 1);
@@ -96,7 +99,7 @@ export default function PerguntasEssenciais() {
 
   return (
     <View style={styles.container}>
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -104,9 +107,11 @@ export default function PerguntasEssenciais() {
           {/* ETAPA 1: SEXO BIOLÓGICO */}
           {etapa === 1 && (
             <>
-              <Text style={styles.pergunta}>Qual é o seu{'\n'}sexo biológico?</Text>
-              
-              <Pressable 
+              <Text style={styles.pergunta}>
+                Qual é o seu{'\n'}sexo biológico?
+              </Text>
+
+              <Pressable
                 style={[styles.opcao, sexo === 'm' && styles.opcaoSelecionada]}
                 onPress={() => setSexo('m')}
               >
@@ -116,7 +121,7 @@ export default function PerguntasEssenciais() {
                 <Text style={styles.opcaoTexto}>Masculino 👨</Text>
               </Pressable>
 
-              <Pressable 
+              <Pressable
                 style={[styles.opcao, sexo === 'f' && styles.opcaoSelecionada]}
                 onPress={() => setSexo('f')}
               >
@@ -128,42 +133,45 @@ export default function PerguntasEssenciais() {
             </>
           )}
 
-          {/* ETAPA 2: DATA DE NASCIMENTO */}
+          {}
           {etapa === 2 && (
             <>
-              <Text style={styles.pergunta}>Qual é a sua{'\n'}data de nascimento?</Text>
-              
+              <Text style={styles.pergunta}>
+                Qual é a sua{'\n'}data de nascimento?
+              </Text>
+
               <TextInput
                 style={styles.input}
                 placeholder="DD/MM/AAAA"
                 placeholderTextColor="#747474"
                 value={dataNascimento}
-                onChangeText={(text) => {
-                  // Formata automaticamente DD/MM/YYYY
+                onChangeText={text => {
                   let formatted = text.replace(/\D/g, '');
                   if (formatted.length >= 2) {
-                    formatted = formatted.slice(0, 2) + '/' + formatted.slice(2);
+                    formatted =
+                      formatted.slice(0, 2) + '/' + formatted.slice(2);
                   }
                   if (formatted.length >= 5) {
-                    formatted = formatted.slice(0, 5) + '/' + formatted.slice(5, 9);
+                    formatted =
+                      formatted.slice(0, 5) + '/' + formatted.slice(5, 9);
                   }
                   setDataNascimento(formatted);
                 }}
                 keyboardType="numeric"
                 maxLength={10}
               />
-              
-              <Text style={styles.dica}>
-                💡 Exemplo: 15/03/1990
-              </Text>
+
+              <Text style={styles.dica}>💡 Exemplo: 15/03/1990</Text>
             </>
           )}
 
           {/* ETAPA 3: ALTURA */}
           {etapa === 3 && (
             <>
-              <Text style={styles.pergunta}>Qual é a sua{'\n'}altura em centímetros?</Text>
-              
+              <Text style={styles.pergunta}>
+                Qual é a sua{'\n'}altura em centímetros?
+              </Text>
+
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.inputNumero}
@@ -179,23 +187,25 @@ export default function PerguntasEssenciais() {
             </>
           )}
 
-          {/* ETAPA 4: PESO */}
+          {}
           {etapa === 4 && (
             <>
-              <Text style={styles.pergunta}>Qual é o seu{'\n'}peso em quilogramas?</Text>
-              
+              <Text style={styles.pergunta}>
+                Qual é o seu{'\n'}peso em quilogramas?
+              </Text>
+
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.inputNumero}
                   placeholder="70,5"
                   placeholderTextColor="#747474"
                   value={peso}
-                  onChangeText={(text) => {
+                  onChangeText={text => {
                     const pesoFormatado = text.replace(',', '.');
                     setPeso(pesoFormatado);
                   }}
                   keyboardType="decimal-pad"
-                  maxLength={6}  
+                  maxLength={6}
                 />
                 <Text style={styles.unidade}>kg</Text>
               </View>
@@ -212,9 +222,12 @@ export default function PerguntasEssenciais() {
                 <Text style={styles.botaoVoltarTexto}>← Voltar</Text>
               </Pressable>
             )}
-            
-            <Pressable 
-              style={[styles.botaoAvancar, etapa === 1 && styles.botaoAvancarFull]}
+
+            <Pressable
+              style={[
+                styles.botaoAvancar,
+                etapa === 1 && styles.botaoAvancarFull,
+              ]}
               onPress={handleAvancar}
             >
               <Text style={styles.botaoTexto}>
@@ -223,7 +236,7 @@ export default function PerguntasEssenciais() {
             </Pressable>
           </View>
 
-          {/* Indicador de progresso */}
+          {}
           <View style={styles.progressoContainer}>
             <View style={[styles.bolinha, etapa >= 1 && styles.bolinhaAtiva]} />
             <View style={[styles.bolinha, etapa >= 2 && styles.bolinhaAtiva]} />
@@ -243,10 +256,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',  // ✅ Centraliza verticalmente
+    justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 40,
-    minHeight: windowHeight,  // ✅ Garante altura mínima
+    minHeight: windowHeight,
   },
   formulario: {
     fontSize: 14,

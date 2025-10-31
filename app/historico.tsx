@@ -6,7 +6,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import api from '../components/api';
 
@@ -60,21 +60,21 @@ export default function HistoricoScreen() {
 
   const formatarTipoRefeicao = (tipo: string) => {
     const tipos = {
-      'cafe': 'Café da manhã',
-      'almoco': 'Almoço',
-      'janta': 'Jantar',
-      'lanche': 'Lanche'
+      cafe: 'Café da manhã',
+      almoco: 'Almoço',
+      janta: 'Jantar',
+      lanche: 'Lanche',
     };
     return tipos[tipo] || tipo;
   };
 
   const formatarSintoma = (sintoma: string) => {
     const sintomas = {
-      'nenhum': '✅ Sem sintomas',
-      'azia': '🔥 Azia',
-      'enjoo': '🤢 Enjoo',
-      'diarreia': '💧 Diarreia',
-      'dor_estomago': '😣 Dor de estômago'
+      nenhum: '✅ Sem sintomas',
+      azia: '🔥 Azia',
+      enjoo: '🤢 Enjoo',
+      diarreia: '💧 Diarreia',
+      dor_estomago: '😣 Dor de estômago',
     };
     return sintomas[sintoma] || sintoma;
   };
@@ -89,25 +89,25 @@ export default function HistoricoScreen() {
     let totalProteina = 0;
 
     alimentos.forEach(alimento => {
-        const calorias = parseFloat(alimento.energia_kcal);
-        const carbo = parseFloat(alimento.carboidrato_g);
-        const proteina = parseFloat(alimento.proteina_g);
-        
-        if (!isNaN(calorias)) totalCalorias += calorias;
-        if (!isNaN(carbo)) totalCarbo += carbo;
-        if (!isNaN(proteina)) totalProteina += proteina;
+      const calorias = parseFloat(alimento.energia_kcal);
+      const carbo = parseFloat(alimento.carboidrato_g);
+      const proteina = parseFloat(alimento.proteina_g);
+
+      if (!isNaN(calorias)) totalCalorias += calorias;
+      if (!isNaN(carbo)) totalCarbo += carbo;
+      if (!isNaN(proteina)) totalProteina += proteina;
     });
 
     return {
-        calorias: totalCalorias > 0 ? totalCalorias.toFixed(0) : '0',
-        carboidratos: totalCarbo > 0 ? totalCarbo.toFixed(1) : '0.0',
-        proteinas: totalProteina > 0 ? totalProteina.toFixed(1) : '0.0'
+      calorias: totalCalorias > 0 ? totalCalorias.toFixed(0) : '0',
+      carboidratos: totalCarbo > 0 ? totalCarbo.toFixed(1) : '0.0',
+      proteinas: totalProteina > 0 ? totalProteina.toFixed(1) : '0.0',
     };
-};
+  };
 
   const agruparPorData = () => {
     const grupos: { [key: string]: Refeicao[] } = {};
-    
+
     refeicoes.forEach(refeicao => {
       const data = refeicao.data_registro;
       if (!grupos[data]) {
@@ -133,7 +133,7 @@ export default function HistoricoScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
         >
@@ -152,26 +152,33 @@ export default function HistoricoScreen() {
           </Text>
         </View>
       ) : (
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           {Object.keys(grupos).map(data => (
             <View key={data} style={styles.dataGroup}>
               <View style={styles.dataHeader}>
-                <Text style={styles.dataText}>📅 Data: {formatarData(data)}</Text>
+                <Text style={styles.dataText}>
+                  📅 Data: {formatarData(data)}
+                </Text>
               </View>
 
-              {grupos[data].map((refeicao) => {
+              {grupos[data].map(refeicao => {
                 const totais = calcularTotais(refeicao.alimentos);
-                
+
                 return (
                   <View key={refeicao.refeicao_id} style={styles.refeicaoCard}>
                     <View style={styles.refeicaoHeader}>
                       <Text style={styles.refeicaoTipo}>
                         {formatarTipoRefeicao(refeicao.tipo_refeicao)}
                       </Text>
-                      <View style={[
-                        styles.sintomaTag,
-                        { backgroundColor: getCorSintoma(refeicao.sintoma) }
-                      ]}>
+                      <View
+                        style={[
+                          styles.sintomaTag,
+                          { backgroundColor: getCorSintoma(refeicao.sintoma) },
+                        ]}
+                      >
                         <Text style={styles.sintomaText}>
                           {formatarSintoma(refeicao.sintoma)}
                         </Text>
@@ -188,10 +195,11 @@ export default function HistoricoScreen() {
                             • {alimento.nome}
                           </Text>
                           <Text style={styles.alimentoKcal}>
-                            {!isNaN(parseFloat(alimento.energia_kcal)) 
-                                ? parseFloat(alimento.energia_kcal).toFixed(0) 
-                                : '0'} kcal
-                            </Text>
+                            {!isNaN(parseFloat(alimento.energia_kcal))
+                              ? parseFloat(alimento.energia_kcal).toFixed(0)
+                              : '0'}{' '}
+                            kcal
+                          </Text>
                         </View>
                       ))}
                     </View>
@@ -199,15 +207,21 @@ export default function HistoricoScreen() {
                     <View style={styles.totaisSection}>
                       <View style={styles.totalItem}>
                         <Text style={styles.totalLabel}>🔥 Calorias:</Text>
-                        <Text style={styles.totalValue}>{totais.calorias} kcal</Text>
+                        <Text style={styles.totalValue}>
+                          {totais.calorias} kcal
+                        </Text>
                       </View>
                       <View style={styles.totalItem}>
                         <Text style={styles.totalLabel}>🍞 Carboidratos:</Text>
-                        <Text style={styles.totalValue}>{totais.carboidratos}g</Text>
+                        <Text style={styles.totalValue}>
+                          {totais.carboidratos}g
+                        </Text>
                       </View>
                       <View style={styles.totalItem}>
                         <Text style={styles.totalLabel}>🥩 Proteínas:</Text>
-                        <Text style={styles.totalValue}>{totais.proteinas}g</Text>
+                        <Text style={styles.totalValue}>
+                          {totais.proteinas}g
+                        </Text>
                       </View>
                     </View>
                   </View>
@@ -242,12 +256,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 35,        // ✅ ADICIONAR
-    paddingBottom: 15,     // ✅ ADICIONAR
+    paddingTop: 35,
+    paddingBottom: 15,
     backgroundColor: '#4CAF50',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-},
+  },
   backButton: {
     width: 40,
     height: 40,
@@ -255,12 +269,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backButtonText: {
-    fontSize: 25,  // era 28, mude para 25
+    fontSize: 25,
     color: '#FFF',
     fontWeight: 'bold',
   },
   headerTitle: {
-    fontSize: 25,  // era 20, mude para 25
+    fontSize: 25,
     fontWeight: 'bold',
     color: '#FFF',
   },

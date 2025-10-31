@@ -124,7 +124,7 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
         $peso = floatval($data["peso"]);
         $usuarioId = (int)$usuario->id;
 
-        // 1️⃣ Buscar dados do usuário
+        // 1. Buscar dados do usuário
         $stmt = $pdo->prepare("SELECT altura, peso FROM usuarios WHERE id = :uid");
         $stmt->bindValue(':uid', $usuarioId, PDO::PARAM_INT);
         $stmt->execute();
@@ -134,14 +134,14 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
             enviarErro(404, "Altura não encontrada para o usuário.");
         }
 
-        // 2️⃣ Buscar última data do histórico
+        // 2. Buscar última data do histórico
         $stmt2 = $pdo->prepare("SELECT MAX(data_registro) as ultima_data FROM historico_peso WHERE usuario_id = :uid2");
         $stmt2->bindValue(':uid2', $usuarioId, PDO::PARAM_INT);
         $stmt2->execute();
         $resultadoData = $stmt2->fetch(PDO::FETCH_ASSOC);
         $ultimaDataRegistro = $resultadoData['ultima_data'] ?? null;
 
-        // 3️⃣ Verificar se pode atualizar (7 dias)
+        // 3. Verificar se pode atualizar (7 dias)
         if ($ultimaDataRegistro) {
             $ultimaData = new DateTime($ultimaDataRegistro);
             $hoje = new DateTime();
@@ -153,17 +153,17 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
             }
         }
 
-        // 4️⃣ Validação de peso zero
+        // 4. Validação de peso zero
         if ($dadosUsuario['peso'] > 0 && $peso == 0) {
             enviarErro(400, "Não é permitido registrar peso igual a 0 após já ter registrado um peso.");
         }
 
-        // 5️⃣ Calcular IMC
+        // 5. Calcular IMC
         $alturaCm = floatval($dadosUsuario['altura']);
         $alturaM = $alturaCm / 100;
         $imc = ($alturaM > 0) ? ($peso / ($alturaM * $alturaM)) : null;
 
-        // 6️⃣ Atualizar usuário
+        // 6. Atualizar usuário
         $stmt3 = $pdo->prepare("
             UPDATE usuarios
             SET peso = :p,
@@ -176,7 +176,7 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
         $stmt3->bindValue(':uid3', $usuarioId, PDO::PARAM_INT);
         $stmt3->execute();
 
-        // 7️⃣ Inserir no histórico
+        // 7. Inserir no histórico
         $stmt4 = $pdo->prepare("
             INSERT INTO historico_peso (usuario_id, peso, imc, data_registro)
             VALUES (:uid4, :p2, :i2, NOW())

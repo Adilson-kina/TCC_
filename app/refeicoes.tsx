@@ -9,7 +9,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import api from '../components/api';
 
@@ -27,15 +27,21 @@ export default function RefeicoesScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [salvando, setSalvando] = useState(false);
-  
-  const [alimentosPermitidos, setAlimentosPermitidos] = useState<Alimento[]>([]);
-  
+
+  const [alimentosPermitidos, setAlimentosPermitidos] = useState<Alimento[]>(
+    []
+  );
+
   const [modalVisivel, setModalVisivel] = useState(false);
   const [tipoRefeicaoSelecionado, setTipoRefeicaoSelecionado] = useState('');
-  const [alimentosSelecionados, setAlimentosSelecionados] = useState<number[]>([]);
+  const [alimentosSelecionados, setAlimentosSelecionados] = useState<number[]>(
+    []
+  );
   const [sintomaSelecionado, setSintomaSelecionado] = useState('nenhum');
   const [termoBusca, setTermoBusca] = useState('');
-  const [gramasPorAlimento, setGramasPorAlimento] = useState<{[key: number]: string}>({});
+  const [gramasPorAlimento, setGramasPorAlimento] = useState<{
+    [key: number]: string;
+  }>({});
 
   const tiposRefeicao = [
     { id: 'cafe', nome: 'Café da Manhã', emoji: '⛅', cor: '#FFE082' },
@@ -60,7 +66,7 @@ export default function RefeicoesScreen() {
     try {
       setLoading(true);
       const data = await api.get('/refeicoes.php');
-      
+
       if (data.alimentos) {
         setAlimentosPermitidos(data.alimentos);
       }
@@ -81,18 +87,15 @@ export default function RefeicoesScreen() {
     setModalVisivel(true);
   };
 
-  // LINHA ~90 - SUBSTITUIR:
   const toggleAlimento = (alimentoId: number) => {
     setAlimentosSelecionados(prev => {
       if (prev.includes(alimentoId)) {
-        // Remove alimento e suas gramas
-        const novasGramas = {...gramasPorAlimento};
+        const novasGramas = { ...gramasPorAlimento };
         delete novasGramas[alimentoId];
         setGramasPorAlimento(novasGramas);
         return prev.filter(id => id !== alimentoId);
       } else {
-        // Adiciona alimento com 100g padrão
-        setGramasPorAlimento(prev => ({...prev, [alimentoId]: '100'}));
+        setGramasPorAlimento(prev => ({ ...prev, [alimentoId]: '100' }));
         return [...prev, alimentoId];
       }
     });
@@ -106,16 +109,16 @@ export default function RefeicoesScreen() {
 
     try {
       setSalvando(true);
-      
+
       const alimentosFormatados = alimentosSelecionados.map(id => ({
         id,
-        gramas: parseInt(gramasPorAlimento[id] || '100')
+        gramas: parseInt(gramasPorAlimento[id] || '100'),
       }));
-      
+
       const data = await api.post('/refeicoes.php', {
         tipo_refeicao: tipoRefeicaoSelecionado,
         sintoma: sintomaSelecionado,
-        alimentos: alimentosFormatados
+        alimentos: alimentosFormatados,
       });
 
       if (data.mensagem) {
@@ -147,9 +150,9 @@ export default function RefeicoesScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header Verde */}
+      {}
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
         >
@@ -159,15 +162,22 @@ export default function RefeicoesScreen() {
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-
-        {tiposRefeicao.map((tipo) => (
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
+        {tiposRefeicao.map(tipo => (
           <TouchableOpacity
             key={tipo.id}
             style={[styles.refeicaoCard, { borderColor: tipo.cor }]}
             onPress={() => abrirModal(tipo.id)}
           >
-            <View style={[styles.refeicaoIconContainer, { backgroundColor: tipo.cor }]}>
+            <View
+              style={[
+                styles.refeicaoIconContainer,
+                { backgroundColor: tipo.cor },
+              ]}
+            >
               <Text style={styles.refeicaoEmoji}>{tipo.emoji}</Text>
             </View>
             <View style={styles.refeicaoInfo}>
@@ -191,7 +201,11 @@ export default function RefeicoesScreen() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                Registrar {tiposRefeicao.find(t => t.id === tipoRefeicaoSelecionado)?.nome}
+                Registrar{' '}
+                {
+                  tiposRefeicao.find(t => t.id === tipoRefeicaoSelecionado)
+                    ?.nome
+                }
               </Text>
               <TouchableOpacity onPress={() => setModalVisivel(false)}>
                 <Text style={styles.modalFechar}>✕</Text>
@@ -208,50 +222,60 @@ export default function RefeicoesScreen() {
             <Text style={styles.sectionLabel}>
               Alimentos ({alimentosSelecionados.length} selecionados)
             </Text>
-            <ScrollView style={styles.alimentosLista} showsVerticalScrollIndicator={true}>
+            <ScrollView
+              style={styles.alimentosLista}
+              showsVerticalScrollIndicator={true}
+            >
               {alimentosFiltrados.length > 0 ? (
-                alimentosFiltrados.map((alimento) => {
-                  const selecionado = alimentosSelecionados.includes(alimento.id);
+                alimentosFiltrados.map(alimento => {
+                  const selecionado = alimentosSelecionados.includes(
+                    alimento.id
+                  );
                   return (
                     <TouchableOpacity
                       key={alimento.id}
                       style={[
                         styles.alimentoItem,
-                        selecionado && styles.alimentoItemSelecionado
+                        selecionado && styles.alimentoItemSelecionado,
                       ]}
                       onPress={() => toggleAlimento(alimento.id)}
                     >
                       <View style={styles.alimentoInfo}>
                         <Text style={styles.alimentoNome}>{alimento.nome}</Text>
                         <Text style={styles.alimentoKcal}>
-                          {parseFloat(alimento.energia_kcal).toFixed(0)} Kcal/100g
+                          {parseFloat(alimento.energia_kcal).toFixed(0)}{' '}
+                          Kcal/100g
                         </Text>
-                        
+
                         {selecionado && (
                           <View style={styles.gramasContainer}>
-                            <Text style={styles.gramasLabel}>Quantidade (g):</Text>
+                            <Text style={styles.gramasLabel}>
+                              Quantidade (g):
+                            </Text>
                             <TextInput
                               style={styles.gramasInput}
                               value={gramasPorAlimento[alimento.id] || '100'}
-                              onChangeText={(text) => {
+                              onChangeText={text => {
                                 const numero = text.replace(/[^0-9]/g, '');
                                 setGramasPorAlimento(prev => ({
                                   ...prev,
-                                  [alimento.id]: numero
+                                  [alimento.id]: numero,
                                 }));
                               }}
                               keyboardType="numeric"
                               maxLength={5}
                               placeholder="100"
-                              onPressIn={(e) => e.stopPropagation()}
+                              onPressIn={e => e.stopPropagation()}
                             />
                           </View>
                         )}
                       </View>
-                      <View style={[
-                        styles.checkbox,
-                        selecionado && styles.checkboxSelected
-                      ]}>
+                      <View
+                        style={[
+                          styles.checkbox,
+                          selecionado && styles.checkboxSelected,
+                        ]}
+                      >
                         {selecionado && <Text style={styles.checkmark}>✓</Text>}
                       </View>
                     </TouchableOpacity>
@@ -260,7 +284,7 @@ export default function RefeicoesScreen() {
               ) : (
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyText}>
-                    {termoBusca 
+                    {termoBusca
                       ? 'Nenhum alimento encontrado'
                       : 'Digite para buscar alimentos'}
                   </Text>
@@ -269,21 +293,29 @@ export default function RefeicoesScreen() {
             </ScrollView>
 
             <Text style={styles.sectionLabel}>Sintoma após a refeição:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.sintomasContainer}>
-              {sintomas.map((sintoma) => (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.sintomasContainer}
+            >
+              {sintomas.map(sintoma => (
                 <TouchableOpacity
                   key={sintoma.id}
                   style={[
                     styles.sintomaChip,
-                    sintomaSelecionado === sintoma.id && styles.sintomaChipSelected
+                    sintomaSelecionado === sintoma.id &&
+                      styles.sintomaChipSelected,
                   ]}
                   onPress={() => setSintomaSelecionado(sintoma.id)}
                 >
                   <Text style={styles.sintomaEmoji}>{sintoma.emoji}</Text>
-                  <Text style={[
-                    styles.sintomaNome,
-                    sintomaSelecionado === sintoma.id && styles.sintomaTextSelected
-                  ]}>
+                  <Text
+                    style={[
+                      styles.sintomaNome,
+                      sintomaSelecionado === sintoma.id &&
+                        styles.sintomaTextSelected,
+                    ]}
+                  >
                     {sintoma.nome}
                   </Text>
                 </TouchableOpacity>
@@ -293,7 +325,8 @@ export default function RefeicoesScreen() {
             <TouchableOpacity
               style={[
                 styles.confirmarBtn,
-                alimentosSelecionados.length === 0 && styles.confirmarBtnDisabled
+                alimentosSelecionados.length === 0 &&
+                  styles.confirmarBtnDisabled,
               ]}
               onPress={registrarRefeicao}
               disabled={salvando || alimentosSelecionados.length === 0}
@@ -301,9 +334,7 @@ export default function RefeicoesScreen() {
               {salvando ? (
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
-                <Text style={styles.confirmarBtnText}>
-                  Registrar Refeição
-                </Text>
+                <Text style={styles.confirmarBtnText}>Registrar Refeição</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -339,8 +370,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 35, // aumentei para empurrar o conteúdo para baixo
-    paddingBottom: 15, // mantém o espaço embaixo
+    paddingTop: 35,
+    paddingBottom: 15,
     backgroundColor: '#4CAF50',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
@@ -351,7 +382,7 @@ const styles = StyleSheet.create({
     color: '#FFF',
   },
   headerSpacer: {
-    width: 40, // mesmo tamanho do botão para centralizar o título
+    width: 40,
   },
   headerSubtitle: {
     fontSize: 14,
@@ -584,5 +615,5 @@ const styles = StyleSheet.create({
     color: '#333',
     minWidth: 60,
     textAlign: 'center',
-  }
+  },
 });
