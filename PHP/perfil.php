@@ -135,8 +135,7 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
 
         // Buscar peso atual para calcular IMC
         $stmtPeso = $pdo->prepare("SELECT peso, peso_inicial FROM usuarios WHERE id = :id");
-        $stmtPeso->bindParam(":id", $usuario->id);
-        $stmtPeso->execute();
+        $stmtPeso->execute([":id" => $usuario->id]);
         $pesoData = $stmtPeso->fetch(PDO::FETCH_ASSOC);
         $peso = $pesoData["peso"] ?? $pesoData["peso_inicial"];
 
@@ -158,8 +157,7 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
         if (!empty($novaSenha)) {
             // Verificar senha atual
             $stmtVerifica = $pdo->prepare("SELECT senha FROM usuarios WHERE id = :id");
-            $stmtVerifica->bindParam(":id", $usuario->id);
-            $stmtVerifica->execute();
+            $stmtVerifica->execute([":id" => $usuario->id]);
             $senhaHash = $stmtVerifica->fetchColumn();
 
             if (!password_verify($senhaAtual, $senhaHash)) {
@@ -184,23 +182,31 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
             enviarErro(404, "Perguntas não encontradas para este usuário.");
         }
 
-        // 3. Atualizar tabela perguntas (tipo_dieta e disturbios)
+        // 3. Atualizar tabela perguntas (sempre atualiza ambos os campos)
         $precisaReprocessar = false;
 
-        // Sempre atualizar ambos os campos
-        $updatePerguntas = "UPDATE perguntas SET pergunta6_tipo_dieta = :tipo_dieta, pergunta8_disturbios = :disturbios WHERE id = :id";
-        $paramsPerguntas = [
-            ":tipo_dieta" => $tipoDieta ?? 'nenhuma',
-            ":disturbios" => $disturbios ?? 'nenhum',
-            ":id" => $perguntasId
-        ];
+        if ($tipoDieta !== null || $disturbios !== null) {
+            // Buscar valores atuais primeiro
+            $stmtAtual = $pdo->prepare("SELECT pergunta6_tipo_dieta, pergunta8_disturbios FROM perguntas WHERE id = :id");
+            $stmtAtual->execute([":id" => $perguntasId]);
+            $dadosAtuais = $stmtAtual->fetch(PDO::FETCH_ASSOC);
 
-        $precisaReprocessar = true;
+            $tipoDietaFinal = $tipoDieta ?? $dadosAtuais["pergunta6_tipo_dieta"] ?? 'nenhuma';
+            $disturbiosFinal = $disturbios ?? $dadosAtuais["pergunta8_disturbios"] ?? 'nenhum';
 
-        // Executar atualização das perguntas
-        $stmtPerguntas = $pdo->prepare($updatePerguntas);
-        $stmtPerguntas->execute($paramsPerguntas);
+            $updatePerguntas = "UPDATE perguntas SET pergunta6_tipo_dieta = :tipo_dieta, pergunta8_disturbios = :disturbios WHERE id = :id";
+            
+            $stmtPerguntas = $pdo->prepare($updatePerguntas);
+            $stmtPerguntas->execute([
+                ":tipo_dieta" => $tipoDietaFinal,
+                ":disturbios" => $disturbiosFinal,
+                ":id" => $perguntasId
+            ]);
 
+            $precisaReprocessar = true;
+        }
+
+        // 4. Reprocessar alimentos se necessário
         if ($precisaReprocessar) {
             require_once(__DIR__ . DIRECTORY_SEPARATOR . 'alimentos' . DIRECTORY_SEPARATOR . 'alimentos_filtros.php');
             
@@ -227,16 +233,20 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
                 }
             }
             
-            $pdo->prepare("
+            $stmtLimparDieta = $pdo->prepare("
                 DELETE FROM dieta 
                 WHERE usuario_id = :usuario_id 
                 AND alimento_id NOT IN (
-                    SELECT alimento_id FROM alimentos_permitidos WHERE usuario_id = :usuario_id
+                    SELECT alimento_id FROM alimentos_permitidos WHERE usuario_id = :usuario_id2
                 )
-            ")->execute([":usuario_id" => $usuario->id]);
+            ");
+            $stmtLimparDieta->execute([
+                ":usuario_id" => $usuario->id,
+                ":usuario_id2" => $usuario->id
+            ]);
         }
 
-        // 4. Buscar dados atualizados para retornar
+        // 5. Buscar dados atualizados para retornar
         $stmtRetorno = $pdo->prepare("
             SELECT 
                 u.nome,
@@ -250,8 +260,7 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
             JOIN perguntas p ON u.perguntas_id = p.id
             WHERE u.id = :id
         ");
-        $stmtRetorno->bindParam(":id", $usuario->id);
-        $stmtRetorno->execute();
+        $stmtRetorno->execute([":id" => $usuario->id]);
         $dadosAtualizados = $stmtRetorno->fetch(PDO::FETCH_ASSOC);
 
         enviarSucesso(200, [
