@@ -177,8 +177,7 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
 
         // 2. Buscar perguntas_id do usuário
         $stmtPerguntasId = $pdo->prepare("SELECT perguntas_id FROM usuarios WHERE id = :id");
-        $stmtPerguntasId->bindParam(":id", $usuario->id);
-        $stmtPerguntasId->execute();
+        $stmtPerguntasId->execute([":id" => $usuario->id]);
         $perguntasId = $stmtPerguntasId->fetchColumn();
 
         if (!$perguntasId) {
@@ -186,64 +185,55 @@ if ($_SERVER["REQUEST_METHOD"] === "PUT") {
         }
 
         // 3. Atualizar tabela perguntas (tipo_dieta e disturbios)
-        $updatePerguntas = "UPDATE perguntas SET ";
-        $paramsPerguntas = [":id" => $perguntasId];
-        $updates = [];
-
-        // Marcar se precisa reprocessar
         $precisaReprocessar = false;
 
-        if ($tipoDieta !== null) {
-            $updates[] = "pergunta6_tipo_dieta = :tipo_dieta";
-            $paramsPerguntas[":tipo_dieta"] = $tipoDieta;
-            $precisaReprocessar = true;
-        }
+        // Sempre atualizar ambos os campos
+        $updatePerguntas = "UPDATE perguntas SET pergunta6_tipo_dieta = :tipo_dieta, pergunta8_disturbios = :disturbios WHERE id = :id";
+        $paramsPerguntas = [
+            ":tipo_dieta" => $tipoDieta ?? 'nenhuma',
+            ":disturbios" => $disturbios ?? 'nenhum',
+            ":id" => $perguntasId
+        ];
 
-        if ($disturbios !== null) {
-            $updates[] = "pergunta8_disturbios = :disturbios";
-            $paramsPerguntas[":disturbios"] = $disturbios;
-            $precisaReprocessar = true;
-        }
+        $precisaReprocessar = true;
 
-        if (!empty($updates)) {
-            $updatePerguntas .= implode(", ", $updates) . " WHERE id = :id";
-            $stmtPerguntas = $pdo->prepare($updatePerguntas);
-            $stmtPerguntas->execute($paramsPerguntas);
+        // Executar atualização das perguntas
+        $stmtPerguntas = $pdo->prepare($updatePerguntas);
+        $stmtPerguntas->execute($paramsPerguntas);
+
+        if ($precisaReprocessar) {
+            require_once(__DIR__ . DIRECTORY_SEPARATOR . 'alimentos' . DIRECTORY_SEPARATOR . 'alimentos_filtros.php');
             
-            if ($precisaReprocessar) {
-                require_once(__DIR__ . DIRECTORY_SEPARATOR . 'alimentos' . DIRECTORY_SEPARATOR . 'alimentos_filtros.php');
-                
-                $stmtBusca = $pdo->prepare("SELECT pergunta6_tipo_dieta, pergunta8_disturbios FROM perguntas WHERE id = :id");
-                $stmtBusca->execute([":id" => $perguntasId]);
-                $dadosNovos = $stmtBusca->fetch(PDO::FETCH_ASSOC);
-                
-                $tipoDietaNova = strtolower($dadosNovos["pergunta6_tipo_dieta"] ?? 'nenhuma');
-                $disturbiosNovos = strtolower($dadosNovos["pergunta8_disturbios"] ?? 'nenhum');
-                
-                $condicoes = aplicarFiltros($tipoDietaNova, $disturbiosNovos);
-                $where = count($condicoes) ? "WHERE " . implode(" AND ", $condicoes) : "";
-                $query = "SELECT id FROM alimentos $where";
-                $stmtAlimentos = $pdo->query($query);
-                $alimentosNovos = $stmtAlimentos->fetchAll(PDO::FETCH_COLUMN);
-                
-                $stmtDeleteAntigos = $pdo->prepare("DELETE FROM alimentos_permitidos WHERE usuario_id = :usuario_id");
-                $stmtDeleteAntigos->execute([":usuario_id" => $usuario->id]);
-                
-                if (!empty($alimentosNovos)) {
-                    $stmtInsertNovo = $pdo->prepare("INSERT INTO alimentos_permitidos (usuario_id, alimento_id) VALUES (:usuario_id, :alimento_id)");
-                    foreach ($alimentosNovos as $alimentoId) {
-                        $stmtInsertNovo->execute([":usuario_id" => $usuario->id, ":alimento_id" => $alimentoId]);
-                    }
+            $stmtBusca = $pdo->prepare("SELECT pergunta6_tipo_dieta, pergunta8_disturbios FROM perguntas WHERE id = :id");
+            $stmtBusca->execute([":id" => $perguntasId]);
+            $dadosNovos = $stmtBusca->fetch(PDO::FETCH_ASSOC);
+            
+            $tipoDietaNova = strtolower($dadosNovos["pergunta6_tipo_dieta"] ?? 'nenhuma');
+            $disturbiosNovos = strtolower($dadosNovos["pergunta8_disturbios"] ?? 'nenhum');
+            
+            $condicoes = aplicarFiltros($tipoDietaNova, $disturbiosNovos);
+            $where = count($condicoes) ? "WHERE " . implode(" AND ", $condicoes) : "";
+            $query = "SELECT id FROM alimentos $where";
+            $stmtAlimentos = $pdo->query($query);
+            $alimentosNovos = $stmtAlimentos->fetchAll(PDO::FETCH_COLUMN);
+            
+            $stmtDeleteAntigos = $pdo->prepare("DELETE FROM alimentos_permitidos WHERE usuario_id = :usuario_id");
+            $stmtDeleteAntigos->execute([":usuario_id" => $usuario->id]);
+            
+            if (!empty($alimentosNovos)) {
+                $stmtInsertNovo = $pdo->prepare("INSERT INTO alimentos_permitidos (usuario_id, alimento_id) VALUES (:usuario_id, :alimento_id)");
+                foreach ($alimentosNovos as $alimentoId) {
+                    $stmtInsertNovo->execute([":usuario_id" => $usuario->id, ":alimento_id" => $alimentoId]);
                 }
-                
-                $pdo->prepare("
-                    DELETE FROM dieta 
-                    WHERE usuario_id = :usuario_id 
-                    AND alimento_id NOT IN (
-                        SELECT alimento_id FROM alimentos_permitidos WHERE usuario_id = :usuario_id
-                    )
-                ")->execute([":usuario_id" => $usuario->id]);
             }
+            
+            $pdo->prepare("
+                DELETE FROM dieta 
+                WHERE usuario_id = :usuario_id 
+                AND alimento_id NOT IN (
+                    SELECT alimento_id FROM alimentos_permitidos WHERE usuario_id = :usuario_id
+                )
+            ")->execute([":usuario_id" => $usuario->id]);
         }
 
         // 4. Buscar dados atualizados para retornar

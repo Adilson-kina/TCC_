@@ -40,7 +40,7 @@ try {
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
 
     $stmtAlimentos = $pdo->prepare("
-        SELECT ra.refeicao_id, a.id, a.nome, a.energia_kcal, a.carboidrato_g, a.proteina_g
+        SELECT ra.refeicao_id, a.id, a.nome, a.energia_kcal, a.carboidrato_g, a.proteina_g, ra.gramas
         FROM refeicoes_alimentos ra
         JOIN alimentos a ON a.id = ra.alimento_id
         WHERE ra.refeicao_id IN ($placeholders)

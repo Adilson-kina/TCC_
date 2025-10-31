@@ -16,6 +16,7 @@ interface Alimento {
   energia_kcal: string;
   carboidrato_g: string;
   proteina_g: string;
+  gramas: number; 
 }
 
 interface Refeicao {
@@ -89,9 +90,12 @@ export default function HistoricoScreen() {
     let totalProteina = 0;
 
     alimentos.forEach(alimento => {
-      const calorias = parseFloat(alimento.energia_kcal);
-      const carbo = parseFloat(alimento.carboidrato_g);
-      const proteina = parseFloat(alimento.proteina_g);
+      const gramas = alimento.gramas || 100;
+      const fator = gramas / 100;
+
+      const calorias = parseFloat(alimento.energia_kcal) * fator;
+      const carbo = parseFloat(alimento.carboidrato_g) * fator;
+      const proteina = parseFloat(alimento.proteina_g) * fator;
 
       if (!isNaN(calorias)) totalCalorias += calorias;
       if (!isNaN(carbo)) totalCarbo += carbo;
@@ -189,19 +193,23 @@ export default function HistoricoScreen() {
                       <Text style={styles.alimentosTitle}>
                         🍽️ Alimentos ({refeicao.alimentos.length}):
                       </Text>
-                      {refeicao.alimentos.map((alimento, index) => (
-                        <View key={alimento.id} style={styles.alimentoRow}>
-                          <Text style={styles.alimentoNome}>
-                            • {alimento.nome}
-                          </Text>
-                          <Text style={styles.alimentoKcal}>
-                            {!isNaN(parseFloat(alimento.energia_kcal))
-                              ? parseFloat(alimento.energia_kcal).toFixed(0)
-                              : '0'}{' '}
-                            kcal
-                          </Text>
-                        </View>
-                      ))}
+                      {refeicao.alimentos.map((alimento, index) => {
+                        const gramas = alimento.gramas || 100;
+                        const fator = gramas / 100;
+                        const caloriasAjustadas = parseFloat(alimento.energia_kcal) * fator;
+
+                        return (
+                          <View key={alimento.id} style={styles.alimentoRow}>
+                            <Text style={styles.alimentoNome}>
+                              • {alimento.nome}{' '}
+                              <Text style={styles.alimentoGramas}>({gramas}g)</Text>
+                            </Text>
+                            <Text style={styles.alimentoKcal}>
+                              {!isNaN(caloriasAjustadas) ? caloriasAjustadas.toFixed(0) : '0'} kcal
+                            </Text>
+                          </View>
+                        );
+                      })}
                     </View>
 
                     <View style={styles.totaisSection}>
@@ -238,6 +246,29 @@ export default function HistoricoScreen() {
 }
 
 const styles = StyleSheet.create({
+  alimentoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  alimentoNome: {
+    fontSize: 13,
+    color: '#555',
+    flex: 1,
+    marginRight: 10,
+  },
+  alimentoGramas: {
+    fontSize: 11,
+    color: '#999',
+    fontStyle: 'italic',
+    fontWeight: 'normal',
+  },
+  alimentoKcal: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '600',
+  },
   container: {
     flex: 1,
     backgroundColor: '#E8F5E9',
