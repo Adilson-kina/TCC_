@@ -243,9 +243,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: 'center',  // ✅ Centraliza verticalmente
     alignItems: 'center',
     paddingVertical: 40,
+    minHeight: windowHeight,  // ✅ Garante altura mínima
   },
   formulario: {
     fontSize: 14,

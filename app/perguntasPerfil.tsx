@@ -169,7 +169,7 @@ export default function PerguntasPerfil() {
   return (
     <View style={styles.container}>
       <ScrollView 
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: 150 }]}
+        contentContainerStyle={[styles.scrollContent]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.card}>
@@ -552,7 +552,7 @@ export default function PerguntasPerfil() {
             <>
               <Text style={styles.pergunta}>Você possui alguma{'\n'}doença ou restrição{'\n'}alimentar?</Text>
               <Text style={styles.dica}>
-                💡 Selecione todas que se aplicam
+                💡 Selecione todas que se aplicam (ou nenhuma)
               </Text>
               
               <ScrollView style={styles.scrollOpcoes}>
@@ -672,7 +672,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: '#333',
   },
-
   alertBox: {
     backgroundColor: '#FFF9C4',
     padding: 15,
@@ -681,15 +680,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FBC02D',
   },
-
   destaque: {
     fontWeight: 'bold',
     color: '#D32F2F',
   },
   alertTitulo: {
-    fontSize: 16,  // adicione isso
-    fontWeight: 'bold',  // adicione isso
-    marginBottom: 8,  // adicione isso para dar espaço
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
     color: '#333',
   },
   container: {
@@ -710,35 +708,34 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#ecfcec',
-    width: widthPercent(90),  // era 85
+    width: widthPercent(90),
     borderRadius: 20,
-    padding: 20,  // era 30
+    padding: 20,
     elevation: 5,
-    maxHeight: heightPercent(80),
   },
   pergunta: {
-    fontSize: 20,  // era 24
+    fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#000000',
-    marginBottom: 25,  // era 30
-    lineHeight: 28,  // era 32
+    marginBottom: 25,
+    lineHeight: 28,
   },
   pesoDestaque: {
     fontWeight: 'bold',
-    color: '#007912',  // verde do app
+    color: '#007912',
   },
   scrollOpcoes: {
     maxHeight: heightPercent(40),
-    paddingRight: 5,  // adicione isso para dar espaço para o scroll
+    paddingRight: 5,
   },
   opcao: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'white',
-    padding: 15,  // era 18
+    padding: 15,
     borderRadius: 15,
-    marginBottom: 12,  // era 15
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -783,7 +780,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
   },
   opcaoTexto: {
-    fontSize: 16,  // era 18
+    fontSize: 16,
     color: '#333',
     fontWeight: '500',
     flex: 1,
@@ -829,6 +826,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 1,
     borderColor: '#FBC02D',
+  },
+  infoBoxFixo: {
+    marginTop: 15,  // ✅ Adiciona espaço fixo acima
   },
   infoTexto: {
     fontSize: 14,

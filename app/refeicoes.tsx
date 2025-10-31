@@ -35,6 +35,7 @@ export default function RefeicoesScreen() {
   const [alimentosSelecionados, setAlimentosSelecionados] = useState<number[]>([]);
   const [sintomaSelecionado, setSintomaSelecionado] = useState('nenhum');
   const [termoBusca, setTermoBusca] = useState('');
+  const [gramasPorAlimento, setGramasPorAlimento] = useState<{[key: number]: string}>({});
 
   const tiposRefeicao = [
     { id: 'cafe', nome: 'Café da Manhã', emoji: '⛅', cor: '#FFE082' },
@@ -76,14 +77,22 @@ export default function RefeicoesScreen() {
     setAlimentosSelecionados([]);
     setSintomaSelecionado('nenhum');
     setTermoBusca('');
+    setGramasPorAlimento({});
     setModalVisivel(true);
   };
 
+  // LINHA ~90 - SUBSTITUIR:
   const toggleAlimento = (alimentoId: number) => {
     setAlimentosSelecionados(prev => {
       if (prev.includes(alimentoId)) {
+        // Remove alimento e suas gramas
+        const novasGramas = {...gramasPorAlimento};
+        delete novasGramas[alimentoId];
+        setGramasPorAlimento(novasGramas);
         return prev.filter(id => id !== alimentoId);
       } else {
+        // Adiciona alimento com 100g padrão
+        setGramasPorAlimento(prev => ({...prev, [alimentoId]: '100'}));
         return [...prev, alimentoId];
       }
     });
@@ -98,7 +107,10 @@ export default function RefeicoesScreen() {
     try {
       setSalvando(true);
       
-      const alimentosFormatados = alimentosSelecionados.map(id => ({ id }));
+      const alimentosFormatados = alimentosSelecionados.map(id => ({
+        id,
+        gramas: parseInt(gramasPorAlimento[id] || '100')
+      }));
       
       const data = await api.post('/refeicoes.php', {
         tipo_refeicao: tipoRefeicaoSelecionado,
@@ -214,6 +226,27 @@ export default function RefeicoesScreen() {
                         <Text style={styles.alimentoKcal}>
                           {parseFloat(alimento.energia_kcal).toFixed(0)} Kcal/100g
                         </Text>
+                        
+                        {selecionado && (
+                          <View style={styles.gramasContainer}>
+                            <Text style={styles.gramasLabel}>Quantidade (g):</Text>
+                            <TextInput
+                              style={styles.gramasInput}
+                              value={gramasPorAlimento[alimento.id] || '100'}
+                              onChangeText={(text) => {
+                                const numero = text.replace(/[^0-9]/g, '');
+                                setGramasPorAlimento(prev => ({
+                                  ...prev,
+                                  [alimento.id]: numero
+                                }));
+                              }}
+                              keyboardType="numeric"
+                              maxLength={5}
+                              placeholder="100"
+                              onPressIn={(e) => e.stopPropagation()}
+                            />
+                          </View>
+                        )}
                       </View>
                       <View style={[
                         styles.checkbox,
@@ -526,4 +559,30 @@ const styles = StyleSheet.create({
   bottomPadding: {
     height: 30,
   },
+  gramasContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  gramasLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginRight: 8,
+  },
+  gramasInput: {
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+    minWidth: 60,
+    textAlign: 'center',
+  }
 });

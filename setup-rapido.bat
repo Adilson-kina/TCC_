@@ -32,14 +32,6 @@ IF %ERRORLEVEL% NEQ 0 (
     echo [OK] Pacotes NPM instalados.
 )
 
-:erro
-echo.
-echo ================================
-echo HOUVE UM ERRO. ENCERRANDO SETUP...
-echo ================================
-pause
-exit /b
-
 echo.
 echo ================================
 echo (3) Iniciando o servidor do NPM...
@@ -47,4 +39,12 @@ echo ================================
 
 call npm start
 
+exit /b
+
+:erro
+echo.
+echo ================================
+echo HOUVE UM ERRO. ENCERRANDO SETUP...
+echo ================================
+pause
 exit /b

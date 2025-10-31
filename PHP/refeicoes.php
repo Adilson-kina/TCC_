@@ -82,23 +82,25 @@ try {
 
     // 3. Associar alimentos
     $stmtAlimento = $pdo->prepare("
-        INSERT INTO refeicoes_alimentos (refeicao_id, alimento_id)
-        VALUES (:refeicao_id, :alimento_id)
+        INSERT INTO refeicoes_alimentos (refeicao_id, alimento_id, gramas)
+        VALUES (:refeicao_id, :alimento_id, :gramas)
     ");
 
     foreach ($alimentos as $item) {
         $alimentoId = $item["id"] ?? null;
+        $gramas = $item["gramas"] ?? 100;
         
         if ($alimentoId) {
             $stmtAlimento->bindParam(":refeicao_id", $refeicaoId);
             $stmtAlimento->bindParam(":alimento_id", $alimentoId);
+            $stmtAlimento->bindParam(":gramas", $gramas);
             $stmtAlimento->execute();
         }
     }
 
     // 4. Buscar detalhes da refeição registrada
     $stmtDetalhes = $pdo->prepare("
-        SELECT a.id, a.nome, a.energia_kcal, a.carboidrato_g, a.proteina_g, a.lipideos_g
+        SELECT a.id, a.nome, a.energia_kcal, a.carboidrato_g, a.proteina_g, a.lipideos_g, ra.gramas
         FROM refeicoes_alimentos ra
         JOIN alimentos a ON a.id = ra.alimento_id
         WHERE ra.refeicao_id = :refeicao_id
@@ -113,10 +115,11 @@ try {
     $totalGordura = 0;
 
     foreach ($alimentosDetalhes as $alimento) {
-        $totalCalorias += floatval($alimento["energia_kcal"]);
-        $totalCarbo += floatval($alimento["carboidrato_g"]);
-        $totalProteina += floatval($alimento["proteina_g"]);
-        $totalGordura += floatval($alimento["lipideos_g"]);
+        $fatorGramas = floatval($alimento["gramas"]) / 100;
+        $totalCalorias += floatval($alimento["energia_kcal"]) * $fatorGramas;
+        $totalCarbo += floatval($alimento["carboidrato_g"]) * $fatorGramas;
+        $totalProteina += floatval($alimento["proteina_g"]) * $fatorGramas;
+        $totalGordura += floatval($alimento["lipideos_g"]) * $fatorGramas;
     }
 
     enviarSucesso(201, [

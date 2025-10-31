@@ -17,7 +17,6 @@ export default function Home() {
   const [tempoRestanteJejum, setTempoRestanteJejum] = useState('--:--:--');
   const logo = require('./img/logo_icon.png');
   
-  // Estados para os dados da API
   const [dadosInicio, setDadosInicio] = useState({
     dieta: {
       meta: '',
@@ -28,7 +27,8 @@ export default function Home() {
       passos: 0,
       calorias_gastas: 0
     },
-    ultima_refeicao: null
+    ultima_refeicao: null,
+    historico_calorias: []
   });
 
   const preSelectedImages = [
@@ -198,6 +198,18 @@ export default function Home() {
       if (data?.mensagem) {
         setDadosInicio(data);
       }
+
+      try {
+        const historicoCalorias = await api.get('/calorias/calorias_historico.php', false);
+        if (historicoCalorias?.dados) {
+          setDadosInicio(prev => ({
+            ...prev,
+            historico_calorias: historicoCalorias.dados
+          }));
+        }
+      } catch (error) {
+        console.error('Erro ao carregar histórico calorias:', error);
+      }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {
@@ -295,11 +307,8 @@ export default function Home() {
     return '📈 Continue assim!';
   };
 
-  const MiniGraficoCircular = ({ consumidas, gastas }) => {
-    // Verificar se há dados
-    const temDados = consumidas > 0 || gastas > 0;
-    
-    if (!temDados) {
+  const MiniGraficoLinhaHome = ({ historico }) => {
+    if (!historico || historico.length === 0) {
       return (
         <View style={styles.miniGraficoContainer}>
           <View style={styles.semDadosCirculo}>
@@ -310,32 +319,87 @@ export default function Home() {
         </View>
       );
     }
-    
-    const total = consumidas + gastas;
-    const percentualConsumidas = (consumidas / total) * 100;
-    const anguloConsumidas = (percentualConsumidas / 100) * 360;
+
+    const pesos = historico.map(h => parseFloat(h.saldo_calorico));
+    const maxPeso = Math.max(...pesos);
+    const minPeso = Math.min(...pesos);
+    const range = maxPeso - minPeso || 1;
+
+    const graphHeight = 60;
+    const graphWidth = 100;
+    const pointSpacing = historico.length > 1 ? graphWidth / (historico.length - 1) : 0;
 
     return (
       <View style={styles.miniGraficoContainer}>
-        <View style={[styles.miniCirculo, {
-          borderTopColor: anguloConsumidas >= 90 ? '#3b82f6' : '#10b981',
-          borderRightColor: anguloConsumidas >= 180 ? '#3b82f6' : '#10b981',
-          borderBottomColor: anguloConsumidas >= 270 ? '#3b82f6' : '#10b981',
-          borderLeftColor: '#3b82f6',
-        }]}>
-          <Text style={styles.miniCirculoTexto}>{Math.round(percentualConsumidas)}%</Text>
+        <View style={{ width: graphWidth, height: graphHeight, position: 'relative' }}>
+          {/* Linha zero */}
+          <View style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: graphHeight / 2,
+            height: 1,
+            backgroundColor: '#E0E0E0',
+          }} />
+
+          {/* Linhas do gráfico */}
+          {historico.map((item, index) => {
+            if (index === 0) return null;
+            
+            const prevPeso = parseFloat(historico[index - 1].saldo_calorico);
+            const currPeso = parseFloat(item.saldo_calorico);
+            
+            const prevY = (graphHeight / 2) - ((prevPeso / range) * (graphHeight / 3));
+            const currY = (graphHeight / 2) - ((currPeso / range) * (graphHeight / 3));
+            
+            const prevX = (index - 1) * pointSpacing;
+            const currX = index * pointSpacing;
+            
+            const angle = Math.atan2(currY - prevY, currX - prevX) * (180 / Math.PI);
+            const length = Math.sqrt(Math.pow(currX - prevX, 2) + Math.pow(currY - prevY, 2));
+            
+            return (
+              <View
+                key={`line-${index}`}
+                style={{
+                  position: 'absolute',
+                  width: length,
+                  height: 2,
+                  backgroundColor: '#3b82f6',
+                  left: prevX,
+                  top: prevY,
+                  transform: [{ rotate: `${angle}deg` }],
+                  transformOrigin: 'left center'
+                }}
+              />
+            );
+          })}
+
+          {/* Pontos */}
+          {historico.map((item, index) => {
+            const peso = parseFloat(item.saldo_calorico);
+            const y = (graphHeight / 2) - ((peso / range) * (graphHeight / 3));
+            const x = index * pointSpacing;
+            
+            return (
+              <View 
+                key={`point-${index}`}
+                style={{
+                  position: 'absolute',
+                  width: 6,
+                  height: 6,
+                  borderRadius: 3,
+                  backgroundColor: '#3b82f6',
+                  borderWidth: 1,
+                  borderColor: '#FFF',
+                  left: x - 3,
+                  top: y - 3
+                }}
+              />
+            );
+          })}
         </View>
-        
-        <View style={styles.miniLegenda}>
-          <View style={styles.miniLegendaItem}>
-            <View style={[styles.miniLegendaBola, { backgroundColor: '#3b82f6' }]} />
-            <Text style={styles.miniLegendaTexto}>Consumidas</Text>
-          </View>
-          <View style={styles.miniLegendaItem}>
-            <View style={[styles.miniLegendaBola, { backgroundColor: '#10b981' }]} />
-            <Text style={styles.miniLegendaTexto}>Gastas</Text>
-          </View>
-        </View>
+        <Text style={styles.miniLegendaTexto}>Últimos 7 dias</Text>
       </View>
     );
   };
@@ -580,11 +644,7 @@ export default function Home() {
               <Text style={styles.cardTitle}>Calorias</Text>
             </View>
             
-            {/* Gráfico Circular Mini */}
-            <MiniGraficoCircular 
-              consumidas={dadosInicio.atividade.calorias_ingeridas || 0}
-              gastas={dadosInicio.atividade.calorias_gastas || 0}
-            />
+            <MiniGraficoLinhaHome historico={dadosInicio.historico_calorias || []} />
             
             <View style={styles.calorieInfo}>
               {/* Passos */}
@@ -1472,8 +1532,9 @@ jejumDisabledSubtext: {
   miniLegendaTexto: {
     fontSize: 9,
     color: '#666',
+    marginTop: 4,
+    textAlign: 'center',
   },
-  // Estilos para dados vazios
   semDadosCirculo: {
     width: 80,
     height: 80,

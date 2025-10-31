@@ -30,12 +30,13 @@ export default function EditarPerfil() {
   const [confirmarSenha, setConfirmarSenha] = useState('');
   
   const [tipoDieta, setTipoDieta] = useState('');
-  const [disturbios, setDisturbios] = useState({
+    const [disturbios, setDisturbios] = useState({
     celíaca: false,
     diabetes: false,
     hipercolesterolemia: false,
     hipertensão: false,
-    sii: false
+    sii: false,
+    intolerancia_lactose: false  // ← ADICIONAR
   });
 
   const [mostrarModalDeletar, setMostrarModalDeletar] = useState(false);
@@ -71,23 +72,36 @@ export default function EditarPerfil() {
         setNome(data.nome);
         setDataNascimento(formatarDataParaExibicao(data.data_nascimento));
         setAltura(data.altura.toString());
-        setTipoDieta(data.tipo_dieta || 'nenhuma');
+        
+        // ✅ CORRIGIDO: Garantir que sempre tenha um valor, mesmo se vier vazio
+        const tipoDietaRecebido = data.tipo_dieta || 'nenhuma';
+        setTipoDieta(tipoDietaRecebido.toLowerCase());
         
         // Parsear distúrbios
-        if (data.disturbios) {
+        if (data.disturbios && data.disturbios.toLowerCase() !== 'nenhum') {
           const disturbiosArray = data.disturbios.split(',').map(d => d.trim().toLowerCase());
+          
           setDisturbios({
-            celíaca: disturbiosArray.includes('celíaca'),
+            celíaca: disturbiosArray.includes('celíaca') || disturbiosArray.includes('celiaca'),
             diabetes: disturbiosArray.includes('diabetes'),
             hipercolesterolemia: disturbiosArray.includes('hipercolesterolemia'),
-            hipertensão: disturbiosArray.includes('hipertensão'),
-            sii: disturbiosArray.includes('sii')
+            hipertensão: disturbiosArray.includes('hipertensão') || disturbiosArray.includes('hipertensao'),
+            sii: disturbiosArray.includes('sii') || disturbiosArray.includes('síndrome do intestino irritável'),
+            intolerancia_lactose: disturbiosArray.includes('intolerância à lactose') || disturbiosArray.includes('intolerancia_lactose') || disturbiosArray.includes('intolerancia à lactose')
+          });
+        } else {
+          setDisturbios({
+            celíaca: false,
+            diabetes: false,
+            hipercolesterolemia: false,
+            hipertensão: false,
+            sii: false,
+            intolerancia_lactose: false
           });
         }
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
-      // O Alert já é mostrado pelo api.tsx
     } finally {
       setLoading(false);
     }
@@ -125,20 +139,6 @@ export default function EditarPerfil() {
       return;
     }
 
-    // Validar que pelo menos um distúrbio foi selecionado ou explicitamente nenhum
-    const algumDisturbioSelecionado = Object.values(disturbios).some(d => d === true);
-    if (!algumDisturbioSelecionado) {
-      Alert.alert(
-        'Atenção', 
-        'Você não selecionou nenhum distúrbio/doença. Deseja continuar?',
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Continuar', onPress: () => continuarSalvamento() }
-        ]
-      );
-      return;
-    }
-
     await continuarSalvamento();
   };
 
@@ -162,9 +162,19 @@ export default function EditarPerfil() {
     try {
       setSalvando(true);
 
+      const mapeamentoNomes = {
+        'celíaca': 'celíaca',
+        'diabetes': 'diabetes',
+        'hipercolesterolemia': 'hipercolesterolemia',
+        'hipertensão': 'hipertensão',
+        'sii': 'sii',
+        'intolerancia_lactose': 'intolerância à lactose'
+      };
+
       // Montar array de distúrbios selecionados
       const disturbiosSelecionados = Object.keys(disturbios)
         .filter(key => disturbios[key])
+        .map(key => mapeamentoNomes[key] || key)
         .join(', ');
 
       const body = {
@@ -185,7 +195,6 @@ export default function EditarPerfil() {
       }
     } catch (error) {
       console.error('Erro ao salvar:', error);
-      // O Alert já é mostrado pelo api.tsx
     } finally {
       setSalvando(false);
     }
@@ -200,22 +209,19 @@ export default function EditarPerfil() {
     try {
       setDeletando(true);
 
-      try {
-        await api.delete('/perfil.php', { senha: senhaConfirmarDelete });
-      } catch (error) {
-        // Ignora erro de resposta vazia, pois a conta foi deletada
-        console.log('Conta deletada (ignorando erro de resposta)');
-      }
-
+      const data = await api.delete('/perfil.php', { senha: senhaConfirmarDelete });
+      
+      // Se chegou aqui, deu sucesso
       await AsyncStorage.clear();
+      setMostrarModalDeletar(false);
+      
       Alert.alert('Conta Deletada', 'Sua conta foi removida com sucesso', [
         { text: 'OK', onPress: () => router.replace('/') }
       ]);
-    } catch (error) {
-      console.error('Erro ao deletar conta:', error);
-    } finally {
+    } catch (error: any) {
+      // Erro real (senha errada, etc)
       setDeletando(false);
-      setMostrarModalDeletar(false);
+      Alert.alert('Erro', error.message || 'Não foi possível deletar a conta');
     }
   };
 
@@ -299,7 +305,17 @@ export default function EditarPerfil() {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Distúrbios/Doenças</Text>
           
-          {Object.keys(disturbios).map((key) => (
+          {Object.keys(disturbios).map((key) => {
+          const nomesFormatados = {
+            'celíaca': 'Celíaca',
+            'diabetes': 'Diabetes',
+            'hipercolesterolemia': 'Hipercolesterolemia',
+            'hipertensão': 'Hipertensão',
+            'sii': 'SII',
+            'intolerancia_lactose': 'Intolerância à Lactose'
+          };
+          
+          return (
             <TouchableOpacity
               key={key}
               style={styles.checkboxOption}
@@ -312,12 +328,11 @@ export default function EditarPerfil() {
                 {disturbios[key] && <Text style={styles.checkmark}>✓</Text>}
               </View>
               <Text style={styles.checkboxText}>
-                <Text style={styles.checkboxText}>
-                  {key === 'sii' ? 'SII' : key.charAt(0).toUpperCase() + key.slice(1)}
-                </Text>
+                {nomesFormatados[key] || key}
               </Text>
             </TouchableOpacity>
-          ))}
+          );
+        })}
         </View>
 
         <View style={styles.card}>

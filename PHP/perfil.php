@@ -95,14 +95,15 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         }
 
         enviarSucesso(200, [
-            "mensagem" => "Dados do perfil carregados com sucesso!",
+        "mensagem" => "Dados do perfil carregados com sucesso!",
             "nome" => $dados["nome"],
             "altura" => $dados["altura"],
             "peso" => $dados["peso"],
             "imc" => $dados["imc"],
             "idade" => $idade,
             "data_nascimento" => $dados["data_nascimento"],
-            "tipo_dieta" => $tipoDieta,
+            "tipo_dieta" => $dados["pergunta6_tipo_dieta"], 
+            "disturbios" => $dados["pergunta8_disturbios"], 
             "restricoes_alimentares" => $restricoesAlimentares
         ]);
     } catch (PDOException $e) {
@@ -298,9 +299,8 @@ if ($_SERVER["REQUEST_METHOD"] === "DELETE") {
         $stmt->bindParam(":id", $usuario->id);
         $stmt->execute();
 
-        enviarSucesso(204, [
-            "mensagem" => "Conta desativada com sucesso!"
-        ]);
+        http_response_code(204);
+        exit();
     } catch (PDOException $e) {
         enviarErro(500, "Erro ao desativar conta: " . $e->getMessage());
     }
